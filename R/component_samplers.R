@@ -9,6 +9,7 @@
 #' @param obs_sigma_t2 the \code{T x 1} vector of observation error variances
 #' @param evol_sigma_t2 the \code{T x 1} vector of evolution error variances
 #' @param D the degree of differencing (one or two)
+#' @param loc_obs list of the row and column indices to fill in a band-sparse matrix
 #' @param chol0 (optional) the \code{m x m} matrix of initial Cholesky factorization;
 #' if NULL, use the \code{Matrix} package for sampling, otherwise use the \code{spam} package
 #' @return \code{T x 1} vector of simulated states
@@ -16,6 +17,7 @@
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 #'
 #' @examples
+#' \dontrun{
 #' # Simulate some data:
 #' T = 1000
 #' y = seq(0, 10, length.out = T) + rnorm(T)
@@ -27,11 +29,12 @@
 #' # Simulate one draw of the states:
 #' mu = sampleBTF(y = y, obs_sigma_t2, evol_sigma_t2, D = 1)
 #' lines(mu, lwd=8, col='blue') # add the states to the plot
+#' }
 #'
-#' @import spam
 #' @import Matrix
+#' @importFrom spam rmvnorm.canonical as.spam.dgCMatrix
 #' @export
-sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, chol0 = NULL){
+sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol0 = NULL){
 
   # Some quick checks:
   if((D < 0) || (D != round(D)))  stop('D must be a positive integer')
@@ -56,13 +59,9 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, chol0 = NULL){
     mu = rnorm(n = T, mean = postMean, sd = postSD)
 
   } else {
-    # All other cases: positive integer differencing (D = 1 or D = 2)
-
-    # Quadratic term (D = 1 or D = 2)
-    QHt_Matrix = build_Q(obs_sigma_t2 = obs_sigma_t2, evol_sigma_t2 = evol_sigma_t2, D = D)
-
     if(!is.null(chol0)){
       # New sampler, based on spam package:
+      QHt_Matrix = build_Q(obs_sigma_t2 = obs_sigma_t2, evol_sigma_t2 = evol_sigma_t2, D = D)
 
       # Sample the states:
       mu = matrix(rmvnorm.canonical(n = 1,
@@ -73,11 +72,22 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, chol0 = NULL){
       # Original sampler, based on Matrix package:
 
       # Cholesky of Quadratic term:
-      chQht_Matrix = Matrix::chol(QHt_Matrix)
+      #chQht_Matrix = Matrix::chol(QHt_Matrix)
 
       # Sample the states:
-      mu = as.matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(T)))
-
+      #mu = as.matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(T)))
+      if (D == 1) {
+        diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(1/evol_sigma_t2[-1], 0)
+        diag2 = -1/evol_sigma_t2[-1]
+        rd = RcppZiggurat::zrnorm(T)
+        mu = as.matrix(sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2), length(diag1), length(loc_obs$r), c(linht), rd, D))
+      } else {
+        diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(0, 4/evol_sigma_t2[-(1:2)], 0) + c(1/evol_sigma_t2[-(1:2)], 0, 0)
+        diag2 = c(-2/evol_sigma_t2[3], -2*(1/evol_sigma_t2[-(1:2)] + c(1/evol_sigma_t2[-(1:3)],0)))
+        diag3 = 1/evol_sigma_t2[-(1:2)]
+        rd = RcppZiggurat::zrnorm(T)
+        mu = as.matrix(sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2, diag3, diag3), length(diag1), length(loc_obs$r), c(linht), rd, D))
+      }
     }
   }
 
@@ -104,6 +114,7 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, chol0 = NULL){
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 #'
 #' @examples
+#' \dontrun{
 #' # Simulate some data:
 #' T = 1000
 #' y = seq(0, 10, length.out = T) + rnorm(T)
@@ -116,9 +127,10 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, chol0 = NULL){
 #' # Simulate one draw of the states:
 #' mu = sampleBTF_sparse(y = y, obs_sigma_t2, evol_sigma_t2, zero_sigma_t2, D = 1)
 #' lines(mu, lwd=8, col='blue') # add the states to the plot
+#' }
 #'
-#' @import spam
 #' @import Matrix
+#' @importFrom spam rmvnorm.canonical as.spam.dgCMatrix
 #' @export
 sampleBTF_sparse = function(y,
                             obs_sigma_t2,
@@ -200,9 +212,8 @@ sampleBTF_sparse = function(y,
 #'
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 #'
-#' @import spam
 #' @import Matrix
-#' @export
+#' @importFrom spam rmvnorm.canonical as.spam.dgCMatrix
 sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = NULL){
 
   # Some quick checks:
@@ -228,7 +239,7 @@ sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = 
     Qevol = bandSparse(T*p, k = c(0,p), diagonals = list(Q_diag, Q_off), symmetric = TRUE)
 
     # For checking via direct computation:
-    # H1 = bandSparse(T, k = c(0,-1), diagonals = list(rep(1, T), rep(-1, T)), symmetric = FALSE)
+    # H1 = bandSparse(T, k = c(0,-1), diag = list(rep(1, T), rep(-1, T)), symmetric = FALSE)
     # IH = kronecker(as.matrix(H1), diag(p));
     # Q0 = t(IH)%*%diag(as.numeric(1/matrix(t(evol_sigma_t2))))%*%(IH)
     # print(sum((Qevol - Q0)^2))
@@ -257,10 +268,10 @@ sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = 
       Q_off_2 = matrix(Q_off_2)
 
       # Quadratic term:
-      Qevol = bandSparse(T*p, k = c(0, p, 2*p), diagonals = list(Q_diag, Q_off_1, Q_off_2), symmetric = TRUE)
+      Qevol = bandSparse(T*p, k = c(0, p, 2*p), diagonals= list(Q_diag, Q_off_1, Q_off_2), symmetric = TRUE)
 
       # For checking via direct computation:
-      # H2 = bandSparse(T, k = c(0,-1, -2), diagonals = list(rep(1, T), c(0, rep(-2, T-1)), rep(1, T)), symmetric = FALSE)
+      # H2 = bandSparse(T, k = c(0,-1, -2), diag = list(rep(1, T), c(0, rep(-2, T-1)), rep(1, T)), symmetric = FALSE)
       # IH = kronecker(as.matrix(H2), diag(p));
       # Q0 = t(IH)%*%diag(as.numeric(1/matrix(t(evol_sigma_t2))))%*%(IH)
       # print(sum((Qevol - Q0)^2))
@@ -320,7 +331,6 @@ sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = 
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 #'
 #' @import Matrix
-#' @export
 sampleBTF_reg_backfit = function(y, X, beta, obs_sigma_t2, evol_sigma_t2, D = 1){
 
   # Some quick checks:
@@ -381,7 +391,7 @@ sampleBTF_reg_backfit = function(y, X, beta, obs_sigma_t2, evol_sigma_t2, D = 1)
 #' @param X the \code{T x p} basis matrix
 #' @param obs_sigma2 the scalar observation error variance
 #' @param evol_sigma_t2 the \code{p x 1} vector of evolution error variances
-#' @param XtX_bands list with 4 vectors consistint of the 4-bands of XtX = crossprod(X) (one-time cost)
+#' @param XtX_bands list with 4 vectors consisting of the 4-bands of XtX = crossprod(X) (one-time cost)
 #' @param Xty the \code{p x 1} matrix crossprod(X,y), which is a one-time cost (assuming no missing entries in y)
 #' @param D the degree of differencing (zero, one, or two)
 #' @return \code{p x 1} vector of simulated basis coefficients \code{beta}
@@ -389,7 +399,6 @@ sampleBTF_reg_backfit = function(y, X, beta, obs_sigma_t2, evol_sigma_t2, D = 1)
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 #'
 #' @import Matrix
-#' @export
 sampleBTF_bspline = function(y, X, obs_sigma2, evol_sigma_t2, XtX_bands, Xty = NULL, D = 1){
 
   # Some quick checks:
@@ -408,7 +417,7 @@ sampleBTF_bspline = function(y, X, obs_sigma2, evol_sigma_t2, XtX_bands, Xty = N
   if(D == 0){
     # Special case: no differencing
     QHt_Matrix = bandSparse(p, k = c(0,1,2,3),
-                            diagonals = list(XtX_bands$XtX_0/obs_sigma2,
+                            diagonals= list(XtX_bands$XtX_0/obs_sigma2,
                                         XtX_bands$XtX_1/obs_sigma2,
                                         XtX_bands$XtX_2/obs_sigma2,
                                         XtX_bands$XtX_3/obs_sigma2),
@@ -417,7 +426,7 @@ sampleBTF_bspline = function(y, X, obs_sigma2, evol_sigma_t2, XtX_bands, Xty = N
     # Prior/evoluation quadratic term: can construct directly for D = 1 or D = 2
     if(D == 1){
       QHt_Matrix = bandSparse(p, k = c(0,1,2,3),
-                              diagonals = list(XtX_bands$XtX_0/obs_sigma2 + 1/evol_sigma_t2 + c(1/evol_sigma_t2[-1], 0),
+                              diagonals= list(XtX_bands$XtX_0/obs_sigma2 + 1/evol_sigma_t2 + c(1/evol_sigma_t2[-1], 0),
                                           XtX_bands$XtX_1/obs_sigma2 + -1/evol_sigma_t2[-1],
                                           XtX_bands$XtX_2/obs_sigma2,
                                           XtX_bands$XtX_3/obs_sigma2),
@@ -425,7 +434,7 @@ sampleBTF_bspline = function(y, X, obs_sigma2, evol_sigma_t2, XtX_bands, Xty = N
     } else {
       if(D == 2){
         QHt_Matrix = bandSparse(p, k = c(0,1,2,3),
-                                diagonals = list(XtX_bands$XtX_0/obs_sigma2 + 1/evol_sigma_t2 + c(0, 4/evol_sigma_t2[-(1:2)], 0) + c(1/evol_sigma_t2[-(1:2)], 0, 0),
+                                diagonals= list(XtX_bands$XtX_0/obs_sigma2 + 1/evol_sigma_t2 + c(0, 4/evol_sigma_t2[-(1:2)], 0) + c(1/evol_sigma_t2[-(1:2)], 0, 0),
                                             XtX_bands$XtX_1/obs_sigma2 + c(-2/evol_sigma_t2[3], -2*(1/evol_sigma_t2[-(1:2)] + c(1/evol_sigma_t2[-(1:3)],0))),
                                             XtX_bands$XtX_2/obs_sigma2 + 1/evol_sigma_t2[-(1:2)],
                                             XtX_bands$XtX_3/obs_sigma2),
@@ -458,6 +467,7 @@ sampleBTF_bspline = function(y, X, obs_sigma2, evol_sigma_t2, XtX_bands, Xty = N
 #' @param h_phi the \code{p x 1} vector of log-vol AR(1) coefficients
 #' @param h_sigma_eta_t the \code{T x p} matrix of log-vol innovation standard deviations
 #' @param h_sigma_eta_0 the \code{p x 1} vector of initial log-vol innovation standard deviations
+#' @param loc list of the row and column indices to fill in a band-sparse matrix
 #'
 #' @return \code{T x p} matrix of simulated log-vols
 #'
@@ -465,8 +475,7 @@ sampleBTF_bspline = function(y, X, obs_sigma2, evol_sigma_t2, XtX_bands, Xty = N
 #' \code{p > 1} but assumes (contemporaneous) independence across the log-vols for \code{j = 1,...,p}.
 #'
 #' @import Matrix
-#' @import BayesLogit
-sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0){
+sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, loc){
 
   # Compute dimensions:
   h_prev = as.matrix(h_prev) # Just to be sure (T x p)
@@ -492,8 +501,10 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0)
   ystar = log(h_y^2 + yoffset)
 
   # Sample the mixture components
+  z = apply(ystar-h_prev, 2, draw_indicators_generic, rep(0, length(ystar)), length(ystar),
+            q, m_st, sqrt(v_st2), length(q))
   #z = draw.indicators(res = ystar-h_prev, nmix = list(m = m_st, v = v_st2, p = q))
-  z = sapply(ystar-h_prev, ncind, m_st, sqrt(v_st2), q)
+  #z = sapply(ystar-h_prev, ncind, m_st, sqrt(v_st2), q)
 
   # Subset mean and variances to the sampled mixture components; (n x p) matrices
   m_st_all = matrix(m_st[z], nrow=n); v_st2_all = matrix(v_st2[z], nrow=n)
@@ -525,16 +536,17 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0)
   Q_off = matrix(-h_phi_all*evol_prec_lag_mat)[-(n*p)]
 
   # Quadratic term:
-  QHt_Matrix = bandSparse(n*p, k = c(0,1), diagonals = list(Q_diag, Q_off), symmetric = TRUE)
-  #QHt_Matrix = as.spam.dgCMatrix(as(bandSparse(n*p, k = c(0,1), diagonals = list(Q_diag, Q_off), symmetric = TRUE),"dgCMatrix"))
+  #QHt_Matrix = bandSparse(n*p, k = c(0,1), diagonals= list(Q_diag, Q_off), symmetric = TRUE)
+  #QHt_Matrix = as.spam.dgCMatrix(as(bandSparse(n*p, k = c(0,1), diagonals= list(Q_diag, Q_off), symmetric = TRUE),"dgCMatrix"))
 
   # Cholesky:
-  chQht_Matrix = Matrix::chol(QHt_Matrix)
+  #chQht_Matrix = Matrix::chol(QHt_Matrix)
 
   # Sample the log-vols:
-  hsamp = h_mu_all + matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(length(linht))), nrow = n)
+  #hsamp = h_mu_all + matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(length(linht))), nrow = n)
   #hsamp = h_mu_all +matrix(rmvnorm.canonical(n = 1, b = linht, Q = QHt_Matrix, Rstruct = cholDSP0))
-
+  rd = RcppZiggurat::zrnorm(length(linht))
+  hsamp = h_mu_all + matrix(sample_mat_c(loc$r, loc$c, c(Q_diag, Q_off, Q_off), length(Q_diag), length(loc$r), c(linht), rd, 1), nrow=n)
 
   # Return the (uncentered) log-vols
   hsamp
@@ -554,6 +566,7 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0)
 #' @param sigma_e the observation error standard deviation; for (optional) scaling purposes
 #' @param evol_error the evolution error distribution; must be one of
 #' 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), or 'NIG' (normal-inverse-gamma prior)
+#' @param loc list of the row and column indices to fill in a band-sparse matrix
 #' @return List of relevant components in \code{evolParams}: \code{sigma_wt}, the \code{T x p} matrix of evolution standard deviations,
 #' and additional parameters associated with the DHS and HS priors.
 #'
@@ -565,7 +578,7 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0)
 #'
 #' @import stochvol
 #' @export
-sampleEvolParams = function(omega, evolParams,  sigma_e = 1, evol_error = "DHS"){
+sampleEvolParams = function(omega, evolParams,  sigma_e = 1, evol_error = "DHS", loc = NULL){
 
   # Check:
   if(!((evol_error == "DHS") || (evol_error == "HS") || (evol_error == "BL") || (evol_error == "SV") || (evol_error == "NIG"))) stop('Error type must be one of DHS, HS, BL, SV, or NIG')
@@ -573,7 +586,7 @@ sampleEvolParams = function(omega, evolParams,  sigma_e = 1, evol_error = "DHS")
   # Make sure omega is (n x p) matrix
   omega = as.matrix(omega); n = nrow(omega); p = ncol(omega)
 
-  if(evol_error == "DHS") return(sampleDSP(omega, evolParams, sigma_e))
+  if(evol_error == "DHS") return(sampleDSP(omega, evolParams, sigma_e, loc))
 
   if(evol_error == "HS"){
 
@@ -634,7 +647,8 @@ sampleEvolParams = function(omega, evolParams,  sigma_e = 1, evol_error = "DHS")
 #' @param omega \code{T x p} matrix of evolution errors
 #' @param evolParams list of parameters to be updated (see Value below)
 #' @param sigma_e the observation error standard deviation; for (optional) scaling purposes
-#' @param prior_dhs_phi the parameters of the prior for the log-volatilty AR(1) coefficient \code{dhs_phi};
+#' @param loc list of the row and column indices to fill in a band-sparse matrix
+#' @param prior_dhs_phi the parameters of the prior for the log-volatility AR(1) coefficient \code{dhs_phi};
 #' either \code{NULL} for uniform on [-1,1] or a 2-dimensional vector of (shape1, shape2) for a Beta prior
 #' on \code{[(dhs_phi + 1)/2]}
 #' @param alphaPlusBeta For the symmetric prior kappa ~ Beta(alpha, beta) with alpha=beta,
@@ -651,9 +665,9 @@ sampleEvolParams = function(omega, evolParams,  sigma_e = 1, evol_error = "DHS")
 #'
 #' @note The priors induced by \code{prior_dhs_phi} all imply a stationary (log-) volatility process.
 #'
-#' @import BayesLogit
+#' @import pgdraw
 #' @export
-sampleDSP = function(omega, evolParams, sigma_e = 1, prior_dhs_phi = c(10,2), alphaPlusBeta = 1){
+sampleDSP = function(omega, evolParams, sigma_e = 1, loc = NULL, prior_dhs_phi = c(10,2), alphaPlusBeta = 1){
 
   # Store the DSP parameters locally:
   ht = evolParams$ht; dhs_mean = evolParams$dhs_mean; dhs_phi = evolParams$dhs_phi; sigma_eta_t = evolParams$sigma_eta_t; sigma_eta_0 = evolParams$sigma_eta_0; dhs_mean0 = evolParams$dhs_mean0
@@ -663,7 +677,7 @@ sampleDSP = function(omega, evolParams, sigma_e = 1, prior_dhs_phi = c(10,2), al
   n = nrow(ht); p = ncol(ht)
 
   # Sample the log-volatilities using AWOL sampler
-  ht = sampleLogVols(h_y = omega, h_prev = ht, h_mu = dhs_mean, h_phi=dhs_phi, h_sigma_eta_t = sigma_eta_t, h_sigma_eta_0 = sigma_eta_0)
+  ht = sampleLogVols(h_y = omega, h_prev = ht, h_mu = dhs_mean, h_phi=dhs_phi, h_sigma_eta_t = sigma_eta_t, h_sigma_eta_0 = sigma_eta_0, loc = loc)
 
   # Compute centered log-vols for the samplers below:
   ht_tilde = ht - tcrossprod(rep(1,n), dhs_mean)
@@ -674,8 +688,10 @@ sampleDSP = function(omega, evolParams, sigma_e = 1, prior_dhs_phi = c(10,2), al
 
   # Sample the evolution error SD of log-vol (i.e., Polya-Gamma mixing weights)
   eta_t = ht_tilde[-1,] - tcrossprod(rep(1,n-1), dhs_phi)*ht_tilde[-n, ]       # Residuals
-  sigma_eta_t = matrix(1/sqrt(rpg(num = (n-1)*p, h = alphaPlusBeta, z = eta_t)), ncol = p) # Sample
-  sigma_eta_0 = 1/sqrt(rpg(num = p, h = 1, z = ht_tilde[1,]))                # Sample the inital
+  #sigma_eta_t = matrix(1/sqrt(rpg(num = (n-1)*p, h = alphaPlusBeta, z = eta_t)), ncol = p) # Sample
+  #sigma_eta_0 = 1/sqrt(rpg(num = p, h = 1, z = ht_tilde[1,]))                # Sample the inital
+  sigma_eta_t = matrix(1/sqrt(pgdraw(b = alphaPlusBeta, c = c(eta_t))), ncol = p) # Sample
+  sigma_eta_0 = 1/sqrt(pgdraw(b = 1, c = c(ht_tilde[1,])))               # Sample the inital
 
   # Sample the unconditional mean(s), unless dhs_phi = 1 (not defined)
   if(!all(dhs_phi == 1)){
@@ -722,11 +738,11 @@ sampleSVparams = function(omega, svParams){
 
     # Sample the SV parameters:
     svsamp = stochvol::svsample_fast_cpp(svInput,
-                                         startpara = list(
-                                           mu = svParams$svParams[1,j],
-                                           phi = svParams$svParams[2,j],
-                                           sigma = svParams$svParams[3,j]),
-                                         startlatent = svParams$ht[,j])# ,priorphi = c(10^4, 10^4));
+                                 startpara = list(
+                                   mu = svParams$svParams[1,j],
+                                   phi = svParams$svParams[2,j],
+                                   sigma = svParams$svParams[3,j]),
+                                 startlatent = svParams$ht[,j])# ,priorphi = c(10^4, 10^4));
     # Update the parameters:
     svParams$svParams[,j] = svsamp$para[1:3];
     svParams$ht[,j] = svsamp$latent
@@ -804,7 +820,7 @@ sampleSVparams0 = function(omega, svParams){
 #' (i.e., the log-vols minus the unconditional means \code{dhs_mean})
 #' @param h_phi the \code{p x 1} vector of previous AR(1) coefficient(s)
 #' @param h_sigma_eta_t the \code{T x p} matrix of log-vol innovation standard deviations
-#' @param prior_dhs_phi the parameters of the prior for the log-volatilty AR(1) coefficient \code{dhs_phi};
+#' @param prior_dhs_phi the parameters of the prior for the log-volatility AR(1) coefficient \code{dhs_phi};
 #' either \code{NULL} for uniform on [-1,1] or a 2-dimensional vector of (shape1, shape2) for a Beta prior
 #' on \code{[(dhs_phi + 1)/2]}
 #'
@@ -874,7 +890,7 @@ sampleAR1 = function(h_yc, h_phi, h_sigma_eta_t, prior_dhs_phi = NULL){
 #' \item the sampled precision(s) \code{dhs_mean_prec_j} from the Polya-Gamma parameter expansion
 #'}
 #'
-#' @import BayesLogit
+#' @import pgdraw
 #' @export
 sampleLogVolMu = function(h, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, h_log_scale = 0){
 
@@ -882,7 +898,8 @@ sampleLogVolMu = function(h, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, h_log_sc
   n = nrow(h); p = ncol(h)
 
   # Sample the precision term(s)
-  dhs_mean_prec_j = rpg(num = p, h = 1, z = h_mu - h_log_scale)
+  #dhs_mean_prec_j = rpg(num = p, h = 1, z = h_mu - h_log_scale)
+  dhs_mean_prec_j = pgdraw(b = 1, c = c(h_mu - h_log_scale))
 
   # Now, form the "y" and "x" terms in the (auto)regression
   y_mu = (h[-1,] - tcrossprod(rep(1,n-1), h_phi)*h[-n,])/h_sigma_eta_t;
@@ -919,11 +936,12 @@ sampleLogVolMu = function(h, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, h_log_sc
 #' shrinkage effects, e.g. predictor- and time-dependent shrinkage, predictor-dependent shrinkage,
 #' and global shrinkage, with a natural hierarchical ordering.
 #'
-#' @import BayesLogit
+#' @import pgdraw
 #' @export
 sampleLogVolMu0 = function(h_mu, h_mu0, dhs_mean_prec_j, h_log_scale = 0){
 
-  dhs_mean_prec_0 = rpg(num = 1, h = 1, z = h_mu0 - h_log_scale)
+  #dhs_mean_prec_0 = rpg(num = 1, h = 1, z = h_mu0 - h_log_scale)
+  dhs_mean_prec_0 = pgdraw(b = 1, c = c(h_mu0 - h_log_scale))
 
   # Sample the common mean parameter:
   postSD = 1/sqrt(sum(dhs_mean_prec_j) + dhs_mean_prec_j)
@@ -966,7 +984,7 @@ sampleEvol0 = function(mu0, evolParams0, commonSD = FALSE, A = 1){
     # (Distinct) standard deviations:
     evolParams0$sigma_w0 = 1/sqrt(rgamma(n = p, shape = 1/2 + 1/2, rate = mu02/2 + evolParams0$px_sigma_w0))
 
-    # (Distict) paramater expansion:
+    # (Distinct) paramater expansion:
     #evolParams0$px_sigma_w0 = rgamma(n = p, shape = 1/2 + 1/2, rate = 1/evolParams0$sigma_w0^2 + 1/A^2)
     evolParams0$px_sigma_w0 = rgamma(n = p, shape = 1/2 + 1/2, rate = 1/evolParams0$sigma_w0^2 + 1/evolParams0$sigma_00^2)
 

@@ -22,7 +22,7 @@ btf(
 \item{y}{the \code{T x 1} vector of time series observations}
 
 \item{evol_error}{the evolution error distribution; must be one of
-'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)}
+'DHS' (dynamic horseshoe prior; the default), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)}
 
 \item{D}{degree of differencing (D = 0, D = 1, or D = 2)}
 
@@ -31,7 +31,7 @@ for the observation error variance}
 
 \item{nsave}{number of MCMC iterations to record}
 
-\item{nburn}{number of MCMC iterations to discard (burin-in)}
+\item{nburn}{number of MCMC iterations to discard (burnin)}
 
 \item{nskip}{number of MCMC iterations to skip between saving iterations,
 i.e., save every (nskip + 1)th draw}
@@ -76,14 +76,14 @@ via an additional Gibbs sampling step. In general, rescaling \code{y} to have un
 deviation is recommended to avoid numerical issues.
 }
 \examples{
+\dontrun{
 # Example 1: Bumps Data
 simdata = simUnivariate(signalName = "bumps", T = 128, RSNR = 7, include_plot = TRUE)
 y = simdata$y
 
-out = btf(y)
+out = btf(y, D=1)
 plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
 
-\dontrun{
 # Example 2: Doppler Data; longer series, more noise
 simdata = simUnivariate(signalName = "doppler", T = 500, RSNR = 5, include_plot = TRUE)
 y = simdata$y

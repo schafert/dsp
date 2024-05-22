@@ -1,8 +1,8 @@
 #----------------------------------------------------------------------------
 #' Simulate noisy observations from a function
 #'
-#' Builds upon the \code{make.signal()} function (originally in the \code{wmtsa} package)
-#' to include Gaussian noise with a user-specified root-signal-to-noise ratio.
+#' Builds upon the \code{make.signal()} function in the \code{wmtsa} package
+#' to include Gaussian noise with a user-specificied root-signal-to-noise ratio.
 #'
 #' @param signalName string matching the "name" argument in the \code{make.signal()} function,
 #' e.g. "bumps" or "doppler"
@@ -14,14 +14,16 @@
 #' \itemize{
 #' \item the simulated function \code{y}
 #' \item the true function \code{y_true}
-#' \item the true observation standard devation \code{sigma_true}
+#' \item the true observation standard deviation \code{sigma_true}
 #' }
 #'
 #' @note The root-signal-to-noise ratio is defined as RSNR = [sd of true function]/[sd of noise].
 #'
 #' @examples
+#' \dontrun{
 #' sims = simUnivariate() # default simulations
 #' names(sims) # variables included in the list
+#' }
 #'
 #' @export
 simUnivariate = function(signalName = "bumps", T = 200, RSNR = 10, include_plot = TRUE){
@@ -40,95 +42,6 @@ simUnivariate = function(signalName = "bumps", T = 200, RSNR = 10, include_plot 
 
   # Return the raw data and the true values:
   list(y = y, y_true = y_true, sigma_true = sigma_true)
-}
-
-#' Create the functions
-#'
-#' Replace the \code{make.signal()} call in the \code{wmtsa}
-#' package (no longer available)
-#'
-#' @param name string matching the "name" argument in the \code{make.signal()} function,
-#' e.g. "bumps" or "doppler" (see below)
-#' @param n number of points
-#' @param snr signal-to-noise ratio; default is \code{Inf}
-#' @return vector of simulated y-values
-#'
-#' @details The function names include "dirac", "kronecker", "heavisine", "bumps", "blocks",
-#' "doppler", "ramp", "cusp", "crease", "sing", "hisine",
-#' "losine", "linchirp", "twochirp", "quadchirp",
-#' "mishmash1", "mishmash2", "mishmash3", "levelshift",
-#' "jumpsine", "gauss", "linear", "quadratic", "cubic"
-#'
-"make.signal" <- function(name, n=1024, snr=Inf)
-{
-
-  ".wave.demo.signals" <- c("dirac", "kronecker", "heavisine", "bumps", "blocks",
-                            "doppler", "ramp", "cusp", "crease", "sing", "hisine",
-                            "losine", "linchirp", "twochirp", "quadchirp",
-                            "mishmash1", "mishmash2", "mishmash3", "levelshift",
-                            "jumpsine", "gauss",
-                            "linear", "quadratic", "cubic")
-
-  x <- (0:(n-1.))/n
-  z <- switch(name,
-              dirac=n*(x == floor(.37*n)/n),
-              kronecker=(x == floor(.37*n)/n),
-              heavisine=4*sin(4*pi*x)-sign(x-.3)-sign(.72-x),
-              bumps={
-                pos <- c(.1, .13, .15, .23, .25, .4, .44, .65, .76, .78, .81)
-                hgt <- c(4, 5, 3, 4, 5, 4.2, 2.1, 4.3, 3.1, 5.1, 4.2)
-                wth <- c(.005, .005, .006, .01, .01, .03, .01, .01, .005, .008,.005)
-                y <- rep(0, n)
-                for(j in 1:length(pos)) y <- y+hgt[j]/(1+abs((x-pos[j]))/wth[j])^4
-                y
-              },
-              blocks={
-                pos <- c(.1, .13, .15, .23, .25, .4, .44, .65, .76, .78, .81)
-                hgt <- c(4, -5, 3, -4, 5, -4.2, 2.1, 4.3, -3.1,2.1, -4.2)
-                y <- rep(0, n)
-                for(j in 1:length(pos)) y <- y+(1+sign(x-pos[j]))*hgt[j]/2
-                y
-              },
-              doppler=sqrt(x*(1-x))*sin((2*pi*1.05)/(x+.05)),
-              ramp=x-(x >= .37),
-              cusp=sqrt(abs(x-.37)),
-              crease=exp(-4*abs(x-.5)),
-              sing=1/abs(x-(floor(n*.37)+.5)/n),
-              hisine=sin(pi*n*.6902*x),
-              midsine=sin(pi*n*.3333*x),
-              losine=sin(pi*n*.03*x),
-              linchirp=sin(.125*pi*n*x^2),
-              twochirp=sin(pi*n*x^2) + sin((pi/3)*n*x^2),
-              quadchirp=sin((pi/3)*n*x^3),
-              # QuadChirp + LinChirp + HiSine
-              mishmash1=sin((pi/3)*n*x^3) + sin(pi*n*.6902*x) + sin(pi*n*.125*x^2),
-              # QuadChirp + LinChirp + HiSine + Bumps
-              mishmash2={		# wernersorrows
-                y   <- sin(pi*(n/2)*x^3)+sin(pi*n*.6902*x)+sin(pi*n*x^2)
-                pos <- c(.1, .13, .15, .23, .25, .40, .44, .65, .76, .78, .81)
-                hgt <- c(4, 5, 3, 4, 5, 4.2, 2.1, 4.3, 3.1, 5.1, 4.2)
-                wth <- c(.005, .005, .006, .01, .01, .03, .01, .01, .005, .008,.005)
-                for(j in 1:length(pos)) y <- y + hgt[j]/(1+abs((x-pos[j])/wth[j]))^4
-                y
-              },
-              # QuadChirp + MidSine + LoSine + Sing/200.
-              mishmash3=sin((pi/3)*n*x^3) + sin(pi*n*.3333*x) + sin(pi*n*.03*x) +
-                (1/abs(x-(floor(n*.37)+.5)/n))/(200.*n/512.),
-              gauss=dnorm(x, .3, .025),
-              jumpsine=10.*(sin(4*pi*x) + as.numeric(x >= 0.625 & x < 0.875)),
-              levelshift=as.numeric(x >= 0.25 & x < 0.39),
-              linear=2.*x-1.,
-              quadratic=4.*(1.-x)*x,
-              cubic=64.*x*(x-1.)*(x-.5)/3.,
-              stop("Unknown signal name.  Allowable names are:\n",
-                   paste(.wave.demo.signals, collapse=", ")))
-
-  if (snr > 0)
-    z <- z + rnorm(n)*sqrt(var(z))/snr
-
-  #z <- signalSeries(data=z, from=0.0, by=1.0/n)
-  #z@title <- name
-  z
 }
 #----------------------------------------------------------------------------
 #' Simulate noisy observations from a dynamic regression model
@@ -153,15 +66,17 @@ simUnivariate = function(signalName = "bumps", T = 200, RSNR = 10, include_plot 
 #' \item the simulated predictors \code{X}
 #' \item the simulated dynamic regression coefficients \code{beta_true}
 #' \item the true function \code{y_true}
-#' \item the true observation standard devation \code{sigma_true}
+#' \item the true observation standard deviation \code{sigma_true}
 #' }
 #'
 #'
 #' @note The root-signal-to-noise ratio is defined as RSNR = [sd of true function]/[sd of noise].
 #'
 #' @examples
+#' \dontrun{
 #' sims = simRegression() # default simulations
 #' names(sims) # variables included in the list
+#' }
 #'
 #' @importFrom stats arima.sim
 #' @export
@@ -230,7 +145,7 @@ simRegression = function(T = 200, p = 20, p_0 = 15,
 #' \item the simulated predictors \code{X}
 #' \item the simulated dynamic regression coefficients \code{beta_true}
 #' \item the true function \code{y_true}
-#' \item the true observation standard devation \code{sigma_true}
+#' \item the true observation standard deviation \code{sigma_true}
 #' }
 #'
 #' @note The number of predictors is \code{p = length(signalNames) + p_0}.
@@ -324,7 +239,7 @@ initEvolParams = function(omega, evol_error = "DHS"){
 #' the \code{T x p} log-vol innovation SD \code{sigma_eta_t} from the PG priors,
 #' the \code{p x 1} initial log-vol SD \code{sigma_eta_0},
 #' and the mean of log-vol means \code{dhs_mean0} (relevant when \code{p > 1})
-#' @export
+#' @importFrom methods is
 initDHS = function(omega){
 
   # "Local" number of time points
@@ -336,7 +251,12 @@ initDHS = function(omega){
 
   # Initialize the AR(1) model to obtain unconditional mean and AR(1) coefficient
   arCoefs = apply(ht, 2, function(x){
-    params = try(arima(x, c(1,0,0))$coef, silent = TRUE); if(paste(class(params)) == "try-error") params = c(0.8, mean(x)/(1 - 0.8))
+    params = try(arima(x, c(1,0,0)), silent = TRUE)
+    if(is(params, "try-error")){
+      params = params$coef
+    } else{
+      params = c(0.8, mean(x)/(1 - 0.8))
+    }
     params
   })
   dhs_mean = arCoefs[2,]; dhs_phi = arCoefs[1,]; dhs_mean0 = mean(dhs_mean)
@@ -359,7 +279,7 @@ initDHS = function(omega){
 #' @param omega \code{T x p} matrix of errors
 #' @return List of relevant components: \code{sigma_wt}, the \code{T x p} matrix of standard deviations,
 #' and additional parameters (unconditional mean, AR(1) coefficient, and standard deviation).
-#' @export
+#' @importFrom methods is
 initSV = function(omega){
 
   # Make sure omega is (n x p) matrix
@@ -371,7 +291,7 @@ initSV = function(omega){
   # AR(1) pararmeters: check for error in initialization too
   svParams = apply(ht, 2, function(x){
     ar_fit = try(arima(x, c(1,0,0)), silent = TRUE)
-    if(paste(class(ar_fit)) != "try-error") {
+    if(is(ar_fit, "try-error")) {
       params = c(ar_fit$coef[2], ar_fit$coef[1], sqrt(ar_fit$sigma2))
     } else params = c(mean(x)/(1 - 0.8),0.8, 1)
     params
@@ -386,10 +306,10 @@ initSV = function(omega){
 #' The initial state SDs are assumed to follow half-Cauchy priors, C+(0,A),
 #' where the SDs may be common or distinct among the states.
 #'
-#' This function initalizes the parameters for a PX-Gibbs sampler.
+#' This function initializes the parameters for a PX-Gibbs sampler.
 #'
 #' @param mu0 \code{p x 1} vector of initial values (undifferenced)
-#' @param commonSD logical; if TRUE, use common SDs (otherwise distict)
+#' @param commonSD logical; if TRUE, use common SDs (otherwise distinct)
 #' @return List of relevant components:
 #' the \code{p x 1} evolution error SD \code{sigma_w0},
 #' the \code{p x 1} parameter-expanded RV's \code{px_sigma_w0},
@@ -400,7 +320,7 @@ initEvol0 = function(mu0, commonSD = TRUE){
 
   p = length(mu0)
 
-  # Common or distict:
+  # Common or distinct:
   if(commonSD) {
     sigma_w0 = rep(mean(abs(mu0)), p)
   } else  sigma_w0 = abs(mu0)
@@ -415,7 +335,7 @@ initEvol0 = function(mu0, commonSD = TRUE){
 #----------------------------------------------------------------------------
 #' Compute X'X
 #'
-#' Build the \code{Tp x Tp} matrix XtX using the Matrix package
+#' Build the \code{Tp x Tp} matrix XtX using the Matrix() package
 #' @param X \code{T x p} matrix of predictors
 #' @return Block diagonal \code{Tp x Tp} Matrix (object) where each \code{p x p} block is \code{tcrossprod(matrix(X[t,]))}
 #'
@@ -430,7 +350,7 @@ build_XtX = function(X){
   T = nrow(X); p = ncol(X)
 
   # Store the matrix
-  XtX = bandSparse(T*p, k = 0, diagonals = list(rep(1,T*p)), symmetric = TRUE)
+  XtX = bandSparse(T*p, k = 0, diagonals= list(rep(1,T*p)), symmetric = TRUE)
 
   t.seq.p = seq(1, T*(p+1), by = p)
 
@@ -449,7 +369,8 @@ build_XtX = function(X){
 #'
 #' @param T number of time points
 #' @param D degree of differencing (D = 1 or D = 2)
-#' @import Matrix spam
+#' @import Matrix
+#' @importFrom spam chol.spam as.spam.dgCMatrix
 #' @export
 initChol.spam = function(T, D = 1){
 
@@ -473,7 +394,8 @@ initChol.spam = function(T, D = 1){
 #' @param evol_sigma_t2 the \code{T x p} matrix of evolution error variances
 #' @param XtX the \code{Tp x Tp} matrix of X'X (one-time cost; see ?build_XtX)
 #' @param D the degree of differencing (one or two)
-#' @import Matrix spam
+#' @import Matrix
+#' @importFrom spam as.spam.dgCMatrix chol.spam
 #' @export
 initCholReg.spam = function(obs_sigma_t2, evol_sigma_t2, XtX, D = 1){
 
@@ -495,10 +417,10 @@ initCholReg.spam = function(obs_sigma_t2, evol_sigma_t2, XtX, D = 1){
     Q_off = matrix(-t_evol_prec_lag_mat)[-(T*p)]
 
     # Quadratic term:
-    Qevol = bandSparse(T*p, k = c(0,p), diagonals = list(Q_diag, Q_off), symmetric = TRUE)
+    Qevol = bandSparse(T*p, k = c(0,p), diagonals= list(Q_diag, Q_off), symmetric = TRUE)
 
     # For checking via direct computation:
-    # H1 = bandSparse(T, k = c(0,-1), diagonals = list(rep(1, T), rep(-1, T)), symmetric = FALSE)
+    # H1 = bandSparse(T, k = c(0,-1), diag = list(rep(1, T), rep(-1, T)), symmetric = FALSE)
     # IH = kronecker(as.matrix(H1), diag(p));
     # Q0 = t(IH)%*%diag(as.numeric(1/matrix(t(evol_sigma_t2))))%*%(IH)
     # print(sum((Qevol - Q0)^2))
@@ -527,10 +449,10 @@ initCholReg.spam = function(obs_sigma_t2, evol_sigma_t2, XtX, D = 1){
       Q_off_2 = matrix(Q_off_2)
 
       # Quadratic term:
-      Qevol = bandSparse(T*p, k = c(0, p, 2*p), diagonals = list(Q_diag, Q_off_1, Q_off_2), symmetric = TRUE)
+      Qevol = bandSparse(T*p, k = c(0, p, 2*p), diagonals= list(Q_diag, Q_off_1, Q_off_2), symmetric = TRUE)
 
       # For checking via direct computation:
-      # H2 = bandSparse(T, k = c(0,-1, -2), diagonals = list(rep(1, T), c(0, rep(-2, T-1)), rep(1, T)), symmetric = FALSE)
+      # H2 = bandSparse(T, k = c(0,-1, -2), diag = list(rep(1, T), c(0, rep(-2, T-1)), rep(1, T)), symmetric = FALSE)
       # IH = kronecker(as.matrix(H2), diag(p));
       # Q0 = t(IH)%*%diag(as.numeric(1/matrix(t(evol_sigma_t2))))%*%(IH)
       # print(sum((Qevol - Q0)^2))
@@ -571,20 +493,20 @@ build_Q = function(obs_sigma_t2, evol_sigma_t2, D = 1){
   T = length(evol_sigma_t2)
 
   # For reference: first and second order difference matrices (not needed below)
-  #H1 = bandSparse(T, k = c(0,-1), diagonals = list(rep(1, T), rep(-1, T)), symmetric = FALSE)
-  #H2 = bandSparse(T, k = c(0,-1, -2), diagonals = list(rep(1, T), c(0, rep(-2, T-1)), rep(1, T)), symmetric = FALSE)
+  #H1 = bandSparse(T, k = c(0,-1), diag = list(rep(1, T), rep(-1, T)), symmetric = FALSE)
+  #H2 = bandSparse(T, k = c(0,-1, -2), diag = list(rep(1, T), c(0, rep(-2, T-1)), rep(1, T)), symmetric = FALSE)
 
   # Quadratic term: can construct directly for D = 1 or D = 2 using [diag(1/obs_sigma_t2, T) + (t(HD)%*%diag(1/evol_sigma_t2, T))%*%HD]
   if(D == 1){
     # D = 1 case:
     Q = bandSparse(T, k = c(0,1),
-                   diagonals = list(1/obs_sigma_t2 + 1/evol_sigma_t2 + c(1/evol_sigma_t2[-1], 0),
+                   diagonals= list(1/obs_sigma_t2 + 1/evol_sigma_t2 + c(1/evol_sigma_t2[-1], 0),
                                -1/evol_sigma_t2[-1]),
                    symmetric = TRUE)
   } else {
     # D = 2 case:
     Q = bandSparse(T, k = c(0,1,2),
-                   diagonals = list(1/obs_sigma_t2 + 1/evol_sigma_t2 + c(0, 4/evol_sigma_t2[-(1:2)], 0) + c(1/evol_sigma_t2[-(1:2)], 0, 0),
+                   diagonals= list(1/obs_sigma_t2 + 1/evol_sigma_t2 + c(0, 4/evol_sigma_t2[-(1:2)], 0) + c(1/evol_sigma_t2[-(1:2)], 0, 0),
                                c(-2/evol_sigma_t2[3], -2*(1/evol_sigma_t2[-(1:2)] + c(1/evol_sigma_t2[-(1:3)],0))),
                                1/evol_sigma_t2[-(1:2)]),
                    symmetric = TRUE)
@@ -660,6 +582,7 @@ build_Q = function(obs_sigma_t2, evol_sigma_t2, D = 1){
 #'  plot_cp(mu = colMeans(out$beta[,,j]),
 #'          cp_inds = nz[nz[,2]==j,1])
 #' }
+#'
 #' @export
 getNonZeros = function(post_evol_sigma_t2, post_obs_sigma_t2 = NULL){
 
@@ -810,7 +733,10 @@ simBaS = function(sampFuns){
 #' @param timer0 Initial timer value, returned from \code{proc.time()[3]}
 #' @param nsims Total number of simulations
 #' @param nrep Print the estimated time remaining every \code{nrep} iterations
+#'
 #' @return Table of summary statistics using the function \code{summary}
+#'
+#' @export
 computeTimeRemaining = function(nsi, timer0, nsims, nrep=1000){
 
   # Only print occasionally:
@@ -844,6 +770,7 @@ computeTimeRemaining = function(nsi, timer0, nsims, nrep=1000){
 #' @return Table of summary statistics using the function \code{summary()}.
 #'
 #' @examples
+#' \dontrun{
 #' # ESS for iid simulations:
 #' rand_iid = rnorm(n = 10^4)
 #' getEffSize(rand_iid)
@@ -851,6 +778,7 @@ computeTimeRemaining = function(nsi, timer0, nsims, nrep=1000){
 #' # ESS for several AR(1) simulations with coefficients 0.1, 0.2,...,0.9:
 #' rand_ar1 = sapply(seq(0.1, 0.9, by = 0.1), function(x) arima.sim(n = 10^4, list(ar = x)))
 #' getEffSize(rand_ar1)
+#' }
 #'
 #' @import coda
 #' @export
@@ -863,6 +791,7 @@ getEffSize = function(postX) {
 #' @param x vector for which to compute the running mean
 #' @return A vector \code{y} with each element defined by \code{y[i] = mean(x[1:i])}
 #' @examples
+#' \dontrun{
 #' # Compare:
 #' ergMean(1:10)
 #' mean(1:10)
@@ -871,6 +800,8 @@ getEffSize = function(postX) {
 #' x = rnorm(n = 10^4, mean = 5, sd = 1)
 #' plot(ergMean(x))
 #' abline(h=5)
+#' }
+#'
 #' @export
 ergMean = function(x) {cumsum(x)/(1:length(x))}
 #----------------------------------------------------------------------------
@@ -878,8 +809,11 @@ ergMean = function(x) {cumsum(x)/(1:length(x))}
 #' @param x scalar or vector in (0,1) for which to compute the (componentwise) log-odds
 #' @return A scalar or vector of log-odds
 #' @examples
+#' \dontrun{
 #' x = seq(0, 1, length.out = 10^3)
 #' plot(x, logit(x))
+#' }
+#'
 #' @export
 logit = function(x) {
   if(any(abs(x) > 1)) stop('x must be in (0,1)')
@@ -890,8 +824,11 @@ logit = function(x) {
 #' @param x scalar or vector for which to compute the (componentwise) inverse log-odds
 #' @return A scalar or vector of values in (0,1)
 #' @examples
+#' \dontrun{
 #' x = seq(-5, 5, length.out = 10^3)
 #' plot(x, invlogit(x))
+#' }
+#'
 #' @export
 invlogit = function(x) exp(x - log(1+exp(x))) # exp(x)/(1+exp(x))
 
@@ -909,10 +846,12 @@ invlogit = function(x) exp(x - log(1+exp(x))) # exp(x)/(1+exp(x))
 #' @param include_joint_bands logical; if TRUE, compute simultaneous credible bands
 #'
 #' @examples
+#' \dontrun{
 #' simdata = simUnivariate(signalName = "doppler", T = 128, RSNR = 7, include_plot = FALSE)
 #' y = simdata$y
 #' out = btf(y)
 #' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
+#' }
 #' @import coda
 #' @export
 plot_fitted = function(y, mu, postY, y_true = NULL, t01 = NULL, include_joint_bands = FALSE){
@@ -954,6 +893,8 @@ plot_fitted = function(y, mu, postY, y_true = NULL, t01 = NULL, include_joint_ba
 #' @note The log density function may return -Inf for points outside the support
 #' of the distribution.  If a lower and/or upper bound is specified for the
 #' support, the log density function will not be called outside such limits.
+#'
+#' @export
 uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL)
 {
   # Check the validity of the arguments.
@@ -1101,6 +1042,7 @@ rig = function (n, mean, scale)
 #' and the second column is the spectrum evaluated at that frequency
 #'
 #' @examples
+#' \dontrun{
 #' # Example 1: periodic function
 #' t01 = seq(0, 1, length.out = 100);
 #' y = sin(2*pi*t01) + 0.1*rnorm(length(t01))
@@ -1115,6 +1057,7 @@ rig = function (n, mean, scale)
 #' spec = spec_dsp(ar_mod$ar, sigma_e = sqrt(ar_mod$var.pred))
 #' # Dominant frequency:
 #' spec[which.max(spec[,2]),1]
+#' }
 #'
 #' @export
 spec_dsp = function(ar_coefs, sigma_e, n.freq = 500){
@@ -1180,9 +1123,43 @@ getARpXmat = function(y, p = 1, include_intercept = FALSE){
 
   X
 }
-# Just add these for general use:
-#' @importFrom stats approxfun arima dbeta mad quantile rexp rgamma rnorm runif sd dnorm lm var coef rbinom
-#' @importFrom graphics lines par plot polygon
-#' @importFrom grDevices dev.new
-#' @import methods
+#----------------------------------------------------------------------------
+#' Identify changepoints from the output of ABCO
+#'
+#' @param D the degree of differencing for changepoint
+#' @param mcmc_output MCMC outputs from ABCO, needs "omega" and "r"
+#' @param cp_thres Percentage of posterior samples needed to declare a changepoint
+identify_cp = function(D, mcmc_output, cp_thres= 0.5){
+  cp_list = rep(0, length(mcmc_output$omega[1,]))
+  for (j in 1:length(mcmc_output$omega[,1])){
+    nz_list = which(log(mcmc_output$omega[j,]^2+0.0001) > mcmc_output$r[j])+D
+    for (k in nz_list){
+      cp_list[k] = cp_list[k]+1
+    }
+  }
+  cp_list = cp_list / length(mcmc_output$omega[,1])
+
+  which(cp_list >= cp_thres)
+}
 NULL
+#----------------------------------------------------------------------------
+#' Wrapper function for C++ call for sample mat, check pre-conditions to prevent crash
+#'
+#' @param row_ind list of the row indices to fill in the bandsparse matrix
+#' @param col_ind list of the columns indices to fill in the bandsparse matrix
+#' @param mat_val list of the values to fill in the bandsparse matrix
+#' @param mat_l dimension of the band-sparse matrix
+#' @param num_inp number of non-zero elements in the bandsparse matrix
+#' @param linht \code{T-D} vector of linear term in the sampler
+#' @param rd \code{T-D} vector of standard normal noise samples
+#' @param D the degree of differencing for changepoint
+#'
+#' @export
+sample_mat_c = function(row_ind, col_ind, mat_val, mat_l, num_inp, linht, rd, D){
+  if ((length(row_ind) != num_inp) || (length(col_ind) != num_inp) || (length(mat_val) != num_inp)) stop('Length of inputs do not match')
+  if ((length(linht) != mat_l) || (length(rd) != mat_l)) stop('length of vectors do not match')
+
+  output = sample_mat(row_ind, col_ind, mat_val, mat_l, num_inp, linht, rd, D)
+
+  output
+}

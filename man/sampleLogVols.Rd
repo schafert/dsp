@@ -4,7 +4,7 @@
 \alias{sampleLogVols}
 \title{Sample the latent log-volatilities}
 \usage{
-sampleLogVols(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0)
+sampleLogVols(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, loc)
 }
 \arguments{
 \item{h_y}{the \code{T x p} matrix of data, which follow independent SV models}
@@ -18,6 +18,8 @@ sampleLogVols(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0)
 \item{h_sigma_eta_t}{the \code{T x p} matrix of log-vol innovation standard deviations}
 
 \item{h_sigma_eta_0}{the \code{p x 1} vector of initial log-vol innovation standard deviations}
+
+\item{loc}{list of the row and column indices to fill in a band-sparse matrix}
 }
 \value{
 \code{T x p} matrix of simulated log-vols

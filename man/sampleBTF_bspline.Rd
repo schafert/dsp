@@ -23,7 +23,7 @@ sampleBTF_bspline(
 
 \item{evol_sigma_t2}{the \code{p x 1} vector of evolution error variances}
 
-\item{XtX_bands}{list with 4 vectors consistint of the 4-bands of XtX = crossprod(X) (one-time cost)}
+\item{XtX_bands}{list with 4 vectors consisting of the 4-bands of XtX = crossprod(X) (one-time cost)}
 
 \item{Xty}{the \code{p x 1} matrix crossprod(X,y), which is a one-time cost (assuming no missing entries in y)}
 

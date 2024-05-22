@@ -37,7 +37,7 @@ a list containing
 \item the simulated predictors \code{X}
 \item the simulated dynamic regression coefficients \code{beta_true}
 \item the true function \code{y_true}
-\item the true observation standard devation \code{sigma_true}
+\item the true observation standard deviation \code{sigma_true}
 }
 }
 \description{
@@ -50,7 +50,9 @@ The coefficients are initialized by a N(0,1) simulation.
 The root-signal-to-noise ratio is defined as RSNR = [sd of true function]/[sd of noise].
 }
 \examples{
+\dontrun{
 sims = simRegression() # default simulations
 names(sims) # variables included in the list
+}
 
 }

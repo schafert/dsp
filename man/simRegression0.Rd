@@ -40,7 +40,7 @@ a list containing
 \item the simulated predictors \code{X}
 \item the simulated dynamic regression coefficients \code{beta_true}
 \item the true function \code{y_true}
-\item the true observation standard devation \code{sigma_true}
+\item the true observation standard deviation \code{sigma_true}
 }
 }
 \description{

@@ -9,7 +9,7 @@ initEvol0(mu0, commonSD = TRUE)
 \arguments{
 \item{mu0}{\code{p x 1} vector of initial values (undifferenced)}
 
-\item{commonSD}{logical; if TRUE, use common SDs (otherwise distict)}
+\item{commonSD}{logical; if TRUE, use common SDs (otherwise distinct)}
 }
 \value{
 List of relevant components:
@@ -23,5 +23,5 @@ The initial state SDs are assumed to follow half-Cauchy priors, C+(0,A),
 where the SDs may be common or distinct among the states.
 }
 \details{
-This function initalizes the parameters for a PX-Gibbs sampler.
+This function initializes the parameters for a PX-Gibbs sampler.
 }

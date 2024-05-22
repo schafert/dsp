@@ -16,6 +16,7 @@ A vector \code{y} with each element defined by \code{y[i] = mean(x[1:i])}
 Compute the ergodic (running) mean.
 }
 \examples{
+\dontrun{
 # Compare:
 ergMean(1:10)
 mean(1:10)
@@ -24,4 +25,6 @@ mean(1:10)
 x = rnorm(n = 10^4, mean = 5, sd = 1)
 plot(ergMean(x))
 abline(h=5)
+}
+
 }
