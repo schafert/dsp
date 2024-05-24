@@ -32,11 +32,11 @@ t_sampleEvolParams(
 \item{loc}{list of the row and column indices to fill in a band-sparse matrix}
 
 \item{prior_dhs_phi}{the parameters of the prior for the log-volatility AR(1) coefficient \code{dhs_phi};
-either \code{NULL} for uniform on [-1,1] or a 2-dimensional vector of (shape1, shape2) for a Beta prior
+either \code{NULL} for uniform on \link{-1,1} or a 2-dimensional vector of (shape1, shape2) for a Beta prior
 on \code{[(dhs_phi + 1)/2]}}
 
 \item{alphaPlusBeta}{For the symmetric prior kappa ~ Beta(alpha, beta) with alpha=beta,
-specify the sum [alpha + beta]}
+specify the sum \link{alpha + beta}}
 }
 \value{
 List of relevant components:

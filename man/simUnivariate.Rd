@@ -29,7 +29,7 @@ Builds upon the \code{make.signal()} function in the \code{wmtsa} package
 to include Gaussian noise with a user-specificied root-signal-to-noise ratio.
 }
 \note{
-The root-signal-to-noise ratio is defined as RSNR = [sd of true function]/[sd of noise].
+The root-signal-to-noise ratio is defined as RSNR = \link{sd of true function}/\link{sd of noise}.
 }
 \examples{
 \dontrun{

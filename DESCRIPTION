@@ -3,8 +3,8 @@ Package: dsp
 Title: Dynamic Shrinkage Process and Change Point Detection
 Version: 0.1.0
 Authors@R: c(
-    person("Daniel R.", "Kowal", , "daniel.kowal@rice.edu", role = c("cre", "aut")),
-    person("Haoxuan", "Wu", , "hw399@cornell.edu", role = c("cre", "aut")),
+    person("Daniel R.", "Kowal", , "daniel.kowal@rice.edu", role = c("aut")),
+    person("Haoxuan", "Wu", , "hw399@cornell.edu", role = c("aut")),
     person("Toryn", "Schafer", , "toryn27@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-5594-7697")),
     person("David S.", "Matteson", , "matteson@cornell.edu", role = "aut")
