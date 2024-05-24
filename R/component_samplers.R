@@ -214,6 +214,7 @@ sampleBTF_sparse = function(y,
 #'
 #' @import Matrix
 #' @importFrom spam rmvnorm.canonical as.spam.dgCMatrix
+#' @export
 sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = NULL){
 
   # Some quick checks:
@@ -331,6 +332,7 @@ sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = 
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 #'
 #' @import Matrix
+#' @export
 sampleBTF_reg_backfit = function(y, X, beta, obs_sigma_t2, evol_sigma_t2, D = 1){
 
   # Some quick checks:
@@ -399,6 +401,7 @@ sampleBTF_reg_backfit = function(y, X, beta, obs_sigma_t2, evol_sigma_t2, D = 1)
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 #'
 #' @import Matrix
+#' @export
 sampleBTF_bspline = function(y, X, obs_sigma2, evol_sigma_t2, XtX_bands, Xty = NULL, D = 1){
 
   # Some quick checks:
