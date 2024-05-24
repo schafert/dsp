@@ -4,7 +4,13 @@
 \alias{sampleEvolParams}
 \title{Sampler evolution error variance parameters}
 \usage{
-sampleEvolParams(omega, evolParams, sigma_e = 1, evol_error = "DHS")
+sampleEvolParams(
+  omega,
+  evolParams,
+  sigma_e = 1,
+  evol_error = "DHS",
+  loc = NULL
+)
 }
 \arguments{
 \item{omega}{\code{T x p} matrix of evolution errors}
@@ -15,6 +21,8 @@ sampleEvolParams(omega, evolParams, sigma_e = 1, evol_error = "DHS")
 
 \item{evol_error}{the evolution error distribution; must be one of
 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), or 'NIG' (normal-inverse-gamma prior)}
+
+\item{loc}{list of the row and column indices to fill in a band-sparse matrix}
 }
 \value{
 List of relevant components in \code{evolParams}: \code{sigma_wt}, the \code{T x p} matrix of evolution standard deviations,

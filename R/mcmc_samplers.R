@@ -1,3 +1,131 @@
+#' MCMC Sampler for Dynamic Shrinkage with Changepoint
+#'
+#' Run the MCMC for Bayesian trend filtering with a penalty on zeroth (D = 0),
+#' first (D = 1), or second (D = 2) differences of the conditional expectation.
+#' The user has the option to utilize threshold shrinkage to identify changepoints
+#' for D = 1 or 2.
+#' The penalty is determined by the prior on the evolution errors, which include:
+#' \itemize{
+#' \item the dynamic horseshoe prior ('DHS');
+#' \item the static horseshoe prior ('HS');
+#' \item the Bayesian lasso ('BL');
+#' \item the normal stochastic volatility model ('SV');
+#' \item the normal-inverse-gamma prior ('NIG').
+#' }
+#' In each case, the evolution error is a scale mixture of Gaussians.
+#' Note that only 'DHS' works for threshold shrinkage with changepoints.
+#' Sampling is accomplished with a (parameter-expanded) Gibbs sampler,
+#' mostly relying on a dynamic linear model representation.
+
+#' @param y the \code{T x 1} vector of time series observations
+#' @param cp flag indicator to determine whether to use threshold shrinkage with changepoints.
+#' @param evol_error the evolution error distribution; must be one of
+#' 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
+#' @param D degree of differencing (D = 0, D = 1, or D = 2)
+#' @param useObsSV logical; if TRUE, include a (normal) stochastic volatility model
+#' for the observation error variance
+#' @param useAnom logical; if TRUE, include an anomaly component in the observation equation
+#' (only for threshold shrinkage with changepoints.)
+#' @param nsave number of MCMC iterations to record
+#' @param nburn number of MCMC iterations to discard (burin-in)
+#' @param nskip number of MCMC iterations to skip between saving iterations,
+#' i.e., save every (nskip + 1)th draw
+#' @param mcmc_params named list of parameters for which we store the MCMC output;
+#' must be one or more of:
+#' \itemize{
+#' \item "mu" (conditional mean)
+#' \item "yhat" (posterior predictive distribution)
+#' \item "evol_sigma_t2" (evolution error variance)
+#' \item "obs_sigma_t2" (observation error variance)
+#' \item "dhs_phi" (DHS AR(1) coefficient)
+#' \item "dhs_mean" (DHS AR(1) unconditional mean)
+#' }
+#' @param computeDIC logical; if TRUE, compute the deviance information criterion \code{DIC}
+#' and the effective number of parameters \code{p_d}
+#' @param verbose logical; should R report extra information on progress?
+#' @param cp_thres Percentage of posterior samples needed to declare a changepoint
+#' @param return_full_samples logical; if TRUE, return full MCMC samples for desired parameters;
+#' if FALSE, return the posterior meean for desired parameters
+#'
+#' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
+#' if threshold shrinkage with changepoints is used, also return detected changepoint locations
+#'
+#' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
+#' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
+#' deviation is recommended to avoid numerical issues.
+#'
+#' @examples
+#' \dontrun{
+#' # Example 1: Change in mean with stochastic volatility
+#' signal = c(rep(0, 50), rep(10, 50))
+#' noise = rep(1, 100)
+#' noise_var = rep(1, 100)
+#' for (k in 2:100){
+#'   noise_var[k] = exp(0.9*log(noise_var[k-1]) + rnorm(1, 0, 0.5))
+#'   noise[k] = rnorm(1, 0, sqrt(noise_var[k])) }
+#'
+#' y = signal + noise
+#' mcmc_output = dsp_cp(y, cp=TRUE, mcmc_params = list('yhat', 'mu', "omega", "r"))
+#' cp = mcmc_output$cp
+#' print(paste0('Changepoint Locations: ', cp))
+#' plot_fitted(y, mu = colMeans(mcmc_output$mu), postY = mcmc_output$yhat, y_true = signal)
+#'
+#' # Example 2: Change in mean with Outliers
+#' signal = c(rep(0, 100), rep(5, 100))
+#' y = c(rep(0, 100), rep(5, 100)) + rnorm(200)
+#' y[50] = 10
+#' y[150] = -10
+#'
+#' mcmc_output = dsp_cp(y, cp=TRUE, useAnom = TRUE, mcmc_params = list('yhat', 'mu', "omega", "r"))
+#' cp = mcmc_output$cp
+#' plot_fitted(y, mu = colMeans(mcmc_output$mu), postY = mcmc_output$yhat, y_true = signal)
+#'
+#' # Example 3: Change in linear trend
+#' signal = c(seq(1, 50), seq(51, 2))
+#' y = c(seq(1, 50), seq(51, 2)) + rnorm(100)
+#'
+#' mcmc_output = dsp_cp(y, cp=TRUE, D=2, mcmc_params = list('yhat', 'mu', "omega", "r"))
+#' cp = mcmc_output$cp
+#' plot_fitted(y, mu = colMeans(mcmc_output$mu), postY = mcmc_output$yhat, y_true = signal)
+#' }
+#'
+#' @export
+dsp_cp = function(y, cp = FALSE, evol_error = 'DHS', D = 1, useObsSV = TRUE, useAnom = FALSE,
+               nsave = 1000, nburn = 1000, nskip = 4,
+               mcmc_params = list("mu", "omega", "r"),
+               computeDIC = TRUE,
+               verbose = TRUE,
+               cp_thres = 0.4,
+               return_full_samples = TRUE){
+  if(!((evol_error == "DHS") || (evol_error == "HS") || (evol_error == "BL") || (evol_error == "SV") || (evol_error == "NIG"))) stop('Error type must be one of DHS, HS, BL, SV, or NIG')
+  if(!((D == 0) || (D == 1) || (D == 2))) stop('D must be 0, 1 or 2')
+
+  if (cp == TRUE) {
+    if (evol_error == 'DHS' & (D == 1 || D == 2)) {
+      # Add in omega and r for finding changepoints
+      if (is.na(match('omega', mcmc_params))) {
+        mcmc_params = append(mcmc_params, list('omega'))
+      }
+      if (is.na(match('r', mcmc_params))) {
+        mcmc_params = append(mcmc_params, list('r'))
+      }
+      mcmc_output = abco(y, D = D, useObsSV = useObsSV, useAnom = useAnom, nsave = nsave,
+                         nburn = nburn, nskip = nskip, mcmc_params = mcmc_params, verbose = verbose, cp_thres = cp_thres)
+    }
+  } else {
+    mcmc_output = btf(y, evol_error = evol_error, D = D, useObsSV = useObsSV, nsave = nsave, nburn = nburn, nskip = nskip,
+              mcmc_params = mcmc_params, computeDIC = computeDIC, verbose = verbose)
+  }
+
+  if (!return_full_samples){
+    for (nm in names(mcmc_output)){
+      if (!is.na(match(nm, mcmc_params))) {
+        mcmc_output[[nm]] = colMeans(as.matrix(mcmc_output[[nm]]))
+      }
+    }
+  }
+  return (mcmc_output);
+}
 #' MCMC Sampler for Bayesian Trend Filtering
 #'
 #' Run the MCMC for Bayesian trend filtering with a penalty on zeroth (D = 0),
@@ -16,12 +144,12 @@
 
 #' @param y the \code{T x 1} vector of time series observations
 #' @param evol_error the evolution error distribution; must be one of
-#' 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
+#' 'DHS' (dynamic horseshoe prior; the default), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
 #' @param D degree of differencing (D = 0, D = 1, or D = 2)
 #' @param useObsSV logical; if TRUE, include a (normal) stochastic volatility model
 #' for the observation error variance
 #' @param nsave number of MCMC iterations to record
-#' @param nburn number of MCMC iterations to discard (burin-in)
+#' @param nburn number of MCMC iterations to discard (burnin)
 #' @param nskip number of MCMC iterations to skip between saving iterations,
 #' i.e., save every (nskip + 1)th draw
 #' @param mcmc_params named list of parameters for which we store the MCMC output;
@@ -45,14 +173,14 @@
 #' deviation is recommended to avoid numerical issues.
 #'
 #' @examples
+#' \dontrun{
 #' # Example 1: Bumps Data
 #' simdata = simUnivariate(signalName = "bumps", T = 128, RSNR = 7, include_plot = TRUE)
 #' y = simdata$y
 #'
-#' out = btf(y)
+#' out = btf(y, D=1)
 #' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
 #'
-#' \dontrun{
 #' # Example 2: Doppler Data; longer series, more noise
 #' simdata = simUnivariate(signalName = "doppler", T = 500, RSNR = 5, include_plot = TRUE)
 #' y = simdata$y
@@ -72,7 +200,6 @@
 #' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
 #' }
 #'
-#' @import spam
 #' @export
 btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
                nsave = 1000, nburn = 1000, nskip = 4,
@@ -95,6 +222,10 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
   # Time points (in [0,1])
   T = length(y); t01 = seq(0, 1, length.out=T);
 
+  # Initialize bandsparse locations
+  loc = t_create_loc(length(y)-D, 1)
+  loc_obs = t_create_loc(length(y), D)
+
   # Begin by checking for missing values, then imputing (for initialization)
   is.missing = which(is.na(y)); any.missing = (length(is.missing) > 0)
 
@@ -105,10 +236,10 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
   sigma_e = sd(y, na.rm=TRUE); sigma_et = rep(sigma_e, T)
 
   # Compute the Cholesky term (uses random variances for a more conservative sparsity pattern)
-  chol0 = initChol.spam(T = T, D = D)
+  chol0 = NULL
 
   # Initialize the conditional mean, mu, via sampling:
-  mu = sampleBTF(y, obs_sigma_t2 = sigma_et^2, evol_sigma_t2 = 0.01*sigma_et^2, D = D, chol0 = chol0)
+  mu = sampleBTF(y, obs_sigma_t2 = sigma_et^2, evol_sigma_t2 = 0.01*sigma_et^2, D = D, loc_obs = loc_obs, chol0)
 
   # Compute the evolution errors:
   omega = diff(mu, differences = D)
@@ -150,7 +281,7 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
     if(any.missing) y[is.missing] = mu[is.missing] + sigma_et[is.missing]*rnorm(length(is.missing))
 
     # Sample the states:
-    mu = sampleBTF(y, obs_sigma_t2 = sigma_et^2, evol_sigma_t2 = c(evolParams0$sigma_w0^2, evolParams$sigma_wt^2), D = D, chol0 = chol0)
+    mu = sampleBTF(y, obs_sigma_t2 = sigma_et^2, evol_sigma_t2 = c(evolParams0$sigma_w0^2, evolParams$sigma_wt^2), D = D, loc_obs, chol0)
 
     # Compute the evolution errors:
     omega = diff(mu, differences = D)
@@ -164,7 +295,7 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
     # Sample the (observation and evolution) variances and associated parameters:
     if(useObsSV){
       # Evolution error variance + params:
-      evolParams = sampleEvolParams(omega, evolParams, 1/sqrt(T), evol_error)
+      evolParams = sampleEvolParams(omega, evolParams, 1/sqrt(T), evol_error, loc)
 
       # Observation error variance + params:
       svParams = sampleSVparams(omega = y - mu, svParams = svParams)
@@ -172,7 +303,7 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
 
     } else {
       # Evolution error variance + params:
-      evolParams = sampleEvolParams(omega, evolParams, sigma_e/sqrt(T), evol_error)
+      evolParams = sampleEvolParams(omega, evolParams, sigma_e/sqrt(T), evol_error, loc)
 
       if(evol_error == 'DHS') {
         sigma_e = uni.slice(sigma_e, g = function(x){
@@ -265,7 +396,7 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
 #' @param useObsSV logical; if TRUE, include a (normal) stochastic volatility model
 #' for the observation error variance
 #' @param nsave number of MCMC iterations to record
-#' @param nburn number of MCMC iterations to discard (burin-in)
+#' @param nburn number of MCMC iterations to discard (burnin)
 #' @param nskip number of MCMC iterations to skip between saving iterations,
 #' i.e., save every (nskip + 1)th draw
 #' @param mcmc_params named list of parameters for which we store the MCMC output;
@@ -295,6 +426,7 @@ btf0 = function(y, evol_error = 'DHS', useObsSV = FALSE,
 
   # Time points (in [0,1])
   T = length(y); t01 = seq(0, 1, length.out=T);
+  loc = t_create_loc(length(y), 0)
 
   # Begin by checking for missing values, then imputing (for initialization)
   is.missing = which(is.na(y)); any.missing = (length(is.missing) > 0)
@@ -341,7 +473,7 @@ btf0 = function(y, evol_error = 'DHS', useObsSV = FALSE,
     # Sample the (observation and evolution) variances and associated parameters:
     if(useObsSV){
       # Evolution error variance + params:
-      evolParams = sampleEvolParams(omega = mu, evolParams, 1/sqrt(T), evol_error)
+      evolParams = sampleEvolParams(omega = mu, evolParams, 1/sqrt(T), evol_error, loc)
 
       # Observation error variance + params:
       svParams = sampleSVparams(omega = y - mu, svParams = svParams)
@@ -349,7 +481,7 @@ btf0 = function(y, evol_error = 'DHS', useObsSV = FALSE,
 
     } else {
       # Evolution error variance + params:
-      evolParams = sampleEvolParams(omega = mu, evolParams, sigma_e/sqrt(T), evol_error)
+      evolParams = sampleEvolParams(omega = mu, evolParams, sigma_e/sqrt(T), evol_error, loc)
 
       # Sample the observation error SD:
       if(evol_error == 'DHS') {
@@ -422,6 +554,7 @@ btf0 = function(y, evol_error = 'DHS', useObsSV = FALSE,
 
   return (mcmc_output);
 }
+
 #' Run the MCMC for sparse Bayesian trend filtering
 #'
 #' Sparse Bayesian trend filtering has two penalties:

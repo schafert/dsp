@@ -28,7 +28,7 @@ for the observation error variance}
 
 \item{nsave}{number of MCMC iterations to record}
 
-\item{nburn}{number of MCMC iterations to discard (burin-in)}
+\item{nburn}{number of MCMC iterations to discard (burnin)}
 
 \item{nskip}{number of MCMC iterations to skip between saving iterations,
 i.e., save every (nskip + 1)th draw}

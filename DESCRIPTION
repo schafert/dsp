@@ -1,10 +1,14 @@
-Package: dsp
 Type: Package
-Title: Dynamic Shrinkage Processes
+Package: dsp
+Title: Dynamic Shrinkage Process and Change Point Detection
 Version: 0.1.0
-Authors@R: 
+Authors@R: c(
+    person("Daniel R.", "Kowal", , "daniel.kowal@rice.edu", role = c("aut")),
+    person("Haoxuan", "Wu", , "hw399@cornell.edu", role = c("aut")),
     person("Toryn", "Schafer", , "toryn27@gmail.com", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0001-5594-7697"))
+           comment = c(ORCID = "0000-0001-5594-7697")),
+    person("David S.", "Matteson", , "matteson@cornell.edu", role = "aut")
+  )
 Description: This package provides a full, efficient MCMC sampling algorithm for dynamic 
     shrinkage processes (DSPs). DSPs extend popular global-local shrinkage priors, such as
     the horseshoe prior for sparse signals, to the time series setting by allowing the 
@@ -33,18 +37,34 @@ Description: This package provides a full, efficient MCMC sampling algorithm for
     setting, we penalize 1st/2nd differences of the B-spline basis coefficients, similar
     to P-splines, using DSPs (with options for HS and NIG priors). The resulting 
     curve-fitting model is highly adaptive, like the BTF model above, but easily
-    incorporates unequally-spaced observation points. 
+    incorporates unequally-spaced observation points. Change points are
+    estimated using a threshold parameter.  The model can deal with
+    heteroscedastic measurement error, and jointly identifies both local
+    outliers and change points.
 License: GPL (>= 3)
+Imports: 
+    coda,
+    fda,
+    graphics,
+    grDevices,
+    Matrix,
+    MCMCpack,
+    methods,
+    msm,
+    pgdraw,
+    Rcpp,
+    RcppZiggurat,
+    spam,
+    stats,
+    stochvol,
+    truncdist
+Suggests: 
+    ggplot2
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo,
+    RcppEigen
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
-Imports:
-    BayesLogit,
-    coda,
-    fda,
-    Matrix,
-    methods,
-    spam,
-    stochvol,
-    truncdist

@@ -77,4 +77,5 @@ for(j in 1:ncol(X))
  plot_cp(mu = colMeans(out$beta[,,j]),
          cp_inds = nz[nz[,2]==j,1])
 }
+
 }

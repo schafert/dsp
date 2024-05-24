@@ -27,7 +27,7 @@ e.g. "bumps" or "doppler"}
 
 \item{include_intercept}{logical; if TRUE, the first column of X is 1's}
 
-\item{scale_all}{logical; if TRUE, scale all regression coefficients to [0,1]}
+\item{scale_all}{logical; if TRUE, scale all regression coefficients to \link{0,1}}
 
 \item{include_plot}{logical; if TRUE, include a plot of the simulated data and the true curve}
 
@@ -40,7 +40,7 @@ a list containing
 \item the simulated predictors \code{X}
 \item the simulated dynamic regression coefficients \code{beta_true}
 \item the true function \code{y_true}
-\item the true observation standard devation \code{sigma_true}
+\item the true observation standard deviation \code{sigma_true}
 }
 }
 \description{
@@ -51,5 +51,5 @@ The dynamic regression coefficients are selected using the options from the
 \note{
 The number of predictors is \code{p = length(signalNames) + p_0}.
 
-The root-signal-to-noise ratio is defined as RSNR = [sd of true function]/[sd of noise].
+The root-signal-to-noise ratio is defined as RSNR = \link{sd of true function}/\link{sd of noise}.
 }

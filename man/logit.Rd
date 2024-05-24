@@ -16,6 +16,9 @@ A scalar or vector of log-odds
 Compute the log-odds
 }
 \examples{
+\dontrun{
 x = seq(0, 1, length.out = 10^3)
 plot(x, logit(x))
+}
+
 }
