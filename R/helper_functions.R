@@ -240,6 +240,7 @@ initEvolParams = function(omega, evol_error = "DHS"){
 #' the \code{p x 1} initial log-vol SD \code{sigma_eta_0},
 #' and the mean of log-vol means \code{dhs_mean0} (relevant when \code{p > 1})
 #' @importFrom methods is
+#' @export
 initDHS = function(omega){
 
   # "Local" number of time points
@@ -280,6 +281,7 @@ initDHS = function(omega){
 #' @return List of relevant components: \code{sigma_wt}, the \code{T x p} matrix of standard deviations,
 #' and additional parameters (unconditional mean, AR(1) coefficient, and standard deviation).
 #' @importFrom methods is
+#' @export
 initSV = function(omega){
 
   # Make sure omega is (n x p) matrix
