@@ -7,6 +7,7 @@ Authors@R: c(
     person("Haoxuan", "Wu", , "hw399@cornell.edu", role = c("aut")),
     person("Toryn", "Schafer", , "toryn27@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-5594-7697")),
+    person("Jason B.", "Cho", , "bc454@cornell.edu", role = "aut"),
     person("David S.", "Matteson", , "matteson@cornell.edu", role = "aut")
   )
 Description: This package provides a full, efficient MCMC sampling algorithm for dynamic 
