@@ -87,13 +87,14 @@ substantially fewer than the number of time points.
 }
 }
 \examples{
+\dontrun{
 # Example 1: Blocks data
 simdata = simUnivariate(signalName = "blocks", T = 1000, RSNR = 3, include_plot = TRUE)
 y = simdata$y
 out = btf_bspline(y, D = 1)
 plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
 
-\dontrun{
+
 # Example 2: motorcycle data (unequally-spaced points)
 library(MASS)
 y = scale(mcycle$accel) # Center and Scale for numerical stability

@@ -84,6 +84,7 @@ via an additional Gibbs sampling step. In general, rescaling \code{y} to have un
 deviation is recommended to avoid numerical issues.
 }
 \examples{
+\dontrun{
 # Example 1: all signals
 simdata = simRegression(T = 200, p = 5, p_0 = 0)
 y = simdata$y; X = simdata$X
@@ -94,7 +95,7 @@ for(j in 1:ncol(X))
              postY = out$beta[,,j],
              y_true = simdata$beta_true[,j])
 
-\dontrun{
+
 # Example 2: some noise, longer series
 simdata = simRegression(T = 500, p = 10, p_0 = 5)
 y = simdata$y; X = simdata$X

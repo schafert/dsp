@@ -851,6 +851,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2,
 #' deviation is recommended to avoid numerical issues.
 #'
 #' @examples
+#' \dontrun{
 #' # Example 1: all signals
 #' simdata = simRegression(T = 200, p = 5, p_0 = 0)
 #' y = simdata$y; X = simdata$X
@@ -861,7 +862,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2,
 #'              postY = out$beta[,,j],
 #'              y_true = simdata$beta_true[,j])
 #'
-#' \dontrun{
+#'
 #' # Example 2: some noise, longer series
 #' simdata = simRegression(T = 500, p = 10, p_0 = 5)
 #' y = simdata$y; X = simdata$X
@@ -1123,13 +1124,14 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, useObsSV = FALSE,
 #' }
 #'
 #' @examples
+#' \dontrun{
 #' # Example 1: Blocks data
 #' simdata = simUnivariate(signalName = "blocks", T = 1000, RSNR = 3, include_plot = TRUE)
 #' y = simdata$y
 #' out = btf_bspline(y, D = 1)
 #' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
 #'
-#' \dontrun{
+#'
 #' # Example 2: motorcycle data (unequally-spaced points)
 #' library(MASS)
 #' y = scale(mcycle$accel) # Center and Scale for numerical stability

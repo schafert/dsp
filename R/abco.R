@@ -4,7 +4,7 @@
 #' @importFrom graphics lines par polygon
 #' @importFrom methods as
 #' @importFrom stats approxfun arima dbeta dnorm mad quantile rbinom rexp rgamma rnorm runif sd var
-#' @useDynLib dspCP
+#' @useDynLib dsp
 ## usethis namespace: end
 NULL
 #----------------------------------------------------------------------------
