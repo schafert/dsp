@@ -68,7 +68,7 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
   
   # Run the MCMC:
   if(verbose){
-    pb <- progress_bar$new(format = "(:spin) [:bar] :percent [Elapsed time: :elapsedfull || Estimated time remaining: :eta]",
+    pb <- progress::progress_bar$new(format = "(:spin) [:bar] :percent [Elapsed time: :elapsedfull || Estimated time remaining: :eta]",
                                      total = nstot,
                                      complete = "=",   # Completion bar character
                                      incomplete = "-", # Incomplete bar character
