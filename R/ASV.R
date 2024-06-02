@@ -1,4 +1,5 @@
 #' MCMC Sampler for Adaptive Stchoastic Volatility (ASV) model 
+#' 
 #' The penalty is determined by the prior on the evolution errors, which include:
 #' \itemize{
 #' \item the dynamic horseshoe prior ('DHS');
@@ -50,7 +51,7 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
   T = length(y)
   y = y - beta 
   # initializing parameters
-  sParams = init_parmsASV(y,evol_error,D)
+  sParams = init_paramsASV(y,evol_error,D)
   
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
@@ -181,7 +182,7 @@ generate_ly2hat <- function(h,p_error_term){
 #' \item s_evolParams0: a list containing posterior samples of parameters associated with the variance of first D observation of the log variance term, h.
 #' \item s_evolParams: a list containing posterior samples parameters associated with the variance of D to the last observations of the log variance temr , h.
 #' }
-init_parmsASV <- function(data,evol_error,D){
+init_paramsASV <- function(data,evol_error,D){
   yoffset = any(data^2 < 10^-16,na.rm = T)*mad(data,na.rm = T)/10^10
   data = log(data^2 + yoffset)
   T = length(data); 
@@ -192,21 +193,26 @@ init_parmsASV <- function(data,evol_error,D){
   
   # Impute the active "data"
   data = approxfun(t01, data, rule = 2)(t01)
+  loc_obs = t_create_loc(T, D)
+  loc_error = t_create_loc(T-D,1)
   
   s_p_error_term = sample_jfast(T)
-  s_mu = sampleBTF(data- s_p_error_term$mean,
+  s_mu = dsp::sampleBTF(data- s_p_error_term$mean,
                         obs_sigma_t2 = s_p_error_term$var,
                         evol_sigma_t2 = 0.01*rep(1,T),
-                        D = D)
+                        D = D,
+                        loc_obs)
   s_omega = diff(s_mu,differences = D)
   s_mu0 = as.matrix(s_mu[1:D,])
-  s_evolParams0 = initEvol0(s_mu0)
-  s_evolParams = initEvolParams(s_omega,evol_error)
+  s_evolParams0 = dsp::initEvol0(s_mu0)
+  s_evolParams = dsp::initEvolParams(s_omega,evol_error)
   return(list(
     s_p_error_term = s_p_error_term,
     s_mu = s_mu,
     s_evolParams0 = s_evolParams0,
-    s_evolParams = s_evolParams
+    s_evolParams = s_evolParams,
+    loc_obs = loc_obs,
+    loc_error = loc_error
   ))
 }
 #' Helper function for Sampling parameters for ASV model
@@ -236,24 +242,31 @@ fit_paramsASV <- function(data,sParams,evol_error,D){
   # Impute the active "data"
   data = approxfun(t01, data, rule = 2)(t01)
   s_p_error_term = sample_jfast(T,data-sParams$s_mu)
-  s_mu = sampleBTF(
+  s_mu = dsp::sampleBTF(
     data - s_p_error_term$mean,
     obs_sigma_t2 = s_p_error_term$var,
     evol_sigma_t2 = c(sParams$s_evolParams0$sigma_w0^2,
                       sParams$s_evolParams$sigma_wt^2),
-    D = D)
+    D = D,
+    loc_obs = sParams$loc_obs)
   s_omega = diff(s_mu, differences = D)
   s_mu0 = as.matrix(s_mu[1:D,])
-  s_evolParams0 = sampleEvol0(s_mu0, sParams$s_evolParams0)
-  s_evolParams = sampleEvolParams(omega = s_omega,
-                                  evolParams = sParams$s_evolParams,
-                                  sigma_e = 1,
-                                  evol_error = evol_error)
-  
-  list(s_p_error_term = s_p_error_term,
-       s_mu = s_mu,
-       s_evolParams0 = s_evolParams0,
-       s_evolParams = s_evolParams)
+  s_evolParams0 = dsp::sampleEvol0(s_mu0, sParams$s_evolParams0)
+  s_evolParams = dsp::sampleEvolParams(omega = s_omega,
+                                       evolParams = sParams$s_evolParams,
+                                       sigma_e = 1,
+                                       evol_error = evol_error,
+                                       loc = sParams$loc_error)
+  sParams$s_p_error_term = s_p_error_term
+  sParams$s_mu = s_mu
+  sParams$s_evolParams0 = s_evolParams0
+  sParams$s_evolParams = s_evolParams
+  return(sParams)
+  # 
+  # list(s_p_error_term = s_p_error_term,
+  #      s_mu = s_mu,
+  #      s_evolParams0 = s_evolParams0,
+  #      s_evolParams = s_evolParams)
 }
 #' Function for calculating DIC and Pb (Bayesian measures of model complexity and fit by Spiegelhalter et al. 2002)
 #'
