@@ -78,6 +78,7 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol
 
       # Sample the states:
       mu = as.matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(T)))
+
       }else{
         if (D == 1) {
           diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(1/evol_sigma_t2[-1], 0)
@@ -696,8 +697,7 @@ sampleDSP = function(omega, evolParams, sigma_e = 1, loc = NULL, prior_dhs_phi =
 
   # Sample the evolution error SD of log-vol (i.e., Polya-Gamma mixing weights)
   eta_t = ht_tilde[-1,] - tcrossprod(rep(1,n-1), dhs_phi)*ht_tilde[-n, ]       # Residuals
-  #sigma_eta_t = matrix(1/sqrt(rpg(num = (n-1)*p, h = alphaPlusBeta, z = eta_t)), ncol = p) # Sample
-  #sigma_eta_0 = 1/sqrt(rpg(num = p, h = 1, z = ht_tilde[1,]))                # Sample the inital
+
   sigma_eta_t = matrix(1/sqrt(pgdraw(b = alphaPlusBeta, c = c(eta_t))), ncol = p) # Sample
   sigma_eta_0 = 1/sqrt(pgdraw(b = 1, c = c(ht_tilde[1,])))               # Sample the inital
 
@@ -906,7 +906,7 @@ sampleLogVolMu = function(h, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, h_log_sc
   n = nrow(h); p = ncol(h)
 
   # Sample the precision term(s)
-  #dhs_mean_prec_j = rpg(num = p, h = 1, z = h_mu - h_log_scale)
+
   dhs_mean_prec_j = pgdraw(b = 1, c = c(h_mu - h_log_scale))
 
   # Now, form the "y" and "x" terms in the (auto)regression
@@ -948,7 +948,6 @@ sampleLogVolMu = function(h, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, h_log_sc
 #' @export
 sampleLogVolMu0 = function(h_mu, h_mu0, dhs_mean_prec_j, h_log_scale = 0){
 
-  #dhs_mean_prec_0 = rpg(num = 1, h = 1, z = h_mu0 - h_log_scale)
   dhs_mean_prec_0 = pgdraw(b = 1, c = c(h_mu0 - h_log_scale))
 
   # Sample the common mean parameter:
