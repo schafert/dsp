@@ -482,7 +482,7 @@ sampleBTF_bspline = function(y, X, obs_sigma2, evol_sigma_t2, XtX_bands, Xty = N
 #' \code{p > 1} but assumes (contemporaneous) independence across the log-vols for \code{j = 1,...,p}.
 #'
 #' @import Matrix
-sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, loc){
+sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, loc = NULL){
 
   # Compute dimensions:
   h_prev = as.matrix(h_prev) # Just to be sure (T x p)
@@ -510,8 +510,6 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0,
   # Sample the mixture components
   z = apply(ystar-h_prev, 2, draw_indicators_generic, rep(0, length(ystar)), length(ystar),
             q, m_st, sqrt(v_st2), length(q))
-  #z = draw.indicators(res = ystar-h_prev, nmix = list(m = m_st, v = v_st2, p = q))
-  #z = sapply(ystar-h_prev, ncind, m_st, sqrt(v_st2), q)
 
   # Subset mean and variances to the sampled mixture components; (n x p) matrices
   m_st_all = matrix(m_st[z], nrow=n); v_st2_all = matrix(v_st2[z], nrow=n)
@@ -542,19 +540,22 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0,
   # Off-diagonal of quadratic term:
   Q_off = matrix(-h_phi_all*evol_prec_lag_mat)[-(n*p)]
 
-  # Quadratic term:
-  #QHt_Matrix = bandSparse(n*p, k = c(0,1), diagonals= list(Q_diag, Q_off), symmetric = TRUE)
-  #QHt_Matrix = as.spam.dgCMatrix(as(bandSparse(n*p, k = c(0,1), diagonals= list(Q_diag, Q_off), symmetric = TRUE),"dgCMatrix"))
+  if(is.null(loc)){
+    # Quadratic term:
+    QHt_Matrix = bandSparse(n*p, k = c(0,1), diagonals= list(Q_diag, Q_off), symmetric = TRUE)
+    QHt_Matrix = as.spam.dgCMatrix(as(bandSparse(n*p, k = c(0,1), diagonals= list(Q_diag, Q_off), symmetric = TRUE),"dgCMatrix"))
 
-  # Cholesky:
-  #chQht_Matrix = Matrix::chol(QHt_Matrix)
+    # Cholesky:
+    chQht_Matrix = Matrix::chol(QHt_Matrix)
 
-  # Sample the log-vols:
-  #hsamp = h_mu_all + matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(length(linht))), nrow = n)
-  #hsamp = h_mu_all +matrix(rmvnorm.canonical(n = 1, b = linht, Q = QHt_Matrix, Rstruct = cholDSP0))
-  rd = RcppZiggurat::zrnorm(length(linht))
-  hsamp = h_mu_all + matrix(sample_mat_c(loc$r, loc$c, c(Q_diag, Q_off, Q_off), length(Q_diag), length(loc$r), c(linht), rd, 1), nrow=n)
+    # Sample the log-vols:
+    hsamp = h_mu_all + matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(length(linht))), nrow = n)
+    hsamp = h_mu_all +matrix(rmvnorm.canonical(n = 1, b = linht, Q = QHt_Matrix, Rstruct = cholDSP0))
 
+  }else{
+    rd = RcppZiggurat::zrnorm(length(linht))
+    hsamp = h_mu_all + matrix(sample_mat_c(loc$r, loc$c, c(Q_diag, Q_off, Q_off), length(Q_diag), length(loc$r), c(linht), rd, 1), nrow=n)
+  }
   # Return the (uncentered) log-vols
   hsamp
 }
