@@ -69,24 +69,28 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol
                                        Q = as.spam.dgCMatrix(as(QHt_Matrix, "dgCMatrix")),
                                        Rstruct = chol0))
     } else {
+
+      if(is.null(loc_obs)){
       # Original sampler, based on Matrix package:
 
       # Cholesky of Quadratic term:
-      #chQht_Matrix = Matrix::chol(QHt_Matrix)
+      chQht_Matrix = Matrix::chol(QHt_Matrix)
 
       # Sample the states:
-      #mu = as.matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(T)))
-      if (D == 1) {
-        diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(1/evol_sigma_t2[-1], 0)
-        diag2 = -1/evol_sigma_t2[-1]
-        rd = RcppZiggurat::zrnorm(T)
-        mu = as.matrix(sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2), length(diag1), length(loc_obs$r), c(linht), rd, D))
-      } else {
-        diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(0, 4/evol_sigma_t2[-(1:2)], 0) + c(1/evol_sigma_t2[-(1:2)], 0, 0)
-        diag2 = c(-2/evol_sigma_t2[3], -2*(1/evol_sigma_t2[-(1:2)] + c(1/evol_sigma_t2[-(1:3)],0)))
-        diag3 = 1/evol_sigma_t2[-(1:2)]
-        rd = RcppZiggurat::zrnorm(T)
-        mu = as.matrix(sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2, diag3, diag3), length(diag1), length(loc_obs$r), c(linht), rd, D))
+      mu = as.matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(T)))
+      }else{
+        if (D == 1) {
+          diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(1/evol_sigma_t2[-1], 0)
+          diag2 = -1/evol_sigma_t2[-1]
+          rd = RcppZiggurat::zrnorm(T)
+          mu = as.matrix(sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2), length(diag1), length(loc_obs$r), c(linht), rd, D))
+        } else {
+          diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(0, 4/evol_sigma_t2[-(1:2)], 0) + c(1/evol_sigma_t2[-(1:2)], 0, 0)
+          diag2 = c(-2/evol_sigma_t2[3], -2*(1/evol_sigma_t2[-(1:2)] + c(1/evol_sigma_t2[-(1:3)],0)))
+          diag3 = 1/evol_sigma_t2[-(1:2)]
+          rd = RcppZiggurat::zrnorm(T)
+          mu = as.matrix(sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2, diag3, diag3), length(diag1), length(loc_obs$r), c(linht), rd, D))
+        }
       }
     }
   }
