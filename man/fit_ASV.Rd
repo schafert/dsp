@@ -2,17 +2,7 @@
 % Please edit documentation in R/ASV.R
 \name{fit_ASV}
 \alias{fit_ASV}
-\title{MCMC Sampler for Adaptive Stchoastic Volatility (ASV) model
-The penalty is determined by the prior on the evolution errors, which include:
-\itemize{
-\item the dynamic horseshoe prior ('DHS');
-\item the static horseshoe prior ('HS');
-\item the Bayesian lasso ('BL');
-\item the normal-inverse-gamma prior ('NIG').
-}
-In each case, the evolution error is a scale mixture of Gaussians.
-Sampling is accomplished with a (parameter-expanded) Gibbs sampler,
-mostly relying on a dynamic linear model representation.}
+\title{MCMC Sampler for Adaptive Stchoastic Volatility (ASV) model}
 \usage{
 fit_ASV(
   y,
@@ -64,7 +54,6 @@ and the effective number of parameters \code{p_d}}
 A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 }
 \description{
-MCMC Sampler for Adaptive Stchoastic Volatility (ASV) model
 The penalty is determined by the prior on the evolution errors, which include:
 \itemize{
 \item the dynamic horseshoe prior ('DHS');

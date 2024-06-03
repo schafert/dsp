@@ -613,7 +613,7 @@ getNonZeros = function(post_evol_sigma_t2, post_obs_sigma_t2 = NULL){
 #' @param mu vector of component means
 #' @param sig vector of component standard deviations
 #' @param q vector of component weights
-#' @return Sample from {1,...,k}
+#' @return Sample from \{1,...,k\}
 #----------------------------------------------------------------------------
 ncind = function(y,mu,sig,q){
   sample(1:length(q),

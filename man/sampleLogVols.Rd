@@ -4,7 +4,15 @@
 \alias{sampleLogVols}
 \title{Sample the latent log-volatilities}
 \usage{
-sampleLogVols(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, loc)
+sampleLogVols(
+  h_y,
+  h_prev,
+  h_mu,
+  h_phi,
+  h_sigma_eta_t,
+  h_sigma_eta_0,
+  loc = NULL
+)
 }
 \arguments{
 \item{h_y}{the \code{T x p} matrix of data, which follow independent SV models}
