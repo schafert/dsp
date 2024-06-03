@@ -7,12 +7,26 @@
 make.signal(name, n = 1024, snr = Inf)
 }
 \arguments{
-\item{name}{name of the signal to be generated}
+\item{name}{character string of name of the test wavelet signal to be generated; one of "dirac", "kronecker", "heavisine", "bumps", "blocks",
+"doppler", "ramp", "cusp", "crease", "sing", "hisine",
+"losine", "linchirp", "twochirp", "quadchirp",
+"mishmash1", "mishmash2", "mishmash3", "levelshift",
+"jumpsine", "gauss", "patches",
+"linear", "quadratic", "cubic";}
 
-\item{n}{length of the series}
+\item{n}{length of the series; defaults to 1024 points; increasing n infills the time series}
 
-\item{snr}{desired signal-to-noise ratio}
+\item{snr}{desired signal-to-noise ratio; default \code{Inf} corresponds to 0 noise}
+}
+\value{
+A numeric vector the same length as \code{n}.
 }
 \description{
 Using code from the archived \code{wmtsa} package
+}
+\examples{
+
+nms <- c("blocks", "linchirp", "mishmash1", "bumps")
+z <- lapply(nms, make.signal)
+
 }
