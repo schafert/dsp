@@ -82,31 +82,27 @@ via an additional Gibbs sampling step. In general, rescaling \code{y} to have un
 deviation is recommended to avoid numerical issues.
 }
 \examples{
-\dontrun{
 # Example 1: Bumps Data
-simdata = simUnivariate(signalName = "bumps", T = 128, RSNR = 7, include_plot = TRUE)
-y = simdata$y
+y = make.signal(name = "bumps", n = 128, snr = 7)
 
 out = btf_sparse(y)
-plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
+plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
 
 # Example 2: Doppler Data; longer series, more noise
-simdata = simUnivariate(signalName = "doppler", T = 500, RSNR = 5, include_plot = TRUE)
-y = simdata$y
+y = make.signal(name = "doppler", n = 500, snr = 7)
 
 out = btf_sparse(y)
-plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
+plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
 
 # And examine the AR(1) parameters for the log-volatility w/ traceplots:
 plot(as.ts(out$dhs_phi)) # AR(1) coefficient
 plot(as.ts(out$dhs_mean)) # Unconditional mean
 
 # Example 3: Blocks data (locally constant)
-simdata = simUnivariate(signalName = "blocks", T = 1000, RSNR = 3, include_plot = TRUE)
-y = simdata$y
+y = make.signal(name = "blocks", n = 1000, snr = 3)
 
 out = btf_sparse(y, D = 1) # try D = 1 to approximate the locally constant behavior
-plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
-}
+plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
+
 
 }

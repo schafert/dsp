@@ -59,9 +59,11 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol
     mu = rnorm(n = T, mean = postMean, sd = postSD)
 
   } else {
+
+    # New sampler, based on spam package:
+    QHt_Matrix = build_Q(obs_sigma_t2 = obs_sigma_t2, evol_sigma_t2 = evol_sigma_t2, D = D)
+
     if(!is.null(chol0)){
-      # New sampler, based on spam package:
-      QHt_Matrix = build_Q(obs_sigma_t2 = obs_sigma_t2, evol_sigma_t2 = evol_sigma_t2, D = D)
 
       # Sample the states:
       mu = matrix(rmvnorm.canonical(n = 1,
@@ -543,15 +545,13 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0,
 
   if(is.null(loc)){
     # Quadratic term:
-    QHt_Matrix = bandSparse(n*p, k = c(0,1), diagonals= list(Q_diag, Q_off), symmetric = TRUE)
-    QHt_Matrix = as.spam.dgCMatrix(as(bandSparse(n*p, k = c(0,1), diagonals= list(Q_diag, Q_off), symmetric = TRUE),"dgCMatrix"))
+    QHt_Matrix = bandSparse(n*p, k = c(0,1), diagonals = list(Q_diag, Q_off), symmetric = TRUE)
 
-    # Cholesky:
+     # Cholesky:
     chQht_Matrix = Matrix::chol(QHt_Matrix)
 
     # Sample the log-vols:
     hsamp = h_mu_all + matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(length(linht))), nrow = n)
-    hsamp = h_mu_all +matrix(rmvnorm.canonical(n = 1, b = linht, Q = QHt_Matrix, Rstruct = cholDSP0))
 
   }else{
     rd = RcppZiggurat::zrnorm(length(linht))
