@@ -16,35 +16,35 @@ dsp_cp(
   nskip = 4,
   mcmc_params = list("mu", "omega", "r"),
   computeDIC = TRUE,
-  verbose = TRUE,
+  verbose = FALSE,
   cp_thres = 0.4,
   return_full_samples = TRUE
 )
 }
 \arguments{
-\item{y}{the \code{T x 1} vector of time series observations}
+\item{y}{a numeric vector of the \code{T x 1} vector of time series observations}
 
-\item{cp}{flag indicator to determine whether to use threshold shrinkage with changepoints.}
+\item{cp}{a logical flag (default is FALSE) indicating to determine whether to use threshold shrinkage with changepoints.}
 
 \item{evol_error}{the evolution error distribution; must be one of
-'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)}
+'DHS' (dynamic horseshoe prior; default), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)}
 
-\item{D}{degree of differencing (D = 0, D = 1, or D = 2)}
+\item{D}{integer scalar indicating degree of differencing defaults to 1; implementation is available D = 0, D = 1, or D = 2}
 
-\item{useObsSV}{logical; if TRUE, include a (normal) stochastic volatility model
+\item{useObsSV}{logical; if TRUE (default), include a (normal) stochastic volatility model
 for the observation error variance}
 
-\item{useAnom}{logical; if TRUE, include an anomaly component in the observation equation
+\item{useAnom}{logical (default FALSE); if TRUE, include an anomaly component in the observation equation
 (only for threshold shrinkage with changepoints.)}
 
-\item{nsave}{number of MCMC iterations to record}
+\item{nsave}{integer scalar (default = 1000); number of MCMC iterations to record}
 
-\item{nburn}{number of MCMC iterations to discard (burin-in)}
+\item{nburn}{integer scalar (default = 1000); number of MCMC iterations to discard (burn-in)}
 
-\item{nskip}{number of MCMC iterations to skip between saving iterations,
+\item{nskip}{integer scalar (default = 4); number of MCMC iterations to skip between saving iterations,
 i.e., save every (nskip + 1)th draw}
 
-\item{mcmc_params}{named list of parameters for which we store the MCMC output;
+\item{mcmc_params}{list of character scalars naming parameters for which we store the MCMC output;
 must be one or more of:
 \itemize{
 \item "mu" (conditional mean)
@@ -53,17 +53,18 @@ must be one or more of:
 \item "obs_sigma_t2" (observation error variance)
 \item "dhs_phi" (DHS AR(1) coefficient)
 \item "dhs_mean" (DHS AR(1) unconditional mean)
-}}
+}
+defaults to list("mu", "omega", "r")}
 
-\item{computeDIC}{logical; if TRUE, compute the deviance information criterion \code{DIC}
+\item{computeDIC}{logical; if TRUE (default), compute the deviance information criterion \code{DIC}
 and the effective number of parameters \code{p_d}}
 
-\item{verbose}{logical; should R report extra information on progress?}
+\item{verbose}{logical; should R report extra information on progress? Defaults to FALSE}
 
-\item{cp_thres}{Percentage of posterior samples needed to declare a changepoint}
+\item{cp_thres}{Proportion of posterior samples of latent indicator being 1 needed to declare a changepoint; defaults to 0.4}
 
-\item{return_full_samples}{logical; if TRUE, return full MCMC samples for desired parameters;
-if FALSE, return the posterior meean for desired parameters}
+\item{return_full_samples}{logical; if TRUE (default), return full MCMC samples for desired parameters;
+if FALSE, return the posterior mean for desired parameters}
 }
 \value{
 A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
@@ -93,7 +94,7 @@ via an additional Gibbs sampling step. In general, rescaling \code{y} to have un
 deviation is recommended to avoid numerical issues.
 }
 \examples{
-\dontrun{
+
 # Example 1: Change in mean with stochastic volatility
 signal = c(rep(0, 50), rep(10, 50))
 noise = rep(1, 100)
@@ -125,6 +126,6 @@ y = c(seq(1, 50), seq(51, 2)) + rnorm(100)
 mcmc_output = dsp_cp(y, cp=TRUE, D=2, mcmc_params = list('yhat', 'mu', "omega", "r"))
 cp = mcmc_output$cp
 plot_fitted(y, mu = colMeans(mcmc_output$mu), postY = mcmc_output$yhat, y_true = signal)
-}
+
 
 }
