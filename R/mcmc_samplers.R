@@ -848,7 +848,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2,
 #' deviation is recommended to avoid numerical issues.
 #'
 #' @examples
-#' \dontrun{
+#'
 #' # Example 1: all signals
 #' simdata = simRegression(T = 200, p = 5, p_0 = 0)
 #' y = simdata$y; X = simdata$X
@@ -869,7 +869,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2,
 #'               mu = colMeans(out$beta[,,j]),
 #'               postY = out$beta[,,j],
 #'               y_true = simdata$beta_true[,j])
-#' }
+#'
 #'
 #' @import spam
 #' @export
