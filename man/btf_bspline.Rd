@@ -87,7 +87,7 @@ substantially fewer than the number of time points.
 }
 }
 \examples{
-\dontrun{
+
 # Example 1: Blocks data
 simdata = simUnivariate(signalName = "blocks", T = 1000, RSNR = 3, include_plot = TRUE)
 y = simdata$y
@@ -102,6 +102,6 @@ x = mcycle$times
 plot(x, y, xlab = 'Time (ms)', ylab='Acceleration (g)', main = 'Motorcycle Crash Data')
 out = btf_bspline(y = y, x = x)
 plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
-}
+
 
 }

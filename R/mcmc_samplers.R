@@ -1121,7 +1121,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, useObsSV = FALSE,
 #' }
 #'
 #' @examples
-#' \dontrun{
+#'
 #' # Example 1: Blocks data
 #' simdata = simUnivariate(signalName = "blocks", T = 1000, RSNR = 3, include_plot = TRUE)
 #' y = simdata$y
@@ -1136,7 +1136,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, useObsSV = FALSE,
 #' plot(x, y, xlab = 'Time (ms)', ylab='Acceleration (g)', main = 'Motorcycle Crash Data')
 #' out = btf_bspline(y = y, x = x)
 #' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
-#' }
+#'
 #'
 #' @import fda
 #' @export
