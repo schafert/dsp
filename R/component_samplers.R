@@ -511,9 +511,9 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0,
   ystar = log(h_y^2 + yoffset)
 
   # Sample the mixture components
-  z = apply(ystar-h_prev, 2, draw_indicators_generic, rep(0, length(ystar)), length(ystar),
+  z = draw_indicators_generic(ystar-h_prev, rep(0, length(ystar)), length(ystar),
             q, m_st, sqrt(v_st2), length(q))
-  # TODO: need to fix dimensions of z for btf_reg
+  # TODO: make sure this isn't a breaking change
 
   # Subset mean and variances to the sampled mixture components; (n x p) matrices
   m_st_all = matrix(m_st[z], nrow=n); v_st2_all = matrix(v_st2[z], nrow=n)
