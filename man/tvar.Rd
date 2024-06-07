@@ -82,7 +82,7 @@ The data \code{y} may NOT contain NAs. The data \code{y} will be used to constru
 the predictor matrix (of lagged values), which is not permitted to include NAs.
 }
 \examples{
-\dontrun{
+
 # Example 1:
 simdata = simUnivariate(signalName = "doppler", T = 128, RSNR = 7, include_plot = TRUE)
 y = simdata$y
@@ -109,6 +109,6 @@ spec_TF = post_spec_dsp(post_ar_coefs = out$beta,
 
 image(x = 1:(length(y)-p), y = spec_TF$freq, colMeans(log(spec_TF$post_spec)),
      xlab = 'Time', ylab = 'Freqency', main = 'Posterior Mean of Log-Spectrum')
-}
+
 
 }

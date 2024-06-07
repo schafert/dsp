@@ -1367,7 +1367,7 @@ btf_bspline = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS', D = 2,
 #' the predictor matrix (of lagged values), which is not permitted to include NAs.
 #'
 #' @examples
-#' \dontrun{
+#'
 #' # Example 1:
 #' simdata = simUnivariate(signalName = "doppler", T = 128, RSNR = 7, include_plot = TRUE)
 #' y = simdata$y
@@ -1394,7 +1394,7 @@ btf_bspline = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS', D = 2,
 #'
 #' image(x = 1:(length(y)-p), y = spec_TF$freq, colMeans(log(spec_TF$post_spec)),
 #'      xlab = 'Time', ylab = 'Freqency', main = 'Posterior Mean of Log-Spectrum')
-#' }
+#'
 #'
 #' @export
 tvar = function(y, p_max = 1, include_intercept = FALSE,
