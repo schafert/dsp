@@ -41,7 +41,7 @@ NULL
 #'
 #' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 #'
-#' @import Matrix
+#' @import Matrix progress
 #' @export
 abco = function(y, D = 1, useAnom=TRUE, useObsSV = TRUE,
                 nsave = 1000, nburn = 1000, nskip = 4,
@@ -107,8 +107,25 @@ abco = function(y, D = 1, useAnom=TRUE, useObsSV = TRUE,
   skipcount = 0; isave = 0 # For counting
 
   # Run the MCMC:
-  if(verbose) timer0 = proc.time()[3] # For timing the sampler
+  if(verbose){
+    pb <- progress::progress_bar$new(format = "(:spin) [:bar] :percent [Elapsed time: :elapsedfull || Estimated time remaining: :eta]",
+                                     total = nstot,
+                                     complete = "=",   # Completion bar character
+                                     incomplete = "-", # Incomplete bar character
+                                     current = ">",    # Current bar character
+                                     clear = FALSE,    # If TRUE, clears the bar when finish
+                                     width = 100)      # Width of the progress bar
+  }
+
   for(nsi in 1:nstot){
+    if(verbose){
+      if(nsi < 10){
+        pb$tick()
+      }
+      else if(((nsi%%100) == 0)){
+        pb$tick(100)
+      }
+    }
     # Sample the states:
     if (useAnom){
       mu = t_sampleBTF(y-c(rep(0, D), zeta), obs_sigma_t2 = sigma_e^2, evol_sigma_t2 = c(evolParams0$sigma_w0^2, evolParams$sigma_wt^2), D = D, loc_obs)
@@ -169,7 +186,6 @@ abco = function(y, D = 1, useAnom=TRUE, useObsSV = TRUE,
         skipcount = 0
       }
     }
-    if(verbose) computeTimeRemaining(nsi, timer0, nstot, nrep = 1000)
   }
   if(!is.na(match('zeta', mcmc_params))) mcmc_output$zeta = post_zeta
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
@@ -182,8 +198,6 @@ abco = function(y, D = 1, useAnom=TRUE, useObsSV = TRUE,
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
-
-  if(verbose) print(paste('Total time: ', round((proc.time()[3] - timer0)), 'seconds'))
 
   mcmc_output$cp = identify_cp(D, mcmc_output, cp_thres)
   return (mcmc_output)

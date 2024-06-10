@@ -201,6 +201,7 @@ dsp_cp = function(y, cp = FALSE, evol_error = 'DHS', D = 1, useObsSV = TRUE, use
 #' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
 #' }
 #'
+#' @import progress
 #' @export
 btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
                nsave = 1000, nburn = 1000, nskip = 4,
@@ -275,9 +276,24 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
   skipcount = 0; isave = 0 # For counting
 
   # Run the MCMC:
-  if(verbose) timer0 = proc.time()[3] # For timing the sampler
+  if(verbose){
+    pb <- progress::progress_bar$new(format = "(:spin) [:bar] :percent [Elapsed time: :elapsedfull || Estimated time remaining: :eta]",
+                                     total = nstot,
+                                     complete = "=",   # Completion bar character
+                                     incomplete = "-", # Incomplete bar character
+                                     current = ">",    # Current bar character
+                                     clear = FALSE,    # If TRUE, clears the bar when finish
+                                     width = 100)      # Width of the progress bar
+  }
   for(nsi in 1:nstot){
-
+    if(verbose){
+      if(nsi < 10){
+        pb$tick()
+      }
+      else if(((nsi%%100) == 0)){
+        pb$tick(100)
+      }
+    }
     # Impute missing values, if any:
     if(any.missing) y[is.missing] = mu[is.missing] + sigma_et[is.missing]*rnorm(length(is.missing))
 
@@ -342,7 +358,6 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
         skipcount = 0
       }
     }
-    if(verbose) computeTimeRemaining(nsi, timer0, nstot, nrep = 1000)
   }
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
@@ -371,8 +386,6 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
     # Store the DIC and the effective number of parameters (p_d)
     mcmc_output$DIC = DIC; mcmc_output$p_d = p_d
   }
-
-  if(verbose) print(paste('Total time: ', round((proc.time()[3] - timer0)), 'seconds'))
 
   return (mcmc_output);
 }
@@ -462,9 +475,24 @@ btf0 = function(y, evol_error = 'DHS', useObsSV = FALSE,
   skipcount = 0; isave = 0 # For counting
 
   # Run the MCMC:
-  if(verbose) timer0 = proc.time()[3] # For timing the sampler
+  if(verbose){
+    pb <- progress::progress_bar$new(format = "(:spin) [:bar] :percent [Elapsed time: :elapsedfull || Estimated time remaining: :eta]",
+                                     total = nstot,
+                                     complete = "=",   # Completion bar character
+                                     incomplete = "-", # Incomplete bar character
+                                     current = ">",    # Current bar character
+                                     clear = FALSE,    # If TRUE, clears the bar when finish
+                                     width = 100)      # Width of the progress bar
+  }
   for(nsi in 1:nstot){
-
+    if(verbose){
+      if(nsi < 10){
+        pb$tick()
+      }
+      else if(((nsi%%100) == 0)){
+        pb$tick(100)
+      }
+    }
     # Impute missing values, if any:
     if(any.missing) y[is.missing] = mu[is.missing] + sigma_et[is.missing]*rnorm(length(is.missing))
 
@@ -521,7 +549,6 @@ btf0 = function(y, evol_error = 'DHS', useObsSV = FALSE,
         skipcount = 0
       }
     }
-    if(verbose) computeTimeRemaining(nsi, timer0, nstot, nrep = 1000)
   }
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
@@ -550,8 +577,6 @@ btf0 = function(y, evol_error = 'DHS', useObsSV = FALSE,
     # Store the DIC and the effective number of parameters (p_d)
     mcmc_output$DIC = DIC; mcmc_output$p_d = p_d
   }
-
-  if(verbose) print(paste('Total time: ', round((proc.time()[3] - timer0)), 'seconds'))
 
   return (mcmc_output);
 }
@@ -631,7 +656,7 @@ btf0 = function(y, evol_error = 'DHS', useObsSV = FALSE,
 #' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
 #'
 #'
-#' @import spam
+#' @import spam progress
 #' @export
 btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2,
                       nsave = 1000, nburn = 1000, nskip = 4,
@@ -700,9 +725,24 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2,
   skipcount = 0; isave = 0 # For counting
 
   # Run the MCMC:
-  if(verbose) timer0 = proc.time()[3] # For timing the sampler
+  if(verbose){
+    pb <- progress::progress_bar$new(format = "(:spin) [:bar] :percent [Elapsed time: :elapsedfull || Estimated time remaining: :eta]",
+                                     total = nstot,
+                                     complete = "=",   # Completion bar character
+                                     incomplete = "-", # Incomplete bar character
+                                     current = ">",    # Current bar character
+                                     clear = FALSE,    # If TRUE, clears the bar when finish
+                                     width = 100)      # Width of the progress bar
+  }
   for(nsi in 1:nstot){
-
+    if(verbose){
+      if(nsi < 10){
+        pb$tick()
+      }
+      else if(((nsi%%100) == 0)){
+        pb$tick(100)
+      }
+    }
     # Impute missing values, if any:
     if(any.missing) y[is.missing] = mu[is.missing] + sigma_et[is.missing]*rnorm(length(is.missing))
 
@@ -759,7 +799,6 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2,
         skipcount = 0
       }
     }
-    if(verbose) computeTimeRemaining(nsi, timer0, nstot, nrep = 1000)
   }
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
@@ -791,8 +830,6 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2,
     # Store the DIC and the effective number of parameters (p_d)
     mcmc_output$DIC = DIC; mcmc_output$p_d = p_d
   }
-
-  if(verbose) print(paste('Total time: ', round((proc.time()[3] - timer0)), 'seconds'))
 
   return (mcmc_output);
 }
@@ -871,7 +908,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2,
 #'               y_true = simdata$beta_true[,j])
 #'
 #'
-#' @import spam
+#' @import spam progress
 #' @export
 btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, useObsSV = FALSE,
                    nsave = 1000, nburn = 1000, nskip = 4,
@@ -950,9 +987,24 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, useObsSV = FALSE,
   skipcount = 0; isave = 0 # For counting
 
   # Run the MCMC:
-  if(verbose) timer0 = proc.time()[3] # For timing the sampler
+  if(verbose){
+    pb <- progress::progress_bar$new(format = "(:spin) [:bar] :percent [Elapsed time: :elapsedfull || Estimated time remaining: :eta]",
+                                     total = nstot,
+                                     complete = "=",   # Completion bar character
+                                     incomplete = "-", # Incomplete bar character
+                                     current = ">",    # Current bar character
+                                     clear = FALSE,    # If TRUE, clears the bar when finish
+                                     width = 100)      # Width of the progress bar
+  }
   for(nsi in 1:nstot){
-
+    if(verbose){
+      if(nsi < 10){
+        pb$tick()
+      }
+      else if(((nsi%%100) == 0)){
+        pb$tick(100)
+      }
+    }
     # Impute missing values, if any:
     if(any.missing) y[is.missing] = mu[is.missing] + sigma_et[is.missing]*rnorm(length(is.missing))
 
@@ -1031,7 +1083,6 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, useObsSV = FALSE,
         skipcount = 0
       }
     }
-    if(verbose) computeTimeRemaining(nsi, timer0, nstot, nrep = 1000)
   }
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
@@ -1060,7 +1111,6 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, useObsSV = FALSE,
     # Store the DIC and the effective number of parameters (p_d)
     mcmc_output$DIC = DIC; mcmc_output$p_d = p_d
   }
-  if(verbose) print(paste('Total time: ', round((proc.time()[3] - timer0)), 'seconds'))
 
   return (mcmc_output);
 }
@@ -1138,7 +1188,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, useObsSV = FALSE,
 #' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
 #'
 #'
-#' @import fda
+#' @import fda progress
 #' @export
 btf_bspline = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS', D = 2,
                        nsave = 1000, nburn = 1000, nskip = 4,
@@ -1223,9 +1273,24 @@ btf_bspline = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS', D = 2,
   skipcount = 0; isave = 0 # For counting
 
   # Run the MCMC:
-  if(verbose) timer0 = proc.time()[3] # For timing the sampler
+  if(verbose){
+    pb <- progress::progress_bar$new(format = "(:spin) [:bar] :percent [Elapsed time: :elapsedfull || Estimated time remaining: :eta]",
+                                     total = nstot,
+                                     complete = "=",   # Completion bar character
+                                     incomplete = "-", # Incomplete bar character
+                                     current = ">",    # Current bar character
+                                     clear = FALSE,    # If TRUE, clears the bar when finish
+                                     width = 100)      # Width of the progress bar
+  }
   for(nsi in 1:nstot){
-
+    if(verbose){
+      if(nsi < 10){
+        pb$tick()
+      }
+      else if(((nsi%%100) == 0)){
+        pb$tick(100)
+      }
+    }
     # Impute missing values, if any:
     if(any.missing) {
       y[is.missing] = mu[is.missing] + sigma_e*rnorm(length(is.missing))
@@ -1284,7 +1349,6 @@ btf_bspline = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS', D = 2,
         skipcount = 0
       }
     }
-    if(verbose) computeTimeRemaining(nsi, timer0, nstot, nrep = 1000)
   }
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
@@ -1313,7 +1377,6 @@ btf_bspline = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS', D = 2,
     # Store the DIC and the effective number of parameters (p_d)
     mcmc_output$DIC = DIC; mcmc_output$p_d = p_d
   }
-  if(verbose) print(paste('Total time: ', round((proc.time()[3] - timer0)), 'seconds'))
 
   return (mcmc_output);
 }
@@ -1395,7 +1458,7 @@ btf_bspline = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS', D = 2,
 #' image(x = 1:(length(y)-p), y = spec_TF$freq, colMeans(log(spec_TF$post_spec)),
 #'      xlab = 'Time', ylab = 'Freqency', main = 'Posterior Mean of Log-Spectrum')
 #'
-#'
+#' @import progress
 #' @export
 tvar = function(y, p_max = 1, include_intercept = FALSE,
                 evol_error = 'DHS', D = 2, useObsSV = FALSE,
@@ -1476,7 +1539,7 @@ tvar = function(y, p_max = 1, include_intercept = FALSE,
 #' }
 #'
 #'
-#' @import fda
+#' @import fda progress
 btf_bspline0 = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS',
                         nsave = 1000, nburn = 1000, nskip = 4,
                         mcmc_params = list("mu", "yhat", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
@@ -1540,9 +1603,24 @@ btf_bspline0 = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS',
   skipcount = 0; isave = 0 # For counting
 
   # Run the MCMC:
-  if(verbose) timer0 = proc.time()[3] # For timing the sampler
+  if(verbose){
+    pb <- progress::progress_bar$new(format = "(:spin) [:bar] :percent [Elapsed time: :elapsedfull || Estimated time remaining: :eta]",
+                                     total = nstot,
+                                     complete = "=",   # Completion bar character
+                                     incomplete = "-", # Incomplete bar character
+                                     current = ">",    # Current bar character
+                                     clear = FALSE,    # If TRUE, clears the bar when finish
+                                     width = 100)      # Width of the progress bar
+  }
   for(nsi in 1:nstot){
-
+    if(verbose){
+      if(nsi < 10){
+        pb$tick()
+      }
+      else if(((nsi%%100) == 0)){
+        pb$tick(100)
+      }
+    }
     # Impute missing values, if any:
     if(any.missing) {
       y[is.missing] = mu[is.missing] + sigma_e*rnorm(length(is.missing))
@@ -1592,7 +1670,6 @@ btf_bspline0 = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS',
         skipcount = 0
       }
     }
-    if(verbose) computeTimeRemaining(nsi, timer0, nstot, nrep = 1000)
   }
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
@@ -1621,7 +1698,6 @@ btf_bspline0 = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS',
     # Store the DIC and the effective number of parameters (p_d)
     mcmc_output$DIC = DIC; mcmc_output$p_d = p_d
   }
-  if(verbose) print(paste('Total time: ', round((proc.time()[3] - timer0)), 'seconds'))
 
   return (mcmc_output);
 }
@@ -1706,6 +1782,7 @@ btf_bspline0 = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS',
 #'           postY = out$beta,
 #'           y_true = beta_true)
 #' }
+#' @import progress
 #' @export
 bayesreg_gl = function(y, X, prior = 'DHS',
                        marginalSigma = TRUE,
@@ -1760,10 +1837,26 @@ bayesreg_gl = function(y, X, prior = 'DHS',
   # Total number of MCMC simulations:
   nstot = nburn+(nskip+1)*(nsave)
   skipcount = 0; isave = 0 # For counting
+  if(verbose){
+    pb <- progress::progress_bar$new(format = "(:spin) [:bar] :percent [Elapsed time: :elapsedfull || Estimated time remaining: :eta]",
+                                     total = nstot,
+                                     complete = "=",   # Completion bar character
+                                     incomplete = "-", # Incomplete bar character
+                                     current = ">",    # Current bar character
+                                     clear = FALSE,    # If TRUE, clears the bar when finish
+                                     width = 100)      # Width of the progress bar
+  }
 
   # Run the MCMC:
-  if(verbose) timer0 = proc.time()[3] # For timing the sampler
   for(nsi in 1:nstot){
+    if(verbose){
+      if(nsi < 10){
+        pb$tick()
+      }
+      else if(((nsi%%100) == 0)){
+        pb$tick(100)
+      }
+    }
 
     # Impute missing values, if any:
     if(any.missing) {
@@ -1829,7 +1922,6 @@ bayesreg_gl = function(y, X, prior = 'DHS',
         skipcount = 0
       }
     }
-    if(verbose) computeTimeRemaining(nsi, timer0, nstot, nrep = 1000)
   }
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
@@ -1858,7 +1950,6 @@ bayesreg_gl = function(y, X, prior = 'DHS',
     # Store the DIC and the effective number of parameters (p_d)
     mcmc_output$DIC = DIC; mcmc_output$p_d = p_d
   }
-  if(verbose) print(paste('Total time: ', round((proc.time()[3] - timer0)), 'seconds'))
 
   return (mcmc_output);
 }
