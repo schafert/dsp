@@ -110,5 +110,4 @@ spec_TF = post_spec_dsp(post_ar_coefs = out$beta,
 image(x = 1:(length(y)-p), y = spec_TF$freq, colMeans(log(spec_TF$post_spec)),
      xlab = 'Time', ylab = 'Freqency', main = 'Posterior Mean of Log-Spectrum')
 
-
 }

@@ -729,39 +729,7 @@ simBaS = function(sampFuns){
 
   PsimBaS_t
 }
-#----------------------------------------------------------------------------
-#' Estimate the remaining time in the MCMC based on previous samples
-#' @param nsi Current iteration
-#' @param timer0 Initial timer value, returned from \code{proc.time()[3]}
-#' @param nsims Total number of simulations
-#' @param nrep Print the estimated time remaining every \code{nrep} iterations
-#'
-#' @return Table of summary statistics using the function \code{summary}
-#'
-#' @export
-computeTimeRemaining = function(nsi, timer0, nsims, nrep=1000){
 
-  # Only print occasionally:
-  if(nsi%%nrep == 0 || nsi==20) {
-    # Current time:
-    timer = proc.time()[3]
-
-    # Simulations per second:
-    simsPerSec = nsi/(timer - timer0)
-
-    # Seconds remaining, based on extrapolation:
-    secRemaining = (nsims - nsi -1)/simsPerSec
-
-    # Print the results:
-    if(secRemaining > 3600) {
-      print(paste(round(secRemaining/3600, 1), "hours remaining"))
-    } else {
-      if(secRemaining > 60) {
-        print(paste(round(secRemaining/60, 2), "minutes remaining"))
-      } else print(paste(round(secRemaining, 2), "seconds remaining"))
-    }
-  }
-}
 #----------------------------------------------------------------------------
 #' Summarize of effective sample size
 #'

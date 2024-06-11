@@ -1783,6 +1783,7 @@ btf_bspline0 = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS',
 #'           y_true = beta_true)
 #' }
 #' @import progress
+#' @importFrom stats lm
 #' @export
 bayesreg_gl = function(y, X, prior = 'DHS',
                        marginalSigma = TRUE,

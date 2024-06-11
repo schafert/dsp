@@ -42,7 +42,7 @@ Description: This package provides a full, efficient MCMC sampling algorithm for
     estimated using a threshold parameter.  The model can deal with
     heteroscedastic measurement error, and jointly identifies both local
     outliers and change points.
-License: GPL (>= 3)
+License: GPL (>= 3) + file LICENSE
 Imports: 
     coda,
     fda,
