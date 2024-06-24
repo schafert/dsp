@@ -13,7 +13,7 @@
 #' Sampling is accomplished with a (parameter-expanded) Gibbs sampler,
 #' mostly relying on a dynamic linear model representation.
 #'
-#' @inheritParams dspCP::btf
+#' @inheritParams btf
 #' @param y the length \code{T} vector of time series observations; expected to be in the support of a Negative Binomial distribution
 #' @param mcmc_params character list of parameters for which we store the MCMC output;
 #' must be one or more of:
@@ -60,6 +60,7 @@
 #' mean overdispersion.
 #'
 #' @export
+#' @importFrom BayesLogit rpg
 #'
 #' @examples
 #' beta <- make.signal(name = "bumps", n = 300)
@@ -80,7 +81,7 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
                   mcmc_params = list("mu", "yhat","evol_sigma_t2", "r", "dhs_phi", "dhs_mean"),
                   r_init = NULL, r_sample = "int_mh", step = 1,
                   mu_init = NULL, mu_sample = TRUE,
-                  prior_r = rlang::expr(log(1 + x^2/100)), # half-Cauchy r prior
+                  prior_r = expression(log(1 + x^2/100)), # half-Cauchy r prior
                   evol0_sample = TRUE, evol0_sd = 10, # should the initial variances for for the state vector be sampled and the fixed sd if not sampled
                   sigma_e = 1/sqrt(Nt), # What is prior variance for half-cauchy on tau
                   chol0 = NULL, computeDIC = TRUE, # TODO: bad default argument for chol0 but...
@@ -316,7 +317,7 @@ sampleBTF_nb <- function(y, r, offset, eta_t, obs_sigma_t2, evol_sigma_t2,
     # All other cases: positive integer differencing (D = 1 or D = 2)
 
     # Quadratic term (D = 1 or D = 2)
-    QHt_Matrix = dspCP::build_Q(obs_sigma_t2 = obs_sigma_t2, evol_sigma_t2 = evol_sigma_t2, D = D)
+    QHt_Matrix = build_Q(obs_sigma_t2 = obs_sigma_t2, evol_sigma_t2 = evol_sigma_t2, D = D)
 
     if(!is.null(chol0)){
       # New sampler, based on spam package:
@@ -343,7 +344,8 @@ sampleBTF_nb <- function(y, r, offset, eta_t, obs_sigma_t2, evol_sigma_t2,
 }
 
 
-sample_r <- function(y, d.prev, mu, r_sample, step = 1, lambda_r = 10, prior_r = rlang::expr(1 + x^2/100))
+sample_r <- function(y, d.prev, mu, r_sample, step = 1, lambda_r = 10,
+                     prior_r = expression(log(1 + x^2/100)))
 {
 
   # browser()
@@ -385,7 +387,7 @@ sample_r <- function(y, d.prev, mu, r_sample, step = 1, lambda_r = 10, prior_r =
 
     # e0 <- 1/sigma_c^2 # variance of the half cauchy (10^2)
 
-    r = dspCP::uni.slice(d.prev, g = function(x){
+    r = uni.slice(d.prev, g = function(x){
       sum(dnbinom(y, size = x, mu = mu, log = TRUE)) + eval(prior_r)
     }, lower = 0, upper = 1000)
 

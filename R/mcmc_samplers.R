@@ -91,7 +91,8 @@
 #'
 #'
 #' @export
-dsp_cp = function(y, cp = FALSE, evol_error = 'DHS', D = 1, useObsSV = TRUE, useAnom = FALSE,
+dsp_cp = function(y, cp = FALSE, evol_error = 'DHS',
+                  D = 1, useObsSV = TRUE, useAnom = FALSE,
                nsave = 1000, nburn = 1000, nskip = 4,
                mcmc_params = list("mu", "omega", "r"),
                computeDIC = TRUE,
