@@ -17,7 +17,7 @@ btf_nb(
   step = 1,
   mu_init = NULL,
   mu_sample = TRUE,
-  prior_r = rlang::expr(log(1 + x^2/100)),
+  prior_r = expression(log(1 + x^2/100)),
   evol0_sample = TRUE,
   evol0_sd = 10,
   sigma_e = 1/sqrt(Nt),
@@ -32,7 +32,7 @@ btf_nb(
 \item{y}{the length \code{T} vector of time series observations; expected to be in the support of a Negative Binomial distribution}
 
 \item{evol_error}{the evolution error distribution; must be one of
-'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)}
+'DHS' (dynamic horseshoe prior; the default), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)}
 
 \item{D}{degree of differencing (D = 0, D = 1, or D = 2)}
 

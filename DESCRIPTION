@@ -59,6 +59,7 @@ Imports:
     progress,
     stats,
     stochvol,
+    BayesLogit,
     truncdist
 Suggests: 
     ggplot2
