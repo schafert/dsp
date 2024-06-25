@@ -8,7 +8,7 @@ btf(
   y,
   evol_error = "DHS",
   D = 2,
-  useObsSV = FALSE,
+  obsSV = "const",
   nsave = 1000,
   nburn = 1000,
   nskip = 4,
@@ -26,7 +26,12 @@ btf(
 
 \item{D}{degree of differencing (D = 0, D = 1, or D = 2)}
 
-\item{useObsSV}{logical; if TRUE, include a (normal) stochastic volatility model
+\item{obsSV}{Options for modeling the error variance. It must be one of the following:
+\itemize{
+\item const: Constant error variance for all time points.
+\item SV: Stochastic Volatility model.
+\item ASV: Adaptive Stochastic Volatility model.
+}
 for the observation error variance}
 
 \item{nsave}{number of MCMC iterations to record}

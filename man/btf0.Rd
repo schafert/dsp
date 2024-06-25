@@ -7,7 +7,7 @@
 btf0(
   y,
   evol_error = "DHS",
-  useObsSV = FALSE,
+  obsSV = "const",
   nsave = 1000,
   nburn = 1000,
   nskip = 4,
@@ -23,8 +23,12 @@ btf0(
 \item{evol_error}{the evolution error distribution; must be one of
 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)}
 
-\item{useObsSV}{logical; if TRUE, include a (normal) stochastic volatility model
-for the observation error variance}
+\item{obsSV}{Options for modeling the error variance. It must be one of the following:
+\itemize{
+\item const: Constant error variance for all time points.
+\item SV: Stochastic Volatility model.
+\item ASV: Adaptive Stochastic Volatility model.
+}}
 
 \item{nsave}{number of MCMC iterations to record}
 

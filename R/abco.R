@@ -18,8 +18,12 @@ NULL
 
 #' @param y the \code{T} vector of time series observations
 #' @param D degree of differencing (D = 1, or D = 2)
-#' @param useObsSV logical; if TRUE, include a (normal) stochastic volatility model
-#' for the observation error variance
+#' @param obsSV Options for modeling the error variance. It must be one of the following:
+#' \itemize{
+#' \item const: Constant error variance for all time points.
+#' \item SV: Stochastic Volatility model.
+#' \item ASV: Adaptive Stochastic Volatility model.
+#' }
 #' @param useAnom logical; if TRUE, include an anomaly component in the observation equation
 #' @param nsave number of MCMC iterations to record
 #' @param nburn number of MCMC iterations to discard (burnin)
@@ -43,7 +47,7 @@ NULL
 #'
 #' @import Matrix progress
 #' @export
-abco = function(y, D = 1, useAnom=TRUE, useObsSV = TRUE,
+abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
                 nsave = 1000, nburn = 1000, nskip = 4,
                 mcmc_params = list('mu', "omega", "r"),
                 verbose = TRUE, cp_thres = 0.5){
@@ -79,15 +83,25 @@ abco = function(y, D = 1, useAnom=TRUE, useObsSV = TRUE,
   lower_b = evolParams$lower_b
   upper_b = evolParams$upper_b
 
-  if (useObsSV) {
-    if (useAnom) {
+  if (useAnom) {
+    if(obsSV == "SV"){
       svParams = t_initSV(y-mu-c(rep(0,D),zeta))
-    } else{
-      svParams = t_initSV(y-mu)
+      sigma_e = svParams$sigma_wt
+    }else if(obsSV == "ASV"){
+      sParams = init_paramsASV(y-mu - c(rep(0,D),zeta), evol_error = "HS", D = 2)
+      sigma_e = exp(sParams$s_mu/2)
     }
-    sigma_e = svParams$sigma_wt
+  }else{
+    if(obsSV == "SV"){
+      svParams = t_initSV(y-mu)
+      sigma_e = svParams$sigma_wt
+    }else if(obsSV == "ASV"){
+      sParams = init_paramsASV(y-mu, evol_error = "HS", D = 2)
+      sigma_e = exp(sParams$s_mu/2)
+    }
   }
-
+  
+  
   #Array to store omega
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
@@ -137,27 +151,36 @@ abco = function(y, D = 1, useAnom=TRUE, useObsSV = TRUE,
     omega = diff(mu, differences = D)
 
     evolParams = t_sampleEvolParams(omega, evolParams, D, 1/T, lower_b, upper_b, loc)
-
     #Observational Params
     if (useAnom){
-      if (useObsSV){
+      if (obsSV == "SV"){
         svParams = t_sampleSVparams(omega = y - mu- c(rep(0, D), zeta), svParams = svParams)
         sigma_e = svParams$sigma_wt
-      } else{
+      } else if(obsSV == "const"){
         sigma_et = uni.slice(sigma_et, g = function(x){
           -(T+2)*log(x) - 0.5*sum((y - mu - c(rep(0,D), zeta))^2, na.rm=TRUE)/x^2
         }, lower = 0, upper = Inf)[1]
         sigma_e = rep(sigma_et, T)
+      } else if(obsSV == "ASV"){
+        sParams = fit_paramsASV(y-mu - c(rep(0, D), zeta),sParams,evol_error = "HS", D = 2)
+        sigma_e = exp(sParams$s_mu/2)
+      } else{
+        stop('obsSV has to be one of const, SV, or ASV')
       }
-    } else{
-      if (useObsSV){
+    }else{
+      if(obsSV == "SV"){
         svParams = t_sampleSVparams(omega = y - mu, svParams = svParams)
         sigma_e = svParams$sigma_wt
-      } else{
+      }else if(obsSV == "const"){
         sigma_et = uni.slice(sigma_et, g = function(x){
           -(T+2)*log(x) - 0.5*sum((y - mu)^2, na.rm=TRUE)/x^2 - log(1 + (sqrt(T)*exp(evolParams$dhs_mean/2)/x)^2)
         }, lower = 0, upper = Inf)[1]
         sigma_e = rep(sigma_et, T)
+      }else if(obsSV == "ASV"){
+        sParams = fit_paramsASV(y-mu,sParams,evol_error = "HS", D = 2)
+        sigma_e = exp(sParams$s_mu/2)
+      }else{
+        stop('obsSV has to be one of const, SV, or ASV')
       }
     }
 

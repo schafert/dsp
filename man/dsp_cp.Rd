@@ -9,7 +9,7 @@ dsp_cp(
   cp = FALSE,
   evol_error = "DHS",
   D = 1,
-  useObsSV = TRUE,
+  obsSV = "const",
   useAnom = FALSE,
   nsave = 1000,
   nburn = 1000,
@@ -31,8 +31,12 @@ dsp_cp(
 
 \item{D}{integer scalar indicating degree of differencing defaults to 1; implementation is available D = 0, D = 1, or D = 2}
 
-\item{useObsSV}{logical; if TRUE (default), include a (normal) stochastic volatility model
-for the observation error variance}
+\item{obsSV}{Options for modeling the error variance. It must be one of the following:
+\itemize{
+\item const: Constant error variance for all time points.
+\item SV: Stochastic Volatility model.
+\item ASV: Adaptive Stochastic Volatility model.
+}}
 
 \item{useAnom}{logical (default FALSE); if TRUE, include an anomaly component in the observation equation
 (only for threshold shrinkage with changepoints.)}

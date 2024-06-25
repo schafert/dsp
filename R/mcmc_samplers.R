@@ -22,8 +22,12 @@
 #' @param evol_error the evolution error distribution; must be one of
 #' 'DHS' (dynamic horseshoe prior; default), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
 #' @param D integer scalar indicating degree of differencing defaults to 1; implementation is available D = 0, D = 1, or D = 2
-#' @param useObsSV logical; if TRUE (default), include a (normal) stochastic volatility model
-#' for the observation error variance
+#' @param obsSV Options for modeling the error variance. It must be one of the following:
+#' \itemize{
+#' \item const: Constant error variance for all time points.
+#' \item SV: Stochastic Volatility model.
+#' \item ASV: Adaptive Stochastic Volatility model.
+#' }
 #' @param useAnom logical (default FALSE); if TRUE, include an anomaly component in the observation equation
 #' (only for threshold shrinkage with changepoints.)
 #' @param nsave integer scalar (default = 1000); number of MCMC iterations to record
@@ -92,13 +96,13 @@
 #'
 #' @export
 dsp_cp = function(y, cp = FALSE, evol_error = 'DHS',
-                  D = 1, useObsSV = TRUE, useAnom = FALSE,
-               nsave = 1000, nburn = 1000, nskip = 4,
-               mcmc_params = list("mu", "omega", "r"),
-               computeDIC = TRUE,
-               verbose = FALSE,
-               cp_thres = 0.4,
-               return_full_samples = TRUE){
+                  D = 1, obsSV = "const", useAnom = FALSE,
+                  nsave = 1000, nburn = 1000, nskip = 4,
+                  mcmc_params = list("mu", "omega", "r"),
+                  computeDIC = TRUE,
+                  verbose = FALSE,
+                  cp_thres = 0.4,
+                  return_full_samples = TRUE){
   if(!((evol_error == "DHS") || (evol_error == "HS") || (evol_error == "BL") || (evol_error == "SV") || (evol_error == "NIG"))) stop('Error type must be one of DHS, HS, BL, SV, or NIG')
   if(!((D == 0) || (D == 1) || (D == 2))) stop('D must be 0, 1 or 2')
 
@@ -111,11 +115,11 @@ dsp_cp = function(y, cp = FALSE, evol_error = 'DHS',
       if (is.na(match('r', mcmc_params))) {
         mcmc_params = append(mcmc_params, list('r'))
       }
-      mcmc_output = abco(y, D = D, useObsSV = useObsSV, useAnom = useAnom, nsave = nsave,
+      mcmc_output = abco(y, D = D, obsSV = obsSV, useAnom = useAnom, nsave = nsave,
                          nburn = nburn, nskip = nskip, mcmc_params = mcmc_params, verbose = verbose, cp_thres = cp_thres)
     }
   } else {
-    mcmc_output = btf(y, evol_error = evol_error, D = D, useObsSV = useObsSV, nsave = nsave, nburn = nburn, nskip = nskip,
+    mcmc_output = btf(y, evol_error = evol_error, D = D, obsSV = obsSV, nsave = nsave, nburn = nburn, nskip = nskip,
               mcmc_params = mcmc_params, computeDIC = computeDIC, verbose = verbose)
   }
 
@@ -148,7 +152,12 @@ dsp_cp = function(y, cp = FALSE, evol_error = 'DHS',
 #' @param evol_error the evolution error distribution; must be one of
 #' 'DHS' (dynamic horseshoe prior; the default), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
 #' @param D degree of differencing (D = 0, D = 1, or D = 2)
-#' @param useObsSV logical; if TRUE, include a (normal) stochastic volatility model
+#' @param obsSV Options for modeling the error variance. It must be one of the following:
+#' \itemize{
+#' \item const: Constant error variance for all time points.
+#' \item SV: Stochastic Volatility model.
+#' \item ASV: Adaptive Stochastic Volatility model.
+#' }
 #' for the observation error variance
 #' @param nsave number of MCMC iterations to record
 #' @param nburn number of MCMC iterations to discard (burnin)
@@ -204,7 +213,7 @@ dsp_cp = function(y, cp = FALSE, evol_error = 'DHS',
 #'
 #' @import progress
 #' @export
-btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
+btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
                nsave = 1000, nburn = 1000, nskip = 4,
                mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
                computeDIC = TRUE,
@@ -215,7 +224,7 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
 
   # For D = 0, return special case:
   if(D == 0){
-    return(btf0(y = y, evol_error = evol_error, useObsSV = useObsSV,
+    return(btf0(y = y, evol_error = evol_error, obsSV = obsSV,
                 nsave = nsave, nburn = nburn, nskip = nskip,
                 mcmc_params = mcmc_params,
                 computeDIC = computeDIC,
@@ -257,7 +266,8 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
   evolParams0 = initEvol0(mu0)
 
   # SV parameters, if necessary:
-  if(useObsSV) {svParams = initSV(y - mu); sigma_et = svParams$sigma_wt}
+  if(obsSV == "SV") {svParams = initSV(y - mu); sigma_et = svParams$sigma_wt}
+  else if(obsSV == "ASV"){sParams = init_paramsASV(y-mu, evol_error = "HS", D = 2); sigma_et = exp(sParams$s_mu/2)}
 
   # For HS MCMC comparisons:
   # evolParams$dhs_phi = 0
@@ -299,7 +309,10 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
     if(any.missing) y[is.missing] = mu[is.missing] + sigma_et[is.missing]*rnorm(length(is.missing))
 
     # Sample the states:
-    mu = sampleBTF(y, obs_sigma_t2 = sigma_et^2, evol_sigma_t2 = c(evolParams0$sigma_w0^2, evolParams$sigma_wt^2), D = D, loc_obs, chol0)
+    mu = sampleBTF(y, obs_sigma_t2 = sigma_et^2,
+                   evol_sigma_t2 = c(evolParams0$sigma_w0^2,
+                                     evolParams$sigma_wt^2),
+                   D = D, loc_obs, chol0)
 
     # Compute the evolution errors:
     omega = diff(mu, differences = D)
@@ -311,7 +324,7 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
     evolParams0 = sampleEvol0(mu0, evolParams0, A = 1)
 
     # Sample the (observation and evolution) variances and associated parameters:
-    if(useObsSV){
+    if(obsSV == "SV"){
       # Evolution error variance + params:
       evolParams = sampleEvolParams(omega, evolParams, 1/sqrt(T), evol_error, loc)
 
@@ -319,7 +332,7 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
       svParams = sampleSVparams(omega = y - mu, svParams = svParams)
       sigma_et = svParams$sigma_wt
 
-    } else {
+    }else if(obsSV == "const"){
       # Evolution error variance + params:
       evolParams = sampleEvolParams(omega, evolParams, sigma_e/sqrt(T), evol_error, loc)
 
@@ -334,6 +347,14 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
 
       # Replicate for coding convenience:
       sigma_et = rep(sigma_e, T)
+    }else if(obsSV == "ASV"){
+      evolParams = sampleEvolParams(omega, evolParams, 1/sqrt(T), evol_error, loc)
+
+      # Observation error variance + params:
+      sParams = fit_paramsASV(y-mu,sParams,evol_error = "HS", D = 2)
+      sigma_et = exp(sParams$s_mu/2)
+    }else{
+      stop('obsSV has to be one of const, SV, or ASV')
     }
 
     # Store the MCMC output:
@@ -408,8 +429,12 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
 #' @param y the \code{T x 1} vector of time series observations
 #' @param evol_error the evolution error distribution; must be one of
 #' 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
-#' @param useObsSV logical; if TRUE, include a (normal) stochastic volatility model
-#' for the observation error variance
+#' @param obsSV Options for modeling the error variance. It must be one of the following:
+#' \itemize{
+#' \item const: Constant error variance for all time points.
+#' \item SV: Stochastic Volatility model.
+#' \item ASV: Adaptive Stochastic Volatility model.
+#' }
 #' @param nsave number of MCMC iterations to record
 #' @param nburn number of MCMC iterations to discard (burnin)
 #' @param nskip number of MCMC iterations to skip between saving iterations,
@@ -433,7 +458,7 @@ btf = function(y, evol_error = 'DHS', D = 2, useObsSV = FALSE,
 #' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
 #' deviation is recommended to avoid numerical issues.
-btf0 = function(y, evol_error = 'DHS', useObsSV = FALSE,
+btf0 = function(y, evol_error = 'DHS', obsSV = "const",
                 nsave = 1000, nburn = 1000, nskip = 4,
                 mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
                 computeDIC = TRUE,
@@ -459,7 +484,8 @@ btf0 = function(y, evol_error = 'DHS', useObsSV = FALSE,
   evolParams = initEvolParams(omega = mu, evol_error = evol_error)
 
   # SV parameters, if necessary:
-  if(useObsSV) {svParams = initSV(y - mu); sigma_et = svParams$sigma_wt}
+  if(obsSV == "SV") {svParams = initSV(y - mu); sigma_et = svParams$sigma_wt}
+  else if(obsSV == "ASV"){sParams = init_paramsASV(y-mu, evol_error = "HS", D = 2); sigma_et = exp(sParams$s_mu/2)}
 
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
@@ -501,17 +527,17 @@ btf0 = function(y, evol_error = 'DHS', useObsSV = FALSE,
     mu = sampleBTF(y, obs_sigma_t2 = sigma_et^2, evol_sigma_t2 = evolParams$sigma_wt^2, D = 0)
 
     # Sample the (observation and evolution) variances and associated parameters:
-    if(useObsSV){
+    if(obsSV == "SV"){
       # Evolution error variance + params:
-      evolParams = sampleEvolParams(omega = mu, evolParams, 1/sqrt(T), evol_error, loc)
+      evolParams = sampleEvolParams(mu, evolParams, 1/sqrt(T), evol_error, loc)
 
       # Observation error variance + params:
-      svParams = sampleSVparams(omega = y - mu, svParams = svParams)
+      svParams = sampleSVparams(y - mu, svParams = svParams)
       sigma_et = svParams$sigma_wt
 
-    } else {
+    }else if(obsSV == "const"){
       # Evolution error variance + params:
-      evolParams = sampleEvolParams(omega = mu, evolParams, sigma_e/sqrt(T), evol_error, loc)
+      evolParams = sampleEvolParams(mu, evolParams, sigma_e/sqrt(T), evol_error, loc)
 
       # Sample the observation error SD:
       if(evol_error == 'DHS') {
@@ -519,12 +545,24 @@ btf0 = function(y, evol_error = 'DHS', useObsSV = FALSE,
           -(T+2)*log(x) - 0.5*sum((y - mu)^2, na.rm=TRUE)/x^2 - log(1 + (sqrt(T)*exp(evolParams$dhs_mean0/2)/x)^2)
         }, lower = 0, upper = Inf)[1]
       }
-      if(evol_error == 'HS') sigma_e = 1/sqrt(rgamma(n = 1, shape = T/2 + length(evolParams$xiLambda), rate = sum((y - mu)^2, na.rm=TRUE)/2 + T*sum(evolParams$xiLambda)))
-      if(evol_error == 'BL') sigma_e = 1/sqrt(rgamma(n = 1, shape = T/2 + length(evolParams$tau_j)/2, rate = sum((y - mu)^2, na.rm=TRUE)/2 + T*sum((mu/evolParams$tau_j)^2)/2))
-      if((evol_error == 'NIG') || (evol_error == 'SV')) sigma_e = 1/sqrt(rgamma(n = 1, shape = T/2, rate = sum((y - mu)^2, na.rm=TRUE)/2))
+      if(evol_error == 'HS') sigma_e = 1/sqrt(rgamma(n = 1, shape = T/2 + length(evolParams$xiLambda),
+                                                     rate = sum((y - mu)^2, na.rm=TRUE)/2 + T*sum(evolParams$xiLambda)))
+      if(evol_error == 'BL') sigma_e = 1/sqrt(rgamma(n = 1, shape = T/2 + length(evolParams$tau_j)/2,
+                                                     rate = sum((y - mu)^2, na.rm=TRUE)/2 + T*sum((mu/evolParams$tau_j)^2)/2))
+      if((evol_error == 'NIG') || (evol_error == 'SV')) sigma_e = 1/sqrt(rgamma(n = 1, shape = T/2,
+                                                                                rate = sum((y - mu)^2, na.rm=TRUE)/2))
+
 
       # Replicate for coding convenience:
       sigma_et = rep(sigma_e, T)
+    }else if(obsSV == "ASV"){
+      evolParams = sampleEvolParams(mu, evolParams, 1/sqrt(T), evol_error, loc)
+
+      # Observation error variance + params:
+      sParams = fit_paramsASV(y-mu,sParams,evol_error = "HS", D = 2)
+      sigma_et = exp(sParams$s_mu/2)
+    }else{
+      stop('obsSV has to be one of const, SV, or ASV')
     }
 
     # Store the MCMC output:
@@ -606,6 +644,12 @@ btf0 = function(y, evol_error = 'DHS', useObsSV = FALSE,
 #' @param zero_error the shrinkage-to-zero distribution; must be one of
 #' 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
 #' @param D degree of differencing (D = 1, or D = 2)
+#' @param obsSV Options for modeling the error variance. It must be one of the following:
+#' \itemize{
+#' \item const: Constant error variance for all time points.
+#' \item SV: Stochastic Volatility model.
+#' \item ASV: Adaptive Stochastic Volatility model.
+#' }
 #' @param nsave number of MCMC iterations to record
 #' @param nburn number of MCMC iterations to discard (burin-in)
 #' @param nskip number of MCMC iterations to skip between saving iterations,
@@ -659,7 +703,7 @@ btf0 = function(y, evol_error = 'DHS', useObsSV = FALSE,
 #'
 #' @import spam progress
 #' @export
-btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2,
+btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = "const",
                       nsave = 1000, nburn = 1000, nskip = 4,
                       mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2", "zero_sigma_t2", "dhs_phi", "dhs_mean","dhs_phi_zero", "dhs_mean_zero"),
                       computeDIC = TRUE,
@@ -707,6 +751,8 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2,
 
   # For HS MCMC comparisons:
   # evolParams$dhs_phi = 0
+  if(obsSV == "SV") {svParams = initSV(y - mu); sigma_et = svParams$sigma_wt}
+  else if(obsSV == "ASV"){sParams = init_paramsASV(y-mu, evol_error = "HS", D = 2); sigma_et = exp(sParams$s_mu/2)}
 
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
@@ -747,10 +793,22 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2,
     # Impute missing values, if any:
     if(any.missing) y[is.missing] = mu[is.missing] + sigma_et[is.missing]*rnorm(length(is.missing))
 
-    # Sample the observation SD:
-    sigma_e = 1/sqrt(rgamma(n = 1, shape = T/2, rate = sum((y - mu)^2, na.rm=TRUE)/2))
-    sigma_et = rep(sigma_e, T) # For coding convenience
 
+    # Sample the observation SD:
+    if(obsSV == "SV"){
+      # Observation error variance + params:
+      svParams = sampleSVparams(omega = y - mu, svParams = svParams)
+      sigma_et = svParams$sigma_wt
+    }else if(obsSV == "const"){
+      sigma_e = 1/sqrt(rgamma(n = 1, shape = T/2, rate = sum((y - mu)^2, na.rm=TRUE)/2))
+      sigma_et = rep(sigma_e, T) # For coding convenience
+    }else if(obsSV == "ASV"){
+      # Observation error variance + params:
+      sParams = fit_paramsASV(y-mu,sParams,evol_error = "HS", D = 2)
+      sigma_et = exp(sParams$s_mu/2)
+    }else{
+      stop('obsSV has to be one of const, SV, or ASV')
+    }
     # Sample the states:
     #mu = sampleBTF(y, obs_sigma_t2 = sigma_et^2, evol_sigma_t2 = c(evolParams0$sigma_w0^2, evolParams$sigma_wt^2), D = D, chol0 = chol0)
     mu = sampleBTF_sparse(y,
@@ -856,8 +914,12 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2,
 #' @param evol_error the evolution error distribution; must be one of
 #' 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
 #' @param D degree of differencing (D = 1 or D = 2)
-#' @param useObsSV logical; if TRUE, include a (normal) stochastic volatility model
-#' for the observation error variance
+#' @param obsSV Options for modeling the error variance. It must be one of the following:
+#' \itemize{
+#' \item const: Constant error variance for all time points.
+#' \item SV: Stochastic Volatility model.
+#' \item ASV: Adaptive Stochastic Volatility model.
+#' }
 #' @param nsave number of MCMC iterations to record
 #' @param nburn number of MCMC iterations to discard (burin-in)
 #' @param nskip number of MCMC iterations to skip between saving iterations,
@@ -911,7 +973,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2,
 #'
 #' @import spam progress
 #' @export
-btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, useObsSV = FALSE,
+btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
                    nsave = 1000, nburn = 1000, nskip = 4,
                    mcmc_params = list("mu", "yhat","beta","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
                    use_backfitting = FALSE,
@@ -970,7 +1032,8 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, useObsSV = FALSE,
   evolParams0 = initEvol0(beta0, commonSD = FALSE)
 
   # SV parameters, if necessary:
-  if(useObsSV) {svParams = initSV(y - mu); sigma_et = svParams$sigma_wt}
+  if(obsSV == "SV") {svParams = initSV(y - mu); sigma_et = svParams$sigma_wt}
+  else if(obsSV == "ASV"){sParams = init_paramsASV(y-mu, evol_error = "HS", D = 2); sigma_et = exp(sParams$s_mu/2)}
 
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
@@ -1028,7 +1091,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, useObsSV = FALSE,
     evolParams0 = sampleEvol0(beta0, evolParams0, A = 1, commonSD = FALSE)
 
     # Sample the (observation and evolution) variances and associated parameters:
-    if(useObsSV){
+    if(obsSV == "SV"){
       # Evolution error variance + params:
       evolParams = sampleEvolParams(omega, evolParams, 1/sqrt(T*p), evol_error)
 
@@ -1036,7 +1099,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, useObsSV = FALSE,
       svParams = sampleSVparams(omega = y - mu, svParams = svParams)
       sigma_et = svParams$sigma_wt
 
-    } else {
+    }else if(obsSV == "const"){
       # Evolution error variance + params:
       evolParams = sampleEvolParams(omega, evolParams, sigma_e/sqrt(T*p), evol_error)
 
@@ -1053,8 +1116,15 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, useObsSV = FALSE,
 
       # Replicate for coding convenience:
       sigma_et = rep(sigma_e, T)
-    }
+    }else if(obsSV == "ASV"){
+      evolParams = sampleEvolParams(omega, evolParams, 1/sqrt(T*p), evol_error)
 
+      # Observation error variance + params:
+      sParams = fit_paramsASV(y-mu,sParams,evol_error = "HS", D = 2)
+      sigma_et = exp(sParams$s_mu/2)
+    }else{
+      stop('obsSV has to be one of const, SV, or ASV')
+    }
 
     # Store the MCMC output:
     if(nsi > nburn){
@@ -1404,8 +1474,12 @@ btf_bspline = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS', D = 2,
 #' @param evol_error the evolution error distribution; must be one of
 #' 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
 #' @param D degree of differencing (D = 1 or D = 2)
-#' @param useObsSV logical; if TRUE, include a (normal) stochastic volatility model
-#' for the observation error variance
+#' @param obsSV Options for modeling the error variance. It must be one of the following:
+#' \itemize{
+#' \item const: Constant error variance for all time points.
+#' \item SV: Stochastic Volatility model.
+#' \item ASV: Adaptive Stochastic Volatility model.
+#' }
 #' @param nsave number of MCMC iterations to record
 #' @param nburn number of MCMC iterations to discard (burin-in)
 #' @param nskip number of MCMC iterations to skip between saving iterations,
@@ -1462,7 +1536,7 @@ btf_bspline = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS', D = 2,
 #' @import progress
 #' @export
 tvar = function(y, p_max = 1, include_intercept = FALSE,
-                evol_error = 'DHS', D = 2, useObsSV = FALSE,
+                evol_error = 'DHS', D = 2, obsSV = "const",
                 nsave = 1000, nburn = 1000, nskip = 4,
                 mcmc_params = list("mu", "yhat", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
                 computeDIC = TRUE,
@@ -1482,7 +1556,7 @@ tvar = function(y, p_max = 1, include_intercept = FALSE,
   y = y[-(1:p_max)]
 
   # Once you have X, simply run the usual regression code:
-  return(btf_reg(y = y, X = X, evol_error = evol_error, D = D, useObsSV = useObsSV,
+  return(btf_reg(y = y, X = X, evol_error = evol_error, D = D, obsSV = obsSV,
                  nsave = nsave, nburn = nburn, nskip = nskip,
                  mcmc_params = mcmc_params, computeDIC = computeDIC, verbose = verbose))
 }

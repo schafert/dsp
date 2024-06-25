@@ -32,7 +32,7 @@ btf_nb(
 \item{y}{the length \code{T} vector of time series observations; expected to be in the support of a Negative Binomial distribution}
 
 \item{evol_error}{the evolution error distribution; must be one of
-'DHS' (dynamic horseshoe prior; the default), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)}
+'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)}
 
 \item{D}{degree of differencing (D = 0, D = 1, or D = 2)}
 
