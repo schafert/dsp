@@ -18,9 +18,17 @@
 #' mostly relying on a dynamic linear model representation.
 
 #' @param y a numeric vector of the \code{T x 1} vector of time series observations
+#' @param family a string specifying expontial family for observation likelihood.
+#' Defaults to "gaussian" and implementation also available for "negbinomial"
 #' @param cp a logical flag (default is FALSE) indicating to determine whether to use threshold shrinkage with changepoints.
 #' @param evol_error the evolution error distribution; must be one of
-#' 'DHS' (dynamic horseshoe prior; default), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
+#' \itemize{
+#' \item the dynamic horseshoe prior ('DHS');
+#' \item the static horseshoe prior ('HS');
+#' \item the Bayesian lasso ('BL');
+#' \item the normal stochastic volatility model ('SV');
+#' \item the normal-inverse-gamma prior ('NIG').
+#' }
 #' @param D integer scalar indicating degree of differencing defaults to 1; implementation is available D = 0, D = 1, or D = 2
 #' @param obsSV Options for modeling the error variance. It must be one of the following:
 #' \itemize{
@@ -95,35 +103,53 @@
 #'
 #'
 #' @export
-dsp_fit = function(y, cp = FALSE, evol_error = 'DHS',
-                  D = 1, obsSV = "const", useAnom = FALSE,
-                  nsave = 1000, nburn = 1000, nskip = 4,
-                  mcmc_params = list("mu", "omega", "r"),
-                  computeDIC = TRUE,
-                  verbose = FALSE,
-                  cp_thres = 0.4,
-                  return_full_samples = TRUE){
+dsp_fit = function(y, family = "gaussian",
+                   cp = FALSE, evol_error = 'DHS',
+                   D = 1, obsSV = "const", useAnom = FALSE,
+                   nsave = 1000, nburn = 1000, nskip = 4,
+                   mcmc_params = list("mu", "omega", "r"),
+                   computeDIC = TRUE,
+                   verbose = FALSE,
+                   cp_thres = 0.4,
+                   return_full_samples = TRUE, ...){
+
   if(!((evol_error == "DHS") || (evol_error == "HS") || (evol_error == "BL") || (evol_error == "SV") || (evol_error == "NIG"))) stop('Error type must be one of DHS, HS, BL, SV, or NIG')
   if(!((D == 0) || (D == 1) || (D == 2))) stop('D must be 0, 1 or 2')
+  if(!family %in% c("gaussian", "negbinomial")) stop('family must be gaussian or negbinomial')
 
-  if (cp == TRUE) {
-    if (evol_error == 'DHS' & (D == 1 || D == 2)) {
-      # Add in omega and r for finding changepoints
-      if (is.na(match('omega', mcmc_params))) {
-        mcmc_params = append(mcmc_params, list('omega'))
+  if(family == "gaussian"){
+    if (cp == TRUE) {
+      if (evol_error == 'DHS' & (D == 1 || D == 2)) {
+        # Add in omega and r for finding changepoints
+        if (is.na(match('omega', mcmc_params))) {
+          mcmc_params = append(mcmc_params, list('omega'))
+        }
+        if (is.na(match('r', mcmc_params))) {
+          mcmc_params = append(mcmc_params, list('r'))
+        }
+        mcmc_output = abco(y, D = D, obsSV = obsSV, useAnom = useAnom, nsave = nsave,
+                           nburn = nburn, nskip = nskip, mcmc_params = mcmc_params, verbose = verbose, cp_thres = cp_thres)
       }
-      if (is.na(match('r', mcmc_params))) {
-        mcmc_params = append(mcmc_params, list('r'))
-      }
-      mcmc_output = abco(y, D = D, obsSV = obsSV, useAnom = useAnom, nsave = nsave,
-                         nburn = nburn, nskip = nskip, mcmc_params = mcmc_params, verbose = verbose, cp_thres = cp_thres)
+    } else {
+      mcmc_output = btf(y, evol_error = evol_error, D = D, obsSV = obsSV, nsave = nsave, nburn = nburn, nskip = nskip,
+                        mcmc_params = mcmc_params, computeDIC = computeDIC, verbose = verbose)
     }
-  } else {
-    mcmc_output = btf(y, evol_error = evol_error, D = D, obsSV = obsSV, nsave = nsave, nburn = nburn, nskip = nskip,
-              mcmc_params = mcmc_params, computeDIC = computeDIC, verbose = verbose)
+  }else{
+    if(family == "negbinomial"){
+      if(!all(y >= 0)) stop("Negative Binomial likelihood only appropriate for positive data")
+
+      mcmc_output = btf_nb(y = y,
+                           evol_error = evol_error,
+                           D = D,
+                           nsave = nsave, nburn = nburn, nskip = nskip,
+                           mcmc_params = mcmc_params,
+                           computeDIC = computeDIC,
+                           verbose = verbose, ...)
+    }
   }
 
-  if (!return_full_samples){ ## TODO: Check that this will work for all model stypes
+
+  if (!return_full_samples){ ## TODO: Check that this will work for all model types
     for (nm in names(mcmc_output)){
       if (!is.na(match(nm, mcmc_params))) {
         mcmc_output[[nm]] = colMeans(as.matrix(mcmc_output[[nm]]))

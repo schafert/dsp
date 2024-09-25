@@ -6,6 +6,7 @@
 \usage{
 dsp_fit(
   y,
+  family = "gaussian",
   cp = FALSE,
   evol_error = "DHS",
   D = 1,
@@ -18,16 +19,26 @@ dsp_fit(
   computeDIC = TRUE,
   verbose = FALSE,
   cp_thres = 0.4,
-  return_full_samples = TRUE
+  return_full_samples = TRUE,
+  ...
 )
 }
 \arguments{
 \item{y}{a numeric vector of the \code{T x 1} vector of time series observations}
 
+\item{family}{a string specifying expontial family for observation likelihood.
+Defaults to "gaussian" and implementation also available for "negbinomial"}
+
 \item{cp}{a logical flag (default is FALSE) indicating to determine whether to use threshold shrinkage with changepoints.}
 
 \item{evol_error}{the evolution error distribution; must be one of
-'DHS' (dynamic horseshoe prior; default), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)}
+\itemize{
+\item the dynamic horseshoe prior ('DHS');
+\item the static horseshoe prior ('HS');
+\item the Bayesian lasso ('BL');
+\item the normal stochastic volatility model ('SV');
+\item the normal-inverse-gamma prior ('NIG').
+}}
 
 \item{D}{integer scalar indicating degree of differencing defaults to 1; implementation is available D = 0, D = 1, or D = 2}
 
