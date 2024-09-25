@@ -123,7 +123,7 @@ dsp_fit = function(y, cp = FALSE, evol_error = 'DHS',
               mcmc_params = mcmc_params, computeDIC = computeDIC, verbose = verbose)
   }
 
-  if (!return_full_samples){
+  if (!return_full_samples){ ## TODO: Check that this will work for all model stypes
     for (nm in names(mcmc_output)){
       if (!is.na(match(nm, mcmc_params))) {
         mcmc_output[[nm]] = colMeans(as.matrix(mcmc_output[[nm]]))
