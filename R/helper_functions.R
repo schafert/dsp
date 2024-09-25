@@ -836,7 +836,7 @@ plot_fitted = function(y, mu, postY, y_true = NULL, t01 = NULL, include_joint_ba
   if(include_joint_bands) dcib = credBands(postY)
 
   # Plot
-  dev.new(); par(mfrow=c(1,1), mai = c(1,1,1,1))
+  par(mfrow=c(1,1), mai = c(1,1,1,1)) # TODO: is it best practice to change? Should we change it back?
   plot(t01, y, type='n', ylim=range(dcib, y, na.rm=TRUE), xlab = 't', ylab=expression(paste("y"[t])), main = 'Fitted Values: Conditional Expectation', cex.lab = 2, cex.main = 2, cex.axis = 2)
   polygon(c(t01, rev(t01)), c(dcib[,2], rev(dcib[,1])), col='gray50', border=NA)
   polygon(c(t01, rev(t01)), c(dcip[,2], rev(dcip[,1])), col='grey', border=NA)
