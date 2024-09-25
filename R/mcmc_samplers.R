@@ -70,7 +70,7 @@
 #'   noise[k] = rnorm(1, 0, sqrt(noise_var[k])) }
 #'
 #' y = signal + noise
-#' mcmc_output = dsp_cp(y, cp=TRUE, mcmc_params = list('yhat', 'mu', "omega", "r"))
+#' mcmc_output = dsp_fit(y, cp=TRUE, mcmc_params = list('yhat', 'mu', "omega", "r"))
 #' cp = mcmc_output$cp
 #' print(paste0('Changepoint Locations: ', cp))
 #' plot_fitted(y, mu = colMeans(mcmc_output$mu), postY = mcmc_output$yhat, y_true = signal)
@@ -81,7 +81,7 @@
 #' y[50] = 10
 #' y[150] = -10
 #'
-#' mcmc_output = dsp_cp(y, cp=TRUE, useAnom = TRUE, mcmc_params = list('yhat', 'mu', "omega", "r"))
+#' mcmc_output = dsp_fit(y, cp=TRUE, useAnom = TRUE, mcmc_params = list('yhat', 'mu', "omega", "r"))
 #' cp = mcmc_output$cp
 #' plot_fitted(y, mu = colMeans(mcmc_output$mu), postY = mcmc_output$yhat, y_true = signal)
 #'
@@ -89,13 +89,13 @@
 #' signal = c(seq(1, 50), seq(51, 2))
 #' y = c(seq(1, 50), seq(51, 2)) + rnorm(100)
 #'
-#' mcmc_output = dsp_cp(y, cp=TRUE, D=2, mcmc_params = list('yhat', 'mu', "omega", "r"))
+#' mcmc_output = dsp_fit(y, cp=TRUE, D=2, mcmc_params = list('yhat', 'mu', "omega", "r"))
 #' cp = mcmc_output$cp
 #' plot_fitted(y, mu = colMeans(mcmc_output$mu), postY = mcmc_output$yhat, y_true = signal)
 #'
 #'
 #' @export
-dsp_cp = function(y, cp = FALSE, evol_error = 'DHS',
+dsp_fit = function(y, cp = FALSE, evol_error = 'DHS',
                   D = 1, obsSV = "const", useAnom = FALSE,
                   nsave = 1000, nburn = 1000, nskip = 4,
                   mcmc_params = list("mu", "omega", "r"),

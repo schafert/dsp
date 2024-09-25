@@ -1,5 +1,5 @@
-#' MCMC Sampler for Adaptive Stchoastic Volatility (ASV) model 
-#' 
+#' MCMC Sampler for Adaptive Stchoastic Volatility (ASV) model
+#'
 #' The penalty is determined by the prior on the evolution errors, which include:
 #' \itemize{
 #' \item the dynamic horseshoe prior ('DHS');
@@ -10,8 +10,8 @@
 #' In each case, the evolution error is a scale mixture of Gaussians.
 #' Sampling is accomplished with a (parameter-expanded) Gibbs sampler,
 #' mostly relying on a dynamic linear model representation.
-#' 
-#' @param y the \code{T x 1} vector of time series observations. 
+#'
+#' @param y the \code{T x 1} vector of time series observations.
 #' @param beta the mean of the observed process y. If not provided, they are assumed to be 0.
 #' @param evol_error the evolution error distribution; must be one of
 #' 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
@@ -49,10 +49,10 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
                    computeDIC = TRUE,
                    verbose = TRUE){
   T = length(y)
-  y = y - beta 
+  y = y - beta
   # initializing parameters
   sParams = init_paramsASV(y,evol_error,D)
-  
+
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
   if(!is.na(match('h', mcmc_params)) || computeDIC) post_s_mu = array(NA, c(nsave, T))
@@ -62,11 +62,11 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = numeric(nsave)
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean = numeric(nsave)
   post_loglike = numeric(nsave)
-  
+
   # Total number of MCMC simulations:
   nstot = nburn+(nskip+1)*(nsave)
   skipcount = 0; isave = 0 # For counting
-  
+
   # Run the MCMC:
   if(verbose){
     pb <- progress::progress_bar$new(format = "(:spin) [:bar] :percent [Elapsed time: :elapsedfull || Estimated time remaining: :eta]",
@@ -85,19 +85,19 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
       pb$tick(1000)
     }
     sParams = fit_paramsASV(y,sParams,evol_error,D)
-    
+
     # Store the MCMC output:
     if(nsi > nburn){
       # Increment the skip counter:
       skipcount = skipcount + 1
-      
+
       # Save the iteration:
       if(skipcount > nskip){
         # Increment the save index
         isave = isave + 1
         # Save the MCMC samples:
-        
-        
+
+
         sigma2 = exp(sParams$s_mu)
         if(!is.na(match('h', mcmc_params)) || computeDIC) post_s_mu[isave,] = sParams$s_mu
         if(!is.na(match('logy2hat', mcmc_params))) post_s_logy2hat[isave,] = generate_ly2hat(sParams$s_mu,sParams$s_p_error_term)
@@ -107,8 +107,8 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
         if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi[isave] = sParams$s_evolParams$dhs_phi
         if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean[isave] = sParams$s_evolParams$dhs_mean
         post_loglike[isave] = sum(dnorm(y, mean = beta, sd = exp(sParams$s_mu/2), log = TRUE))
-        
-        
+
+
         # And reset the skip counter:
         skipcount = 0
       }
@@ -124,11 +124,11 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
   mcmc_output$loglike = post_loglike
   if(computeDIC){
     list_dic_p_d = computeDIC_ASV(y,beta,post_sigma2,post_loglike)
-    mcmc_output$DIC = list_dic_p_d$DIC 
+    mcmc_output$DIC = list_dic_p_d$DIC
     mcmc_output$p_d = list_dic_p_d$p_d
   }
   return(mcmc_output);
-} 
+}
 #' Posterior Sample from 10-componenets Mixture Gaussian based on Omori et al. 2007
 #'
 #' @param T the number of observations
@@ -136,8 +136,8 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
 #'
 #' @return \code{T x 2} data frame containing the posterior mean on the "mean" column
 #' and the posterior variance on the "variance" column based on the provided obs.
-#' 
-#' @note If the "obs" are not provided componenets are sampled from the prior distribution.  
+#'
+#' @note If the "obs" are not provided componenets are sampled from the prior distribution.
 #'
 sample_jfast <- function(T,obs= NULL){
   m_st  = c(1.92677, 1.34744, 0.73504, 0.02266, -0.85173, -1.97278, -3.46788, -5.55246, -8.68384, -14.65000)
@@ -157,20 +157,20 @@ sample_jfast <- function(T,obs= NULL){
 #' Posterior predictive sampler on the transformed y (log(y^2))
 #'
 #' @param h the log varaince term h
-#' @param p_error_term 2 dimensional data frame containing mean and the variance from the 10 componenet 
+#' @param p_error_term 2 dimensional data frame containing mean and the variance from the 10 componenet
 #' Gaussian mixture in Omori et al 2007 paper.
 #'
 #' @return a vector containing posterior predictive on log(y^2)
 #'
 generate_ly2hat <- function(h,p_error_term){
   return(h + matrix(rnorm(length(h),
-                           mean = p_error_term$mean, 
+                           mean = p_error_term$mean,
                            sd = sqrt(p_error_term$var)))
   )
 }
 #' Helper function for initializing parameters for ASV model
 #'
-#' @param data the \code{T x 1} vector of time series observations. 
+#' @param data the \code{T x 1} vector of time series observations.
 #' @param evol_error the evolution error distribution; must be one of
 #' 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
 #' @param D degree of differencing (D = 1, or D = 2)
@@ -185,17 +185,17 @@ generate_ly2hat <- function(h,p_error_term){
 init_paramsASV <- function(data,evol_error,D){
   yoffset = any(data^2 < 10^-16,na.rm = T)*mad(data,na.rm = T)/10^10
   data = log(data^2 + yoffset)
-  T = length(data); 
+  T = length(data);
   t01 = seq(0, 1, length.out=T);
-  
+
   # Begin by checking for missing values, then imputing (for initialization)
   is.missing = which(is.na(data)); any.missing = (length(is.missing) > 0)
-  
+
   # Impute the active "data"
   data = approxfun(t01, data, rule = 2)(t01)
   loc_obs = t_create_loc(T, D)
   loc_error = t_create_loc(T-D,1)
-  
+
   s_p_error_term = sample_jfast(T)
   s_mu = dsp::sampleBTF(data- s_p_error_term$mean,
                         obs_sigma_t2 = s_p_error_term$var,
@@ -217,7 +217,7 @@ init_paramsASV <- function(data,evol_error,D){
 }
 #' Helper function for Sampling parameters for ASV model
 #'
-#' @param data the \code{T x 1} vector of time series observations. 
+#' @param data the \code{T x 1} vector of time series observations.
 #' @param sParams list from the previous run of fit_paramsASV function or init_paramsASV function
 #' @param evol_error the evolution error distribution; must be one of
 #' 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
@@ -233,12 +233,12 @@ init_paramsASV <- function(data,evol_error,D){
 fit_paramsASV <- function(data,sParams,evol_error,D){
   yoffset = any(data^2 < 10^-16)*mad(data)/10^10
   data = log(data^2 + yoffset)
-  T = length(data); 
+  T = length(data);
   t01 = seq(0, 1, length.out=T);
-  
+
   # Begin by checking for missing values, then imputing (for initialization)
   is.missing = which(is.na(data)); any.missing = (length(is.missing) > 0)
-  
+
   # Impute the active "data"
   data = approxfun(t01, data, rule = 2)(t01)
   s_p_error_term = sample_jfast(T,data-sParams$s_mu)
@@ -262,7 +262,7 @@ fit_paramsASV <- function(data,sParams,evol_error,D){
   sParams$s_evolParams0 = s_evolParams0
   sParams$s_evolParams = s_evolParams
   return(sParams)
-  # 
+  #
   # list(s_p_error_term = s_p_error_term,
   #      s_mu = s_mu,
   #      s_evolParams0 = s_evolParams0,
@@ -270,7 +270,7 @@ fit_paramsASV <- function(data,sParams,evol_error,D){
 }
 #' Function for calculating DIC and Pb (Bayesian measures of model complexity and fit by Spiegelhalter et al. 2002)
 #'
-#' @param y the \code{T x 1} vector of time series observations. 
+#' @param y the \code{T x 1} vector of time series observations.
 #' @param beta the known mean of the process. 0 by default.
 #' @param post_sigma2 posterior samples of the variance, i.e. exp(h)
 #' @param post_loglike log likelihood based on the posterior sample.
@@ -284,7 +284,7 @@ computeDIC_ASV <- function(y,beta,post_sigma2,post_loglike){
                           mean = beta,
                           sd = colMeans(sqrt(post_sigma2)),
                           log = TRUE))
-  
+
   # Effective number of parameters (Note: two options)
   p_d = c(2*(loglike_hat - mean(post_loglike)),
           2*var(post_loglike))
