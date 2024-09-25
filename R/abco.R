@@ -100,8 +100,8 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
       sigma_e = exp(sParams$s_mu/2)
     }
   }
-  
-  
+
+
   #Array to store omega
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
@@ -484,15 +484,6 @@ t_sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_si
 
   # Joint AWOL sampler for j=1,...,p:
 
-  # Constant (but j-specific) mean
-  #h_mu_all = (1-h_phi-h_phi2*h_st)*h_mu
-  #h_mu_all[1] = h_mu
-  #h_mu_all = tcrossprod(rep(1,n), h_mu)
-
-  # Constant (but j-specific) AR(1) coef
-  #h_phi_all = tcrossprod(rep(1,n), h_phi)
-  #h_phi2_all = tcrossprod(rep(1,n), h_phi2)
-
   # Linear term:
   linht = (ystar - m_st_all - h_mu)/v_st2_all
 
@@ -511,14 +502,7 @@ t_sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_si
   # Off-diagonal of quadratic term:
   Q_off = (-(h_phi+h_phi2*h_st)*evol_prec_lag_mat)[-n]
 
-  # Quadratic term:
-  #QHt_Matrix = bandSparse(n*p, k = c(0,1), diag = list(Q_diag, Q_off), symm = TRUE)
-
-  # Cholesky:
-  #chQht_Matrix = Matrix::chol(QHt_Matrix)
-
   # Sample the log-vols:
-  #hsamp = h_mu_all + matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(length(linht))), nr = n)
   rd = RcppZiggurat::zrnorm(length(linht))
   hsamp = h_mu + sample_mat_c(loc$r, loc$c, c(Q_diag, Q_off, Q_off), length(Q_diag), length(loc$r), c(linht), rd, 1)
 

@@ -498,7 +498,7 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0,
   #q     = c(0.007300,  0.105560, 0.000020, 0.043950, 0.340010, 0.245660, 0.257500)
 
   # Omori, Chib, Shephard, Nakajima (2007) 10-component mixture:
-  m_st  = c(1.92677, 1.34744, 0.73504, 0.02266, -0.85173, -1.97278, -3.46788, -5.55246, -8.68384, -14.65000)
+  am_st  = c(1.92677, 1.34744, 0.73504, 0.02266, -0.85173, -1.97278, -3.46788, -5.55246, -8.68384, -14.65000)
   v_st2 = c(0.11265, 0.17788, 0.26768, 0.40611,  0.62699,  0.98583,  1.57469,  2.54498,  4.16591,   7.33342)
   q     = c(0.00609, 0.04775, 0.13057, 0.20674,  0.22715,  0.18842,  0.12047,  0.05591,  0.01575,   0.00115)
 
@@ -587,6 +587,7 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0,
 #' simply use \code{sigma_e = 1} in the functional call.
 #'
 #' @import stochvol
+#' @importFrom mgcv rig
 #' @export
 sampleEvolParams = function(omega, evolParams,  sigma_e = 1, evol_error = "DHS", loc = NULL){
 
@@ -624,7 +625,7 @@ sampleEvolParams = function(omega, evolParams,  sigma_e = 1, evol_error = "DHS",
     hsInput2 = omega^2 + hsOffset
 
     # 1/tau_j^2 is inverse-gaussian (NOTE: this is very slow!)
-    evolParams$tau_j = matrix(sapply(matrix(hsInput2), function(x){1/sqrt(rig(n = 1,
+    evolParams$tau_j = matrix(sapply(matrix(hsInput2), function(x){1/sqrt(mgcv::rig(n = 1,
                                             mean = sqrt(evolParams$lambda2*sigma_e^2/x), # already square the input
                                             scale = 1/evolParams$lambda2))}), nrow = n)
     # Note: should be better priors for lambda2

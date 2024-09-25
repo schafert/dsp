@@ -977,30 +977,7 @@ uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL)
   return (x1)
 
 }
-#----------------------------------------------------------------------------
-#' Sample from an inverse-Gaussian distribution
-#'
-#' Using code from the \code{mgcv} package
-#'
-#' @param n the number of deviates required. If this has length > 1 then the length is taken as the number of deviates required.
-#' @param mean vector of mean values.
-#' @param scale	vector of scale parameter values (lambda)
-rig = function (n, mean, scale)
-{
-  if (length(n) > 1)
-    n <- length(n)
-  x <- y <- rnorm(n)^2
-  mys <- mean * scale * y
-  mu <- 0 * y + mean
-  mu2 <- mu^2
-  ind <- mys < .Machine$double.eps^-0.5
-  x[ind] <- mu[ind] * (1 + 0.5 * (mys[ind] - sqrt(mys[ind] *
-                                                    4 + mys[ind]^2)))
-  x[!ind] <- mu[!ind]/mys[!ind]
-  ind <- runif(n) > mean/(mean + x)
-  x[ind] <- mu2[ind]/x[ind]
-  x
-}
+
 #----------------------------------------------------------------------------
 #' Compute the spectrum of an AR(p) model
 #'
