@@ -1022,36 +1022,7 @@ spec_dsp = function(ar_coefs, sigma_e, n.freq = 500){
 
   cbind(freq, sf)
 }
-#----------------------------------------------------------------------------
-#' Compute the posterior distribution of the spectrum of a TVAR(p) model
-#'
-#' @param post_ar_coefs (nsave x T x p) array of TVAR(p) coefficients
-#' @param post_sigma_e (nsave x 1) vector of observation standard deviation
-#' @param n.freq number of frequencies at which to evaluate the spectrum
-#'
-#' @return A list containing (1) the vector of frequencies at which the spectrum
-#' was evaluated and (2) a (nsave x T x n.freq) array of the spectrum values
-#' for each MCMC simulation at each time.
-#'
-#' @export
-post_spec_dsp = function(post_ar_coefs, post_sigma_e, n.freq = 500){
 
-  # Number of sims, number of time points, and number of lags:
-  dims = dim(post_ar_coefs)
-  nsave = dims[1]; T = dims[2]; p = dims[3]
-
-  freq <- seq.int(0, 0.5, length.out = n.freq)
-
-  spec = array(0, c(nsave, T, n.freq))
-  #for(ni in 1:nsave) spec[ni,,] = t(apply(post_ar_coefs[ni,,], 1, function(x) spec_dsp(x, post_sigma_e[ni], n.freq)[,2]))
-  for(ni in 1:nsave){
-    for(i in 1:T){
-      spec[ni,i,] =  spec_dsp(post_ar_coefs[ni,i,], post_sigma_e[ni], n.freq)[,2]
-    }
-  }
-
-  list(freq = freq, post_spec = spec)
-}
 #----------------------------------------------------------------------------
 #' Compute the design matrix X for AR(p) model
 #'
