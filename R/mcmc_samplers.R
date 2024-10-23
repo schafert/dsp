@@ -57,15 +57,14 @@
 #' and the effective number of parameters \code{p_d}
 #' @param verbose logical; should R report extra information on progress? Defaults to FALSE
 #' @param cp_thres Proportion of posterior samples of latent indicator being 1 needed to declare a changepoint; defaults to 0.4
-#' @param return_full_samples logical; if TRUE (default), return full MCMC samples for desired parameters;
-#' if FALSE, return the posterior mean for desired parameters
+#' @param ...
 #'
 #' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 #' if threshold shrinkage with changepoints is used, also return detected changepoint locations
 #'
 #' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
-#' deviation is recommended to avoid numerical issues.
+#' deviation is recommended to avoid numerical issues when family is "gaussian".
 #'
 #' @examples
 #'
@@ -110,8 +109,7 @@ dsp_fit = function(y, family = "gaussian",
                    mcmc_params = list("mu", "omega", "r"),
                    computeDIC = TRUE,
                    verbose = FALSE,
-                   cp_thres = 0.4,
-                   return_full_samples = TRUE, ...){
+                   cp_thres = 0.4, ...){
 
   if(!((evol_error == "DHS") || (evol_error == "HS") || (evol_error == "BL") || (evol_error == "SV") || (evol_error == "NIG"))) stop('Error type must be one of DHS, HS, BL, SV, or NIG')
   if(!((D == 0) || (D == 1) || (D == 2))) stop('D must be 0, 1 or 2')
@@ -148,14 +146,6 @@ dsp_fit = function(y, family = "gaussian",
     }
   }
 
-
-  if (!return_full_samples){ ## TODO: Check that this will work for all model types
-    for (nm in names(mcmc_output)){
-      if (!is.na(match(nm, mcmc_params))) {
-        mcmc_output[[nm]] = colMeans(as.matrix(mcmc_output[[nm]]))
-      }
-    }
-  }
   return (mcmc_output);
 }
 #' MCMC Sampler for Bayesian Trend Filtering

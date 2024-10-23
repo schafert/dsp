@@ -19,7 +19,6 @@ dsp_fit(
   computeDIC = TRUE,
   verbose = FALSE,
   cp_thres = 0.4,
-  return_full_samples = TRUE,
   ...
 )
 }
@@ -78,8 +77,7 @@ and the effective number of parameters \code{p_d}}
 
 \item{cp_thres}{Proportion of posterior samples of latent indicator being 1 needed to declare a changepoint; defaults to 0.4}
 
-\item{return_full_samples}{logical; if TRUE (default), return full MCMC samples for desired parameters;
-if FALSE, return the posterior mean for desired parameters}
+\item{...}{}
 }
 \value{
 A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
