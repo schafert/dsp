@@ -80,7 +80,9 @@ and the effective number of parameters \code{p_d}}
 \item{...}{}
 }
 \value{
-A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
+\code{dsp_fit} returns an object of class "\code{dsp}".
+
+An object of class "\code{dsp}" is defined as a list containing at least the following components:the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 if threshold shrinkage with changepoints is used, also return detected changepoint locations
 }
 \description{
@@ -104,7 +106,7 @@ mostly relying on a dynamic linear model representation.
 \note{
 The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
-deviation is recommended to avoid numerical issues.
+deviation is recommended to avoid numerical issues when family is "gaussian".
 }
 \examples{
 

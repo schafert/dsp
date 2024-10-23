@@ -60,7 +60,8 @@ Imports:
     stats,
     stochvol,
     BayesLogit,
-    truncdist
+    truncdist,
+    mgcv
 Suggests: 
     ggplot2,
     testthat (>= 3.0.0)

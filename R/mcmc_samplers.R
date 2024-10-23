@@ -59,7 +59,9 @@
 #' @param cp_thres Proportion of posterior samples of latent indicator being 1 needed to declare a changepoint; defaults to 0.4
 #' @param ...
 #'
-#' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
+#' @return \code{dsp_fit} returns an object of class "\code{dsp}".
+#'
+#' An object of class "\code{dsp}" is defined as a list containing at least the following components:the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 #' if threshold shrinkage with changepoints is used, also return detected changepoint locations
 #'
 #' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
@@ -1260,18 +1262,18 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 #' @examples
 #'
 #' # Example 1: Blocks data
-#' simdata = simUnivariate(signalName = "blocks", T = 1000, RSNR = 3, include_plot = TRUE)
-#' y = simdata$y
-#' out = btf_bspline(y, D = 1)
+#' simdata <- simUnivariate(signalName = "blocks", T = 1000, RSNR = 3, include_plot = FALSE)
+#' y <- simdata$y
+#' out <- btf_bspline(y, D = 1)
 #' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
 #'
 #'
 #' # Example 2: motorcycle data (unequally-spaced points)
-#' library(MASS)
-#' y = scale(mcycle$accel) # Center and Scale for numerical stability
-#' x = mcycle$times
+#' data("mcycle", package = "MASS")
+#' y <- scale(mcycle$accel) # Center and Scale for numerical stability
+#' x <- mcycle$times
 #' plot(x, y, xlab = 'Time (ms)', ylab='Acceleration (g)', main = 'Motorcycle Crash Data')
-#' out = btf_bspline(y = y, x = x)
+#' out <- btf_bspline(y = y, x = x)
 #' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
 #'
 #'
