@@ -89,17 +89,17 @@ substantially fewer than the number of time points.
 \examples{
 
 # Example 1: Blocks data
-y_true <- make.signal(name = "blocks", n = 1000)
-y <- y_true + rnorm(1000) * sqrt(var(y_true)) / 3
-out<- btf_bspline(y, D = 1)
-plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = y_true)
+simdata <- simUnivariate(signalName = "blocks", T = 1000, RSNR = 3, include_plot = FALSE)
+y <- simdata$y
+out <- btf_bspline(y, D = 1)
+plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
 
 
 # Example 2: motorcycle data (unequally-spaced points)
-library(MASS)
+data("mcycle", package = "MASS")
 y <- scale(mcycle$accel) # Center and Scale for numerical stability
 x <- mcycle$times
-plot(x, y, xlab = 'Time (ms)', ylab =' Acceleration (g)', main = 'Motorcycle Crash Data')
+plot(x, y, xlab = 'Time (ms)', ylab='Acceleration (g)', main = 'Motorcycle Crash Data')
 out <- btf_bspline(y = y, x = x)
 plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
 

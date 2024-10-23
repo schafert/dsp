@@ -82,8 +82,16 @@ and the effective number of parameters \code{p_d}}
 \value{
 \code{dsp_fit} returns an object of class "\code{dsp}".
 
-An object of class "\code{dsp}" is defined as a list containing at least the following components:the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
-if threshold shrinkage with changepoints is used, also return detected changepoint locations
+An object of class "\code{dsp}" is defined as a list containing at least the following components:
+\item{pars}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}}
+\item{cp}{if threshold shrinkage with changepoints is used, also return detected changepoint locations; otherwise FALSE}
+\item{DIC}{}
+\item{family}{value supplied for family argument}
+\item{evol_error}{value supplied for evol_error argument}
+\item{D}{value supplied for D argument}
+\item{obsSV}{value supplied for obsSV argument}
+\item{mcpar}{named vector of supplied nsave, nburn, and nskip}
+\item{cp_thres}{value supplied for cp_thres argument}
 }
 \description{
 Run the MCMC for Bayesian trend filtering with a penalty on zeroth (D = 0),
