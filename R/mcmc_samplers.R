@@ -62,7 +62,7 @@
 #' @return \code{dsp_fit} returns an object of class "\code{dsp}".
 #'
 #' An object of class "\code{dsp}" is defined as a list containing at least the following components:
-#'    \item{pars}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}}
+#'    \item{pars}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}} ## TODO change so matches
 #'    \item{cp}{if threshold shrinkage with changepoints is used, also return detected changepoint locations; otherwise FALSE}
 #'    \item{DIC}{}
 #'    \item{family}{value supplied for family argument}
@@ -157,7 +157,15 @@ dsp_fit = function(y, family = "gaussian",
     }
   }
 
-  return (mcmc_output);
+
+  structure(c(mcmc_output, list(cp = cp_thres, #TODO change documentation or this so matches
+                 DIC = mcmc_output[c("DIC", "p_d")],
+                 D = D,
+                 obsSV = obsSV,
+                 mcpar = c(nsave = nsave, nburn = nburn, nskip = nskip),
+                 cp_thres = cp_thres)),
+            class = c(mcmc_output$class, c("dsp")))
+
 }
 #' MCMC Sampler for Bayesian Trend Filtering
 #'
