@@ -83,7 +83,7 @@ and the effective number of parameters \code{p_d}}
 \code{dsp_fit} returns an object of class "\code{dsp}".
 
 An object of class "\code{dsp}" is defined as a list containing at least the following components:
-\item{pars}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}}
+\item{pars}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}} ## TODO change so matches
 \item{cp}{if threshold shrinkage with changepoints is used, also return detected changepoint locations; otherwise FALSE}
 \item{DIC}{}
 \item{family}{value supplied for family argument}
