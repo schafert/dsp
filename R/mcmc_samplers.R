@@ -57,15 +57,25 @@
 #' and the effective number of parameters \code{p_d}
 #' @param verbose logical; should R report extra information on progress? Defaults to FALSE
 #' @param cp_thres Proportion of posterior samples of latent indicator being 1 needed to declare a changepoint; defaults to 0.4
-#' @param return_full_samples logical; if TRUE (default), return full MCMC samples for desired parameters;
-#' if FALSE, return the posterior mean for desired parameters
+#' @param ...
 #'
-#' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
-#' if threshold shrinkage with changepoints is used, also return detected changepoint locations
+#' @return \code{dsp_fit} returns an object of class "\code{dsp}".
+#'
+#' An object of class "\code{dsp}" is defined as a list containing at least the following components:
+#'    \item{pars}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}} ## TODO change so matches
+#'    \item{cp}{if threshold shrinkage with changepoints is used, also return detected changepoint locations; otherwise FALSE}
+#'    \item{DIC}{}
+#'    \item{family}{value supplied for family argument}
+#'    \item{evol_error}{value supplied for evol_error argument}
+#'    \item{D}{value supplied for D argument}
+#'    \item{obsSV}{value supplied for obsSV argument}
+#'    \item{mcpar}{named vector of supplied nsave, nburn, and nskip}
+#'    \item{cp_thres}{value supplied for cp_thres argument}
+#'
 #'
 #' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
-#' deviation is recommended to avoid numerical issues.
+#' deviation is recommended to avoid numerical issues when family is "gaussian".
 #'
 #' @examples
 #'
@@ -110,8 +120,7 @@ dsp_fit = function(y, family = "gaussian",
                    mcmc_params = list("mu", "omega", "r"),
                    computeDIC = TRUE,
                    verbose = FALSE,
-                   cp_thres = 0.4,
-                   return_full_samples = TRUE, ...){
+                   cp_thres = 0.4, ...){
 
   if(!((evol_error == "DHS") || (evol_error == "HS") || (evol_error == "BL") || (evol_error == "SV") || (evol_error == "NIG"))) stop('Error type must be one of DHS, HS, BL, SV, or NIG')
   if(!((D == 0) || (D == 1) || (D == 2))) stop('D must be 0, 1 or 2')
@@ -149,14 +158,14 @@ dsp_fit = function(y, family = "gaussian",
   }
 
 
-  if (!return_full_samples){ ## TODO: Check that this will work for all model types
-    for (nm in names(mcmc_output)){
-      if (!is.na(match(nm, mcmc_params))) {
-        mcmc_output[[nm]] = colMeans(as.matrix(mcmc_output[[nm]]))
-      }
-    }
-  }
-  return (mcmc_output);
+  structure(c(mcmc_output, list(cp = cp_thres, #TODO change documentation or this so matches
+                 DIC = mcmc_output[c("DIC", "p_d")],
+                 D = D,
+                 obsSV = obsSV,
+                 mcpar = c(nsave = nsave, nburn = nburn, nskip = nskip),
+                 cp_thres = cp_thres)),
+            class = c(mcmc_output$class, c("dsp")))
+
 }
 #' MCMC Sampler for Bayesian Trend Filtering
 #'
@@ -1270,18 +1279,18 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 #' @examples
 #'
 #' # Example 1: Blocks data
-#' simdata = simUnivariate(signalName = "blocks", T = 1000, RSNR = 3, include_plot = TRUE)
-#' y = simdata$y
-#' out = btf_bspline(y, D = 1)
+#' simdata <- simUnivariate(signalName = "blocks", T = 1000, RSNR = 3, include_plot = FALSE)
+#' y <- simdata$y
+#' out <- btf_bspline(y, D = 1)
 #' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
 #'
 #'
 #' # Example 2: motorcycle data (unequally-spaced points)
-#' library(MASS)
-#' y = scale(mcycle$accel) # Center and Scale for numerical stability
-#' x = mcycle$times
+#' data("mcycle", package = "MASS")
+#' y <- scale(mcycle$accel) # Center and Scale for numerical stability
+#' x <- mcycle$times
 #' plot(x, y, xlab = 'Time (ms)', ylab='Acceleration (g)', main = 'Motorcycle Crash Data')
-#' out = btf_bspline(y = y, x = x)
+#' out <- btf_bspline(y = y, x = x)
 #' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
 #'
 #'

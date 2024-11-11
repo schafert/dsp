@@ -19,7 +19,6 @@ dsp_fit(
   computeDIC = TRUE,
   verbose = FALSE,
   cp_thres = 0.4,
-  return_full_samples = TRUE,
   ...
 )
 }
@@ -78,12 +77,21 @@ and the effective number of parameters \code{p_d}}
 
 \item{cp_thres}{Proportion of posterior samples of latent indicator being 1 needed to declare a changepoint; defaults to 0.4}
 
-\item{return_full_samples}{logical; if TRUE (default), return full MCMC samples for desired parameters;
-if FALSE, return the posterior mean for desired parameters}
+\item{...}{}
 }
 \value{
-A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
-if threshold shrinkage with changepoints is used, also return detected changepoint locations
+\code{dsp_fit} returns an object of class "\code{dsp}".
+
+An object of class "\code{dsp}" is defined as a list containing at least the following components:
+\item{pars}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}} ## TODO change so matches
+\item{cp}{if threshold shrinkage with changepoints is used, also return detected changepoint locations; otherwise FALSE}
+\item{DIC}{}
+\item{family}{value supplied for family argument}
+\item{evol_error}{value supplied for evol_error argument}
+\item{D}{value supplied for D argument}
+\item{obsSV}{value supplied for obsSV argument}
+\item{mcpar}{named vector of supplied nsave, nburn, and nskip}
+\item{cp_thres}{value supplied for cp_thres argument}
 }
 \description{
 Run the MCMC for Bayesian trend filtering with a penalty on zeroth (D = 0),
@@ -106,7 +114,7 @@ mostly relying on a dynamic linear model representation.
 \note{
 The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
-deviation is recommended to avoid numerical issues.
+deviation is recommended to avoid numerical issues when family is "gaussian".
 }
 \examples{
 
