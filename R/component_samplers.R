@@ -498,9 +498,9 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0,
   #q     = c(0.007300,  0.105560, 0.000020, 0.043950, 0.340010, 0.245660, 0.257500)
 
   # Omori, Chib, Shephard, Nakajima (2007) 10-component mixture:
-  m_st  = c(1.92677, 1.34744, 0.73504, 0.02266, -0.85173, -1.97278, -3.46788, -5.55246, -8.68384, -14.65000)
-  v_st2 = c(0.11265, 0.17788, 0.26768, 0.40611,  0.62699,  0.98583,  1.57469,  2.54498,  4.16591,   7.33342)
-  q     = c(0.00609, 0.04775, 0.13057, 0.20674,  0.22715,  0.18842,  0.12047,  0.05591,  0.01575,   0.00115)
+  # m_st  = c(1.92677, 1.34744, 0.73504, 0.02266, -0.85173, -1.97278, -3.46788, -5.55246, -8.68384, -14.65000)
+  # v_st2 = c(0.11265, 0.17788, 0.26768, 0.40611,  0.62699,  0.98583,  1.57469,  2.54498,  4.16591,   7.33342)
+  # q     = c(0.00609, 0.04775, 0.13057, 0.20674,  0.22715,  0.18842,  0.12047,  0.05591,  0.01575,   0.00115)
 
   # Add an offset: common for all times, but distict for each j=1,...,p
   yoffset = tcrossprod(rep(1,n),
@@ -511,12 +511,18 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0,
   ystar = log(h_y^2 + yoffset)
 
   # Sample the mixture components
-  z = draw_indicators_generic(ystar-h_prev, rep(0, length(ystar)), length(ystar),
-            q, m_st, sqrt(v_st2), length(q))
+  # z = draw_indicators_generic(ystar-h_prev, rep(0, length(ystar)), length(ystar),
+  #           q, m_st, sqrt(v_st2), length(q))
   # TODO: make sure this isn't a breaking change
 
   # Subset mean and variances to the sampled mixture components; (n x p) matrices
-  m_st_all = matrix(m_st[z], nrow=n); v_st2_all = matrix(v_st2[z], nrow=n)
+  # m_st_all = matrix(m_st[z], nrow=n); v_st2_all = matrix(v_st2[z], nrow=n)
+  # Sample the mixture components
+  mixture_component = sample_j_wrap(n,ystar-hprev)
+
+  # Subset mean and variances to the sampled mixture components; (n x p) matrices
+  m_st_all = mixture_component$mean
+  v_st2_all = mixture_component$var
 
   # Joint AWOL sampler for j=1,...,p:
 
@@ -1040,4 +1046,28 @@ sampleFastGaussian = function(Phi, Ddiag, alpha){
 
   # Return theta:
   theta
+}
+#' Sample the conditional posterior distribution on the Gaussian Mixture component
+#' for approximating the log(\chi^2) distribution based on Omori et al. 2007
+#'
+#'
+#' @param Td length of the vector
+#' @param obs \code{Td x 1} vector for the data.
+#' @return Dataframe containing the posterior samples: mean and variance for the mixture component.
+#' @note When the obs is not not specified, the componenets are samples from the prior distribution.
+sample_j_wrap <- function(Td,obs=NULL){
+  # Omori, Chib, Shephard, Nakajima (2007) 10-component mixture:
+  m_st  = c(1.92677, 1.34744, 0.73504, 0.02266, -0.85173, -1.97278, -3.46788, -5.55246, -8.68384, -14.65000)
+  v_st2 = c(0.11265, 0.17788, 0.26768, 0.40611,  0.62699,  0.98583,  1.57469,  2.54498,  4.16591,   7.33342)
+  q     = c(0.00609, 0.04775, 0.13057, 0.20674,  0.22715,  0.18842,  0.12047,  0.05591,  0.01575,   0.00115)
+
+  if(is.null(obs)){
+    z = sample.int(10,Td,replace = Td, prob = q)
+  }else{
+    z = c(draw_indicators_generic(obs, rep(0, Td), Td, q, m_st, sqrt(v_st2), 10))
+  }
+  return(
+    data.frame(mean = m_st[z],
+               var = v_st2[z]))
+
 }

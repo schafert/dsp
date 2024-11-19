@@ -196,7 +196,7 @@ init_paramsASV <- function(data,evol_error,D){
   loc_obs = t_create_loc(T, D)
   loc_error = t_create_loc(T-D,1)
 
-  s_p_error_term = sample_jfast(T)
+  s_p_error_term = sample_j_wrap(T,NULL)
   s_mu = dsp::sampleBTF(data- s_p_error_term$mean,
                         obs_sigma_t2 = s_p_error_term$var,
                         evol_sigma_t2 = 0.01*rep(1,T),
@@ -241,7 +241,8 @@ fit_paramsASV <- function(data,sParams,evol_error,D){
 
   # Impute the active "data"
   data = approxfun(t01, data, rule = 2)(t01)
-  s_p_error_term = sample_jfast(T,data-sParams$s_mu)
+  #s_p_error_term = sample_jfast(T,data-sParams$s_mu)
+  s_p_error_term = sample_j_wrap(T,data-sParams$s_mu)
   s_mu = dsp::sampleBTF(
     data - s_p_error_term$mean,
     obs_sigma_t2 = s_p_error_term$var,
