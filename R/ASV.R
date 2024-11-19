@@ -129,31 +129,6 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
   }
   return(mcmc_output);
 }
-#' Posterior Sample from 10-componenets Mixture Gaussian based on Omori et al. 2007
-#'
-#' @param T the number of observations
-#' @param obs the observed value, should be T-length long
-#'
-#' @return \code{T x 2} data frame containing the posterior mean on the "mean" column
-#' and the posterior variance on the "variance" column based on the provided obs.
-#'
-#' @note If the "obs" are not provided componenets are sampled from the prior distribution.
-#'
-sample_jfast <- function(T,obs= NULL){
-  m_st  = c(1.92677, 1.34744, 0.73504, 0.02266, -0.85173, -1.97278, -3.46788, -5.55246, -8.68384, -14.65000)
-  v_st2 = c(0.11265, 0.17788, 0.26768, 0.40611,  0.62699,  0.98583,  1.57469,  2.54498,  4.16591,   7.33342)
-  q     = c(0.00609, 0.04775, 0.13057, 0.20674,  0.22715,  0.18842,  0.12047,  0.05591,  0.01575,   0.00115)
-  #z = draw.indicators(res = ystar-h_prev, nmix = list(m = m_st, v = v_st2, p = q))
-  if(is.null(obs)){
-    z = sample.int(10,T,replace = T, prob = q)
-  }else{
-    z = sapply(obs, ncind, m_st, sqrt(v_st2), q)
-  }
-  # Subset mean and variances to the sampled mixture components; (n x p) matrices
-  return(
-    data.frame(mean = m_st[z],
-               var = v_st2[z]))
-}
 #' Posterior predictive sampler on the transformed y (log(y^2))
 #'
 #' @param h the log varaince term h
