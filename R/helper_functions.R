@@ -382,6 +382,7 @@ initChol.spam = function(T, D = 1){
                        D = D)
 
   # And return the Cholesky piece:
+  # TODO: this is where the warning is being
   chQht_Matrix0 = chol.spam(as.spam.dgCMatrix(as(QHt_Matrix, "dgCMatrix")))
 
   chQht_Matrix0

@@ -518,7 +518,7 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0,
   # Subset mean and variances to the sampled mixture components; (n x p) matrices
   # m_st_all = matrix(m_st[z], nrow=n); v_st2_all = matrix(v_st2[z], nrow=n)
   # Sample the mixture components
-  mixture_component = sample_j_wrap(n,ystar-hprev)
+  mixture_component = sample_j_wrap(n, ystar - h_prev)
 
   # Subset mean and variances to the sampled mixture components; (n x p) matrices
   m_st_all = mixture_component$mean
