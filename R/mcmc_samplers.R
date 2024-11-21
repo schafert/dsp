@@ -57,7 +57,7 @@
 #' and the effective number of parameters \code{p_d}
 #' @param verbose logical; should R report extra information on progress? Defaults to FALSE
 #' @param cp_thres Proportion of posterior samples of latent indicator being 1 needed to declare a changepoint; defaults to 0.4
-#' @param ...
+#' @param ... optional additional arguments to pass to \code{\link{btf_nb}} when family = "negbinomial"
 #'
 #' @return \code{dsp_fit} returns an object of class "\code{dsp}".
 #'

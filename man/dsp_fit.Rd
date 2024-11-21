@@ -77,7 +77,7 @@ and the effective number of parameters \code{p_d}}
 
 \item{cp_thres}{Proportion of posterior samples of latent indicator being 1 needed to declare a changepoint; defaults to 0.4}
 
-\item{...}{}
+\item{...}{optional additional arguments to pass to \code{\link{btf_nb}}}
 }
 \value{
 \code{dsp_fit} returns an object of class "\code{dsp}".
