@@ -20,10 +20,10 @@
 #' @note The root-signal-to-noise ratio is defined as RSNR = [sd of true function]/[sd of noise].
 #'
 #' @examples
-#' \dontrun{
+#'
 #' sims = simUnivariate() # default simulations
 #' names(sims) # variables included in the list
-#' }
+#'
 #'
 #' @export
 simUnivariate = function(signalName = "bumps", T = 200, RSNR = 10, include_plot = TRUE){
@@ -809,27 +809,35 @@ invlogit = function(x) exp(x - log(1+exp(x))) # exp(x)/(1+exp(x))
 #' Plot the BTF posterior means with posterior credible intervals (pointwise and joint),
 #' the observed data, and true curves (if known)
 #'
+#' @param mcmc_output an object of class "acf" with parameter names 'mu' and 'yhat'
 #' @param y the \code{T x 1} vector of time series observations
-#' @param mu the \code{T x 1} vector of fitted values, i.e., posterior expectation of the state variables
-#' @param postY the \code{nsims x T} matrix of posterior draws from which to compute intervals
-#' @param y_true the \code{T x 1} vector of points along the true curve
 #' @param t01 the observation points; if NULL, assume \code{T} equally spaced points from 0 to 1
 #' @param include_joint_bands logical; if TRUE, compute simultaneous credible bands
 #'
 #' @examples
-#' \dontrun{
+#'
 #' simdata = simUnivariate(signalName = "doppler", T = 128, RSNR = 7, include_plot = FALSE)
 #' y = simdata$y
-#' out = btf(y)
-#' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
-#' }
+#' out = btf(y) # TODO change this so that it uses abco
+#' plot_fitted(y, mcmc_output = out, y_true = simdata$y_true)
+#'
 #' @import coda
 #' @export
-plot_fitted = function(y, mu, postY, y_true = NULL, t01 = NULL, include_joint_bands = FALSE){
+plot.dsp = function(mcmc_output, y, y_true = NULL, t01 = NULL, include_joint_bands = FALSE){
 
   # Time series:
-  T = length(y);
-  if(is.null(t01)) t01 = seq(0, 1, length.out=T)
+  nT = length(y);
+  if(is.null(t01)) t01 = seq(0, 1, length.out=nT)
+
+  if(!("mu" %in% names(mcmc_output) || "yhat" %in% names(mcmc_output))){
+
+    stop("Expected entries named 'mu' and 'yhat' in mcmc_output")
+
+  }
+
+  mu = colMeans(mcmc_output$mu)
+  postY = mcmc_output$yhat
+
 
   # Credible intervals/bands:
   #dcip = HPDinterval(as.mcmc(postY)); dcib = credBands(postY)

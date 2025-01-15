@@ -91,7 +91,7 @@
 #' mcmc_output = dsp_fit(y, cp=TRUE, mcmc_params = list('yhat', 'mu', "omega", "r"))
 #' cp = mcmc_output$cp
 #' print(paste0('Changepoint Locations: ', cp))
-#' plot_fitted(y, mu = colMeans(mcmc_output$mu), postY = mcmc_output$yhat, y_true = signal)
+#' plot(mcmc_output, y, y_true = signal)
 #'
 #' # Example 2: Change in mean with Outliers
 #' signal = c(rep(0, 100), rep(5, 100))
@@ -101,7 +101,7 @@
 #'
 #' mcmc_output = dsp_fit(y, cp=TRUE, useAnom = TRUE, mcmc_params = list('yhat', 'mu', "omega", "r"))
 #' cp = mcmc_output$cp
-#' plot_fitted(y, mu = colMeans(mcmc_output$mu), postY = mcmc_output$yhat, y_true = signal)
+#' plot(mcmc_output, y, y_true = signal)
 #'
 #' # Example 3: Change in linear trend
 #' signal = c(seq(1, 50), seq(51, 2))
@@ -109,7 +109,7 @@
 #'
 #' mcmc_output = dsp_fit(y, cp=TRUE, D=2, mcmc_params = list('yhat', 'mu', "omega", "r"))
 #' cp = mcmc_output$cp
-#' plot_fitted(y, mu = colMeans(mcmc_output$mu), postY = mcmc_output$yhat, y_true = signal)
+#' plot(mcmc_output, y,y_true = signal)
 #'
 #'
 #' @export
@@ -158,7 +158,8 @@ dsp_fit = function(y, family = "gaussian",
   }
 
 
-  structure(c(mcmc_output, list(cp = cp_thres, #TODO change documentation or this so matches
+  structure(c(mcmc_output,
+              list(cp = cp_thres, #TODO change documentation or this so matches
                  DIC = mcmc_output[c("DIC", "p_d")],
                  D = D,
                  obsSV = obsSV,
@@ -220,6 +221,7 @@ dsp_fit = function(y, family = "gaussian",
 #'
 #' @examples
 #' \dontrun{
+#' # TODO: add dsp class to btf? or maybe don't export and force use of dsp_fit
 #' # Example 1: Bumps Data
 #' simdata = simUnivariate(signalName = "bumps", T = 128, RSNR = 7, include_plot = TRUE)
 #' y = simdata$y
@@ -713,17 +715,18 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' deviation is recommended to avoid numerical issues.
 #'
 #' @examples
+#' # TODO: add dsp class or change to use dsp_fit (don't export)
 #' # Example 1: Bumps Data
 #' y = make.signal(name = "bumps", n = 128, snr = 7)
 #'
 #' out = btf_sparse(y)
-#' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
+#' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
 #'
 #' # Example 2: Doppler Data; longer series, more noise
 #' y = make.signal(name = "doppler", n = 500, snr = 7)
 #'
 #' out = btf_sparse(y)
-#' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
+#' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
 #'
 #' # And examine the AR(1) parameters for the log-volatility w/ traceplots:
 #' plot(as.ts(out$dhs_phi)) # AR(1) coefficient
@@ -733,7 +736,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' y = make.signal(name = "blocks", n = 1000, snr = 3)
 #'
 #' out = btf_sparse(y, D = 1) # try D = 1 to approximate the locally constant behavior
-#' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
+#' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
 #'
 #'
 #' @import spam progress
@@ -983,27 +986,27 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 #' deviation is recommended to avoid numerical issues.
 #'
 #' @examples
-#'
+#' # TODO: add dsp class or change to use dsp_fit (don't export)
 #' # Example 1: all signals
 #' simdata = simRegression(T = 200, p = 5, p_0 = 0)
 #' y = simdata$y; X = simdata$X
 #' out = btf_reg(y, X)
-#' for(j in 1:ncol(X))
-#'  plot_fitted(rep(0, length(y)),
-#'              mu = colMeans(out$beta[,,j]),
-#'              postY = out$beta[,,j],
-#'              y_true = simdata$beta_true[,j])
+#' #for(j in 1:ncol(X))
+#' # plot_fitted(rep(0, length(y)),
+#' #             mu = colMeans(out$beta[,,j]),
+#' #             postY = out$beta[,,j],
+#' #             y_true = simdata$beta_true[,j])
 #'
 #'
 #' # Example 2: some noise, longer series
 #' simdata = simRegression(T = 500, p = 10, p_0 = 5)
 #' y = simdata$y; X = simdata$X
 #' out = btf_reg(y, X, nsave = 1000, nskip = 0) # Short MCMC run for a quick example
-#' for(j in 1:ncol(X))
-#'   plot_fitted(rep(0, length(y)),
-#'               mu = colMeans(out$beta[,,j]),
-#'               postY = out$beta[,,j],
-#'               y_true = simdata$beta_true[,j])
+#' #for(j in 1:ncol(X))
+#' #  plot_fitted(rep(0, length(y)),
+#' #              mu = colMeans(out$beta[,,j]),
+#' #              postY = out$beta[,,j],
+#' #              y_true = simdata$beta_true[,j])
 #'
 #'
 #' @import spam progress
@@ -1277,12 +1280,12 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 #' }
 #'
 #' @examples
-#'
+#' # TODO: add dsp class or change to use dsp_fit (don't export)
 #' # Example 1: Blocks data
 #' simdata <- simUnivariate(signalName = "blocks", T = 1000, RSNR = 3, include_plot = FALSE)
 #' y <- simdata$y
 #' out <- btf_bspline(y, D = 1)
-#' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
+#' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
 #'
 #'
 #' # Example 2: motorcycle data (unequally-spaced points)
@@ -1291,7 +1294,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 #' x <- mcycle$times
 #' plot(x, y, xlab = 'Time (ms)', ylab='Acceleration (g)', main = 'Motorcycle Crash Data')
 #' out <- btf_bspline(y = y, x = x)
-#' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
+#' # plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
 #'
 #'
 #' @import fda progress
