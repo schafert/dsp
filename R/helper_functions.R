@@ -20,10 +20,10 @@
 #' @note The root-signal-to-noise ratio is defined as RSNR = [sd of true function]/[sd of noise].
 #'
 #' @examples
-#' \dontrun{
+#'
 #' sims = simUnivariate() # default simulations
 #' names(sims) # variables included in the list
-#' }
+#'
 #'
 #' @export
 simUnivariate = function(signalName = "bumps", T = 200, RSNR = 10, include_plot = TRUE){
@@ -382,6 +382,7 @@ initChol.spam = function(T, D = 1){
                        D = D)
 
   # And return the Cholesky piece:
+  # TODO: this is where the warning is being
   chQht_Matrix0 = chol.spam(as.spam.dgCMatrix(as(QHt_Matrix, "dgCMatrix")))
 
   chQht_Matrix0
@@ -808,27 +809,35 @@ invlogit = function(x) exp(x - log(1+exp(x))) # exp(x)/(1+exp(x))
 #' Plot the BTF posterior means with posterior credible intervals (pointwise and joint),
 #' the observed data, and true curves (if known)
 #'
+#' @param mcmc_output an object of class "acf" with parameter names 'mu' and 'yhat'
 #' @param y the \code{T x 1} vector of time series observations
-#' @param mu the \code{T x 1} vector of fitted values, i.e., posterior expectation of the state variables
-#' @param postY the \code{nsims x T} matrix of posterior draws from which to compute intervals
-#' @param y_true the \code{T x 1} vector of points along the true curve
 #' @param t01 the observation points; if NULL, assume \code{T} equally spaced points from 0 to 1
 #' @param include_joint_bands logical; if TRUE, compute simultaneous credible bands
 #'
 #' @examples
-#' \dontrun{
+#'
 #' simdata = simUnivariate(signalName = "doppler", T = 128, RSNR = 7, include_plot = FALSE)
 #' y = simdata$y
-#' out = btf(y)
-#' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
-#' }
+#' out = btf(y) # TODO change this so that it uses abco
+#' plot_fitted(y, mcmc_output = out, y_true = simdata$y_true)
+#'
 #' @import coda
 #' @export
-plot_fitted = function(y, mu, postY, y_true = NULL, t01 = NULL, include_joint_bands = FALSE){
+plot.dsp = function(mcmc_output, y, y_true = NULL, t01 = NULL, include_joint_bands = FALSE){
 
   # Time series:
-  T = length(y);
-  if(is.null(t01)) t01 = seq(0, 1, length.out=T)
+  nT = length(y);
+  if(is.null(t01)) t01 = seq(0, 1, length.out=nT)
+
+  if(!("mu" %in% names(mcmc_output) || "yhat" %in% names(mcmc_output))){
+
+    stop("Expected entries named 'mu' and 'yhat' in mcmc_output")
+
+  }
+
+  mu = colMeans(mcmc_output$mu)
+  postY = mcmc_output$yhat
+
 
   # Credible intervals/bands:
   #dcip = HPDinterval(as.mcmc(postY)); dcib = credBands(postY)
@@ -836,8 +845,7 @@ plot_fitted = function(y, mu, postY, y_true = NULL, t01 = NULL, include_joint_ba
   if(include_joint_bands) dcib = credBands(postY)
 
   # Plot
-  dev.new(); par(mfrow=c(1,1), mai = c(1,1,1,1))
-  plot(t01, y, type='n', ylim=range(dcib, y, na.rm=TRUE), xlab = 't', ylab=expression(paste("y"[t])), main = 'Fitted Values: Conditional Expectation', cex.lab = 2, cex.main = 2, cex.axis = 2)
+  plot(t01, y, type='n', ylim=range(dcib, y, na.rm=TRUE), xlab = 't', ylab=expression(paste("y"[t])), main = 'Fitted Values: Conditional Expectation', cex.lab = 1.5, cex.main = 2, cex.axis = 1)
   polygon(c(t01, rev(t01)), c(dcib[,2], rev(dcib[,1])), col='gray50', border=NA)
   polygon(c(t01, rev(t01)), c(dcip[,2], rev(dcip[,1])), col='grey', border=NA)
   if(!is.null(y_true))  lines(t01, y_true, lwd=8, col='black', lty=6);
@@ -977,30 +985,7 @@ uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL)
   return (x1)
 
 }
-#----------------------------------------------------------------------------
-#' Sample from an inverse-Gaussian distribution
-#'
-#' Using code from the \code{mgcv} package
-#'
-#' @param n the number of deviates required. If this has length > 1 then the length is taken as the number of deviates required.
-#' @param mean vector of mean values.
-#' @param scale	vector of scale parameter values (lambda)
-rig = function (n, mean, scale)
-{
-  if (length(n) > 1)
-    n <- length(n)
-  x <- y <- rnorm(n)^2
-  mys <- mean * scale * y
-  mu <- 0 * y + mean
-  mu2 <- mu^2
-  ind <- mys < .Machine$double.eps^-0.5
-  x[ind] <- mu[ind] * (1 + 0.5 * (mys[ind] - sqrt(mys[ind] *
-                                                    4 + mys[ind]^2)))
-  x[!ind] <- mu[!ind]/mys[!ind]
-  ind <- runif(n) > mean/(mean + x)
-  x[ind] <- mu2[ind]/x[ind]
-  x
-}
+
 #----------------------------------------------------------------------------
 #' Compute the spectrum of an AR(p) model
 #'
@@ -1046,36 +1031,7 @@ spec_dsp = function(ar_coefs, sigma_e, n.freq = 500){
 
   cbind(freq, sf)
 }
-#----------------------------------------------------------------------------
-#' Compute the posterior distribution of the spectrum of a TVAR(p) model
-#'
-#' @param post_ar_coefs (nsave x T x p) array of TVAR(p) coefficients
-#' @param post_sigma_e (nsave x 1) vector of observation standard deviation
-#' @param n.freq number of frequencies at which to evaluate the spectrum
-#'
-#' @return A list containing (1) the vector of frequencies at which the spectrum
-#' was evaluated and (2) a (nsave x T x n.freq) array of the spectrum values
-#' for each MCMC simulation at each time.
-#'
-#' @export
-post_spec_dsp = function(post_ar_coefs, post_sigma_e, n.freq = 500){
 
-  # Number of sims, number of time points, and number of lags:
-  dims = dim(post_ar_coefs)
-  nsave = dims[1]; T = dims[2]; p = dims[3]
-
-  freq <- seq.int(0, 0.5, length.out = n.freq)
-
-  spec = array(0, c(nsave, T, n.freq))
-  #for(ni in 1:nsave) spec[ni,,] = t(apply(post_ar_coefs[ni,,], 1, function(x) spec_dsp(x, post_sigma_e[ni], n.freq)[,2]))
-  for(ni in 1:nsave){
-    for(i in 1:T){
-      spec[ni,i,] =  spec_dsp(post_ar_coefs[ni,i,], post_sigma_e[ni], n.freq)[,2]
-    }
-  }
-
-  list(freq = freq, post_spec = spec)
-}
 #----------------------------------------------------------------------------
 #' Compute the design matrix X for AR(p) model
 #'

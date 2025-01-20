@@ -100,8 +100,8 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
       sigma_e = exp(sParams$s_mu/2)
     }
   }
-  
-  
+
+
   #Array to store omega
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
@@ -453,45 +453,27 @@ t_sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_si
   # Compute dimensions:
   n = length(h_prev); p = 1
 
-  # Mixture params: mean, variance, and weights
-  # Kim, Shephard, Chib (1998) 7-component mixture:
-  #m_st  = c(-11.40039, -5.24321, -9.83726, 1.50746,  -0.65098, 0.52478,  -2.35859)
-  #v_st2 = c(5.795960,  2.613690, 5.179500, 0.167350, 0.640090, 0.340230, 1.262610)
-  #q     = c(0.007300,  0.105560, 0.000020, 0.043950, 0.340010, 0.245660, 0.257500)
-
-  # Omori, Chib, Shephard, Nakajima (2007) 10-component mixture:
-  m_st  = c(1.92677, 1.34744, 0.73504, 0.02266, -0.85173, -1.97278, -3.46788, -5.55246, -8.68384, -14.65000)
-  v_st2 = c(0.11265, 0.17788, 0.26768, 0.40611,  0.62699,  0.98583,  1.57469,  2.54498,  4.16591,   7.33342)
-  q     = c(0.00609, 0.04775, 0.13057, 0.20674,  0.22715,  0.18842,  0.12047,  0.05591,  0.01575,   0.00115)
-
-  # Add an offset: common for all times, but distict for each j=1,...,p
-  #yoffset = tcrossprod(rep(1,n),
-  #                     apply(as.matrix(h_y), 2,
-  #                           function(x) any(x^2 < 10^-16)*max(10^-8, mad(x)/10^6)))
   yoffset = 10^-8
 
   # This is the response in our DLM, log(y^2)
   ystar = log(h_y^2 + yoffset)
 
   # Sample the mixture components
-  #z = sapply(ystar-h_prev, ncind, m_st, sqrt(v_st2), q)   #z = sapply(ystar-h_prev, ncind, m_st, sqrt(v_st2), q)
-  z = c(draw_indicators_generic(ystar-h_prev, rep(0, length(ystar)), length(ystar),
-                              q, m_st, sqrt(v_st2), length(q)))
+  #z = sapply(ystar-h_prev, ncind, m_st, sqrt(v_st2), q)
+  #z = sapply(ystar-h_prev, ncind, m_st, sqrt(v_st2), q)
+  # z = c(draw_indicators_generic(ystar-h_prev, rep(0, length(ystar)), length(ystar),
+  #                             q, m_st, sqrt(v_st2), length(q)))
 
   # Subset mean and variances to the sampled mixture components; (n x p) matrices
-  m_st_all = m_st[z]
-  v_st2_all = v_st2[z]
+  # m_st_all = m_st[z]
+  # v_st2_all = v_st2[z]
+  mixture_component = sample_j_wrap(n,ystar-h_prev)
+
+  # Subset mean and variances to the sampled mixture components; (n x p) matrices
+  m_st_all = mixture_component$mean
+  v_st2_all = mixture_component$var
 
   # Joint AWOL sampler for j=1,...,p:
-
-  # Constant (but j-specific) mean
-  #h_mu_all = (1-h_phi-h_phi2*h_st)*h_mu
-  #h_mu_all[1] = h_mu
-  #h_mu_all = tcrossprod(rep(1,n), h_mu)
-
-  # Constant (but j-specific) AR(1) coef
-  #h_phi_all = tcrossprod(rep(1,n), h_phi)
-  #h_phi2_all = tcrossprod(rep(1,n), h_phi2)
 
   # Linear term:
   linht = (ystar - m_st_all - h_mu)/v_st2_all
@@ -511,14 +493,7 @@ t_sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_si
   # Off-diagonal of quadratic term:
   Q_off = (-(h_phi+h_phi2*h_st)*evol_prec_lag_mat)[-n]
 
-  # Quadratic term:
-  #QHt_Matrix = bandSparse(n*p, k = c(0,1), diag = list(Q_diag, Q_off), symm = TRUE)
-
-  # Cholesky:
-  #chQht_Matrix = Matrix::chol(QHt_Matrix)
-
   # Sample the log-vols:
-  #hsamp = h_mu_all + matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(length(linht))), nr = n)
   rd = RcppZiggurat::zrnorm(length(linht))
   hsamp = h_mu + sample_mat_c(loc$r, loc$c, c(Q_diag, Q_off, Q_off), length(Q_diag), length(loc$r), c(linht), rd, 1)
 

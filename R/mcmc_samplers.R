@@ -18,9 +18,17 @@
 #' mostly relying on a dynamic linear model representation.
 
 #' @param y a numeric vector of the \code{T x 1} vector of time series observations
+#' @param family a string specifying expontial family for observation likelihood.
+#' Defaults to "gaussian" and implementation also available for "negbinomial"
 #' @param cp a logical flag (default is FALSE) indicating to determine whether to use threshold shrinkage with changepoints.
 #' @param evol_error the evolution error distribution; must be one of
-#' 'DHS' (dynamic horseshoe prior; default), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
+#' \itemize{
+#' \item the dynamic horseshoe prior ('DHS');
+#' \item the static horseshoe prior ('HS');
+#' \item the Bayesian lasso ('BL');
+#' \item the normal stochastic volatility model ('SV');
+#' \item the normal-inverse-gamma prior ('NIG').
+#' }
 #' @param D integer scalar indicating degree of differencing defaults to 1; implementation is available D = 0, D = 1, or D = 2
 #' @param obsSV Options for modeling the error variance. It must be one of the following:
 #' \itemize{
@@ -49,15 +57,25 @@
 #' and the effective number of parameters \code{p_d}
 #' @param verbose logical; should R report extra information on progress? Defaults to FALSE
 #' @param cp_thres Proportion of posterior samples of latent indicator being 1 needed to declare a changepoint; defaults to 0.4
-#' @param return_full_samples logical; if TRUE (default), return full MCMC samples for desired parameters;
-#' if FALSE, return the posterior mean for desired parameters
+#' @param ... optional additional arguments to pass to \code{\link{btf_nb}} when family = "negbinomial"
 #'
-#' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
-#' if threshold shrinkage with changepoints is used, also return detected changepoint locations
+#' @return \code{dsp_fit} returns an object of class "\code{dsp}".
+#'
+#' An object of class "\code{dsp}" is defined as a list containing at least the following components:
+#'    \item{pars}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}} ## TODO change so matches
+#'    \item{cp}{if threshold shrinkage with changepoints is used, also return detected changepoint locations; otherwise FALSE}
+#'    \item{DIC}{}
+#'    \item{family}{value supplied for family argument}
+#'    \item{evol_error}{value supplied for evol_error argument}
+#'    \item{D}{value supplied for D argument}
+#'    \item{obsSV}{value supplied for obsSV argument}
+#'    \item{mcpar}{named vector of supplied nsave, nburn, and nskip}
+#'    \item{cp_thres}{value supplied for cp_thres argument}
+#'
 #'
 #' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
-#' deviation is recommended to avoid numerical issues.
+#' deviation is recommended to avoid numerical issues when family is "gaussian".
 #'
 #' @examples
 #'
@@ -70,10 +88,10 @@
 #'   noise[k] = rnorm(1, 0, sqrt(noise_var[k])) }
 #'
 #' y = signal + noise
-#' mcmc_output = dsp_cp(y, cp=TRUE, mcmc_params = list('yhat', 'mu', "omega", "r"))
+#' mcmc_output = dsp_fit(y, cp=TRUE, mcmc_params = list('yhat', 'mu', "omega", "r"))
 #' cp = mcmc_output$cp
 #' print(paste0('Changepoint Locations: ', cp))
-#' plot_fitted(y, mu = colMeans(mcmc_output$mu), postY = mcmc_output$yhat, y_true = signal)
+#' plot(mcmc_output, y, y_true = signal)
 #'
 #' # Example 2: Change in mean with Outliers
 #' signal = c(rep(0, 100), rep(5, 100))
@@ -81,56 +99,74 @@
 #' y[50] = 10
 #' y[150] = -10
 #'
-#' mcmc_output = dsp_cp(y, cp=TRUE, useAnom = TRUE, mcmc_params = list('yhat', 'mu', "omega", "r"))
+#' mcmc_output = dsp_fit(y, cp=TRUE, useAnom = TRUE, mcmc_params = list('yhat', 'mu', "omega", "r"))
 #' cp = mcmc_output$cp
-#' plot_fitted(y, mu = colMeans(mcmc_output$mu), postY = mcmc_output$yhat, y_true = signal)
+#' plot(mcmc_output, y, y_true = signal)
 #'
 #' # Example 3: Change in linear trend
 #' signal = c(seq(1, 50), seq(51, 2))
 #' y = c(seq(1, 50), seq(51, 2)) + rnorm(100)
 #'
-#' mcmc_output = dsp_cp(y, cp=TRUE, D=2, mcmc_params = list('yhat', 'mu', "omega", "r"))
+#' mcmc_output = dsp_fit(y, cp=TRUE, D=2, mcmc_params = list('yhat', 'mu', "omega", "r"))
 #' cp = mcmc_output$cp
-#' plot_fitted(y, mu = colMeans(mcmc_output$mu), postY = mcmc_output$yhat, y_true = signal)
+#' plot(mcmc_output, y,y_true = signal)
 #'
 #'
 #' @export
-dsp_cp = function(y, cp = FALSE, evol_error = 'DHS',
-                  D = 1, obsSV = "const", useAnom = FALSE,
-                  nsave = 1000, nburn = 1000, nskip = 4,
-                  mcmc_params = list("mu", "omega", "r"),
-                  computeDIC = TRUE,
-                  verbose = FALSE,
-                  cp_thres = 0.4,
-                  return_full_samples = TRUE){
+dsp_fit = function(y, family = "gaussian",
+                   cp = FALSE, evol_error = 'DHS',
+                   D = 1, obsSV = "const", useAnom = FALSE,
+                   nsave = 1000, nburn = 1000, nskip = 4,
+                   mcmc_params = list("mu", "omega", "r"),
+                   computeDIC = TRUE,
+                   verbose = FALSE,
+                   cp_thres = 0.4, ...){
+
   if(!((evol_error == "DHS") || (evol_error == "HS") || (evol_error == "BL") || (evol_error == "SV") || (evol_error == "NIG"))) stop('Error type must be one of DHS, HS, BL, SV, or NIG')
   if(!((D == 0) || (D == 1) || (D == 2))) stop('D must be 0, 1 or 2')
+  if(!family %in% c("gaussian", "negbinomial")) stop('family must be gaussian or negbinomial')
 
-  if (cp == TRUE) {
-    if (evol_error == 'DHS' & (D == 1 || D == 2)) {
-      # Add in omega and r for finding changepoints
-      if (is.na(match('omega', mcmc_params))) {
-        mcmc_params = append(mcmc_params, list('omega'))
+  if(family == "gaussian"){
+    if (cp == TRUE) {
+      if (evol_error == 'DHS' & (D == 1 || D == 2)) {
+        # Add in omega and r for finding changepoints
+        if (is.na(match('omega', mcmc_params))) {
+          mcmc_params = append(mcmc_params, list('omega'))
+        }
+        if (is.na(match('r', mcmc_params))) {
+          mcmc_params = append(mcmc_params, list('r'))
+        }
+        mcmc_output = abco(y, D = D, obsSV = obsSV, useAnom = useAnom, nsave = nsave,
+                           nburn = nburn, nskip = nskip, mcmc_params = mcmc_params, verbose = verbose, cp_thres = cp_thres)
       }
-      if (is.na(match('r', mcmc_params))) {
-        mcmc_params = append(mcmc_params, list('r'))
-      }
-      mcmc_output = abco(y, D = D, obsSV = obsSV, useAnom = useAnom, nsave = nsave,
-                         nburn = nburn, nskip = nskip, mcmc_params = mcmc_params, verbose = verbose, cp_thres = cp_thres)
+    } else {
+      mcmc_output = btf(y, evol_error = evol_error, D = D, obsSV = obsSV, nsave = nsave, nburn = nburn, nskip = nskip,
+                        mcmc_params = mcmc_params, computeDIC = computeDIC, verbose = verbose)
     }
-  } else {
-    mcmc_output = btf(y, evol_error = evol_error, D = D, obsSV = obsSV, nsave = nsave, nburn = nburn, nskip = nskip,
-              mcmc_params = mcmc_params, computeDIC = computeDIC, verbose = verbose)
+  }else{
+    if(family == "negbinomial"){
+      if(!all(y >= 0)) stop("Negative Binomial likelihood only appropriate for positive data")
+
+      mcmc_output = btf_nb(y = y,
+                           evol_error = evol_error,
+                           D = D,
+                           nsave = nsave, nburn = nburn, nskip = nskip,
+                           mcmc_params = mcmc_params,
+                           computeDIC = computeDIC,
+                           verbose = verbose, ...)
+    }
   }
 
-  if (!return_full_samples){
-    for (nm in names(mcmc_output)){
-      if (!is.na(match(nm, mcmc_params))) {
-        mcmc_output[[nm]] = colMeans(as.matrix(mcmc_output[[nm]]))
-      }
-    }
-  }
-  return (mcmc_output);
+
+  structure(c(mcmc_output,
+              list(cp = cp_thres, #TODO change documentation or this so matches
+                 DIC = mcmc_output[c("DIC", "p_d")],
+                 D = D,
+                 obsSV = obsSV,
+                 mcpar = c(nsave = nsave, nburn = nburn, nskip = nskip),
+                 cp_thres = cp_thres)),
+            class = c(mcmc_output$class, c("dsp")))
+
 }
 #' MCMC Sampler for Bayesian Trend Filtering
 #'
@@ -185,6 +221,7 @@ dsp_cp = function(y, cp = FALSE, evol_error = 'DHS',
 #'
 #' @examples
 #' \dontrun{
+#' # TODO: add dsp class to btf? or maybe don't export and force use of dsp_fit
 #' # Example 1: Bumps Data
 #' simdata = simUnivariate(signalName = "bumps", T = 128, RSNR = 7, include_plot = TRUE)
 #' y = simdata$y
@@ -678,17 +715,18 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' deviation is recommended to avoid numerical issues.
 #'
 #' @examples
+#' # TODO: add dsp class or change to use dsp_fit (don't export)
 #' # Example 1: Bumps Data
 #' y = make.signal(name = "bumps", n = 128, snr = 7)
 #'
 #' out = btf_sparse(y)
-#' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
+#' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
 #'
 #' # Example 2: Doppler Data; longer series, more noise
 #' y = make.signal(name = "doppler", n = 500, snr = 7)
 #'
 #' out = btf_sparse(y)
-#' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
+#' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
 #'
 #' # And examine the AR(1) parameters for the log-volatility w/ traceplots:
 #' plot(as.ts(out$dhs_phi)) # AR(1) coefficient
@@ -698,7 +736,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' y = make.signal(name = "blocks", n = 1000, snr = 3)
 #'
 #' out = btf_sparse(y, D = 1) # try D = 1 to approximate the locally constant behavior
-#' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
+#' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
 #'
 #'
 #' @import spam progress
@@ -948,27 +986,27 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 #' deviation is recommended to avoid numerical issues.
 #'
 #' @examples
-#'
+#' # TODO: add dsp class or change to use dsp_fit (don't export)
 #' # Example 1: all signals
 #' simdata = simRegression(T = 200, p = 5, p_0 = 0)
 #' y = simdata$y; X = simdata$X
 #' out = btf_reg(y, X)
-#' for(j in 1:ncol(X))
-#'  plot_fitted(rep(0, length(y)),
-#'              mu = colMeans(out$beta[,,j]),
-#'              postY = out$beta[,,j],
-#'              y_true = simdata$beta_true[,j])
+#' #for(j in 1:ncol(X))
+#' # plot_fitted(rep(0, length(y)),
+#' #             mu = colMeans(out$beta[,,j]),
+#' #             postY = out$beta[,,j],
+#' #             y_true = simdata$beta_true[,j])
 #'
 #'
 #' # Example 2: some noise, longer series
 #' simdata = simRegression(T = 500, p = 10, p_0 = 5)
 #' y = simdata$y; X = simdata$X
 #' out = btf_reg(y, X, nsave = 1000, nskip = 0) # Short MCMC run for a quick example
-#' for(j in 1:ncol(X))
-#'   plot_fitted(rep(0, length(y)),
-#'               mu = colMeans(out$beta[,,j]),
-#'               postY = out$beta[,,j],
-#'               y_true = simdata$beta_true[,j])
+#' #for(j in 1:ncol(X))
+#' #  plot_fitted(rep(0, length(y)),
+#' #              mu = colMeans(out$beta[,,j]),
+#' #              postY = out$beta[,,j],
+#' #              y_true = simdata$beta_true[,j])
 #'
 #'
 #' @import spam progress
@@ -1242,21 +1280,21 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 #' }
 #'
 #' @examples
-#'
+#' # TODO: add dsp class or change to use dsp_fit (don't export)
 #' # Example 1: Blocks data
-#' simdata = simUnivariate(signalName = "blocks", T = 1000, RSNR = 3, include_plot = TRUE)
-#' y = simdata$y
-#' out = btf_bspline(y, D = 1)
-#' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
+#' simdata <- simUnivariate(signalName = "blocks", T = 1000, RSNR = 3, include_plot = FALSE)
+#' y <- simdata$y
+#' out <- btf_bspline(y, D = 1)
+#' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
 #'
 #'
 #' # Example 2: motorcycle data (unequally-spaced points)
-#' library(MASS)
-#' y = scale(mcycle$accel) # Center and Scale for numerical stability
-#' x = mcycle$times
+#' data("mcycle", package = "MASS")
+#' y <- scale(mcycle$accel) # Center and Scale for numerical stability
+#' x <- mcycle$times
 #' plot(x, y, xlab = 'Time (ms)', ylab='Acceleration (g)', main = 'Motorcycle Crash Data')
-#' out = btf_bspline(y = y, x = x)
-#' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
+#' out <- btf_bspline(y = y, x = x)
+#' # plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
 #'
 #'
 #' @import fda progress

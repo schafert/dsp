@@ -60,9 +60,11 @@ Imports:
     stats,
     stochvol,
     BayesLogit,
-    truncdist
+    truncdist,
+    mgcv
 Suggests: 
-    ggplot2
+    ggplot2,
+    testthat (>= 3.0.0)
 LinkingTo: 
     Rcpp,
     RcppArmadillo,
@@ -71,3 +73,4 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+Config/testthat/edition: 3
