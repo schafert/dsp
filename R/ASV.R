@@ -48,17 +48,17 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
                    mcmc_params = list("h", "logy2hat","sigma2","evol_sigma_t2"),
                    computeDIC = TRUE,
                    verbose = TRUE){
-  T = length(y)
+  nT = length(y)
   y = y - beta
   # initializing parameters
   sParams = init_paramsASV(y,evol_error,D)
 
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
-  if(!is.na(match('h', mcmc_params)) || computeDIC) post_s_mu = array(NA, c(nsave, T))
-  if(!is.na(match('logy2hat', mcmc_params))) post_s_logy2hat = array(NA, c(nsave, T))
-  if(!is.na(match('sigma2', mcmc_params)) || computeDIC) post_sigma2 = array(NA, c(nsave, T))
-  if(!is.na(match('evol_sigma_t2', mcmc_params))) post_s_evol_sigma_t2 = array(NA, c(nsave, T))
+  if(!is.na(match('h', mcmc_params)) || computeDIC) post_s_mu = array(NA, c(nsave, nT))
+  if(!is.na(match('logy2hat', mcmc_params))) post_s_logy2hat = array(NA, c(nsave, nT))
+  if(!is.na(match('sigma2', mcmc_params)) || computeDIC) post_sigma2 = array(NA, c(nsave, nT))
+  if(!is.na(match('evol_sigma_t2', mcmc_params))) post_s_evol_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = numeric(nsave)
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean = numeric(nsave)
   post_loglike = numeric(nsave)
@@ -158,23 +158,23 @@ generate_ly2hat <- function(h,p_error_term){
 #' \item s_evolParams: a list containing posterior samples parameters associated with the variance of D to the last observations of the log variance temr , h.
 #' }
 init_paramsASV <- function(data,evol_error,D){
-  yoffset = any(data^2 < 10^-16,na.rm = T)*mad(data,na.rm = T)/10^10
+  yoffset = any(data^2 < 10^-16,na.rm = TRUE)*mad(data,na.rm = TRUE)/10^10
   data = log(data^2 + yoffset)
-  T = length(data);
-  t01 = seq(0, 1, length.out=T);
+  nT = length(data);
+  t01 = seq(0, 1, length.out=nT);
 
   # Begin by checking for missing values, then imputing (for initialization)
   is.missing = which(is.na(data)); any.missing = (length(is.missing) > 0)
 
   # Impute the active "data"
   data = approxfun(t01, data, rule = 2)(t01)
-  loc_obs = t_create_loc(T, D)
-  loc_error = t_create_loc(T-D,1)
+  loc_obs = t_create_loc(nT, D)
+  loc_error = t_create_loc(nT-D,1)
 
-  s_p_error_term = sample_j_wrap(T,NULL)
+  s_p_error_term = sample_j_wrap(nT,NULL)
   s_mu = dsp::sampleBTF(data- s_p_error_term$mean,
                         obs_sigma_t2 = s_p_error_term$var,
-                        evol_sigma_t2 = 0.01*rep(1,T),
+                        evol_sigma_t2 = 0.01*rep(1,nT),
                         D = D,
                         loc_obs)
   s_omega = diff(s_mu,differences = D)
@@ -208,16 +208,16 @@ init_paramsASV <- function(data,evol_error,D){
 fit_paramsASV <- function(data,sParams,evol_error,D){
   yoffset = any(data^2 < 10^-16)*mad(data)/10^10
   data = log(data^2 + yoffset)
-  T = length(data);
-  t01 = seq(0, 1, length.out=T);
+  nT = length(data);
+  t01 = seq(0, 1, length.out=nT);
 
   # Begin by checking for missing values, then imputing (for initialization)
   is.missing = which(is.na(data)); any.missing = (length(is.missing) > 0)
 
   # Impute the active "data"
   data = approxfun(t01, data, rule = 2)(t01)
-  #s_p_error_term = sample_jfast(T,data-sParams$s_mu)
-  s_p_error_term = sample_j_wrap(T,data-sParams$s_mu)
+  #s_p_error_term = sample_jfast(nT,data-sParams$s_mu)
+  s_p_error_term = sample_j_wrap(nT,data-sParams$s_mu)
   s_mu = dsp::sampleBTF(
     data - s_p_error_term$mean,
     obs_sigma_t2 = s_p_error_term$var,
