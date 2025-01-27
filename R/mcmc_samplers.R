@@ -18,11 +18,12 @@
 #' mostly relying on a dynamic linear model representation.
 
 #' @param y a numeric vector of the \code{T x 1} vector of time series observations
-#' @param family a string specifying expontial family for observation likelihood.
+#' @param family a string specifying exponential family for observation likelihood.
 #' Defaults to "gaussian" and implementation also available for "negbinomial"
 #' @param cp a logical flag (default is FALSE) indicating to determine whether to use threshold shrinkage with changepoints; only implemented for family = "gaussian".
 #' @param trend optional argument specifying form of the trend for family = "gaussian"; default NULL indicates trend is a dynamic conditional mean (i.e., Bayesian trend filtering) otherwise
 #' \itemize{
+#' \item "zero_error" ... for sparse trend
 #' \item a named list elements "times": the \code{T x 1} vector of observation points;
 #'      if NULL, assume equally spaced and
 #'      "num_knots" the number of knots; if NULL, use the default
