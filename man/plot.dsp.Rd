@@ -20,10 +20,10 @@ Plot the BTF posterior means with posterior credible intervals (pointwise and jo
 the observed data, and true curves (if known)
 }
 \examples{
-\dontrun{
-simdata = simUnivariate(signalName = "doppler", T = 128, RSNR = 7, include_plot = FALSE)
+
+simdata = simUnivariate(signalName = "doppler", nT = 128, RSNR = 7, include_plot = FALSE)
 y = simdata$y
 out = btf(y) # TODO change this so that it uses abco
 plot_fitted(y, mcmc_output = out, y_true = simdata$y_true)
-}
+
 }

@@ -40,7 +40,7 @@ The latter case may be implemented by omitting the input for \code{post_obs_sigm
 \examples{
 \dontrun{
 # Simulate a function with many changes:
-simdata = simUnivariate(signalName = "blocks", T = 128, RSNR = 7, include_plot = TRUE)
+simdata = simUnivariate(signalName = "blocks", nT = 128, RSNR = 7, include_plot = TRUE)
 y = simdata$y
 
 # Run the MCMC:
@@ -58,7 +58,7 @@ plot_cp(colMeans(out$mu), nz)
 # abline(v = cp_true)
 
 # Regression example:
-simdata = simRegression(T = 200, p = 5, p_0 = 2)
+simdata = simRegression(nT = 200, p = 5, p_0 = 2)
 y = simdata$y; X = simdata$X
 # Run the MCMC:
 out = btf_reg(y, X, D = 1, evol_error = 'DHS',

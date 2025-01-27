@@ -4,10 +4,10 @@
 \alias{initChol.spam}
 \title{Compute initial Cholesky decomposition for Bayesian Trend Filtering}
 \usage{
-initChol.spam(T, D = 1)
+initChol.spam(nT, D = 1)
 }
 \arguments{
-\item{T}{number of time points}
+\item{nT}{number of time points}
 
 \item{D}{degree of differencing (D = 1 or D = 2)}
 }

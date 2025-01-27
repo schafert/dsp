@@ -20,7 +20,15 @@
 #' @param y a numeric vector of the \code{T x 1} vector of time series observations
 #' @param family a string specifying expontial family for observation likelihood.
 #' Defaults to "gaussian" and implementation also available for "negbinomial"
-#' @param cp a logical flag (default is FALSE) indicating to determine whether to use threshold shrinkage with changepoints.
+#' @param cp a logical flag (default is FALSE) indicating to determine whether to use threshold shrinkage with changepoints; only implemented for family = "gaussian".
+#' @param trend optional argument specifying form of the trend for family = "gaussian"; default NULL indicates trend is a dynamic conditional mean (i.e., Bayesian trend filtering) otherwise
+#' \itemize{
+#' \item a named list elements "times": the \code{T x 1} vector of observation points;
+#'      if NULL, assume equally spaced and
+#'      "num_knots" the number of knots; if NULL, use the default
+#'      of \code{max(20, min(ceiling(T/4), 150))} with bspline trend;
+#' \item a \code{T x p} matrix of time series predictors for a regression trend;
+#' }
 #' @param evol_error the evolution error distribution; must be one of
 #' \itemize{
 #' \item the dynamic horseshoe prior ('DHS');
@@ -30,14 +38,14 @@
 #' \item the normal-inverse-gamma prior ('NIG').
 #' }
 #' @param D integer scalar indicating degree of differencing defaults to 1; implementation is available D = 0, D = 1, or D = 2
-#' @param obsSV Options for modeling the error variance. It must be one of the following:
+#' @param obsSV Options for modeling the error variance for family = "gaussian". It must be one of the following:
 #' \itemize{
 #' \item const: Constant error variance for all time points.
 #' \item SV: Stochastic Volatility model.
 #' \item ASV: Adaptive Stochastic Volatility model.
 #' }
 #' @param useAnom logical (default FALSE); if TRUE, include an anomaly component in the observation equation
-#' (only for threshold shrinkage with changepoints.)
+#' (only for threshold shrinkage with changepoints and family = "gaussian".)
 #' @param nsave integer scalar (default = 1000); number of MCMC iterations to record
 #' @param nburn integer scalar (default = 1000); number of MCMC iterations to discard (burn-in)
 #' @param nskip integer scalar (default = 4); number of MCMC iterations to skip between saving iterations,
@@ -51,11 +59,12 @@
 #' \item "obs_sigma_t2" (observation error variance)
 #' \item "dhs_phi" (DHS AR(1) coefficient)
 #' \item "dhs_mean" (DHS AR(1) unconditional mean)
+#' \item "r" (overdispersion when family = "negbinomial")
 #' }
 #' defaults to list("mu", "omega", "r")
 #' @param computeDIC logical; if TRUE (default), compute the deviance information criterion \code{DIC}
 #' and the effective number of parameters \code{p_d}
-#' @param verbose logical; should R report extra information on progress? Defaults to FALSE
+#' @param verbose logical; should extra information on progress be printed to the console? Defaults to FALSE
 #' @param cp_thres Proportion of posterior samples of latent indicator being 1 needed to declare a changepoint; defaults to 0.4
 #' @param ... optional additional arguments to pass to \code{\link{btf_nb}} when family = "negbinomial"
 #'
@@ -113,7 +122,7 @@
 #'
 #'
 #' @export
-dsp_fit = function(y, family = "gaussian", X = NULL,
+dsp_fit = function(y, family = "gaussian", trend = NULL,
                    cp = FALSE, evol_error = 'DHS',
                    D = 1, obsSV = "const", useAnom = FALSE,
                    nsave = 1000, nburn = 1000, nskip = 4,
@@ -127,25 +136,31 @@ dsp_fit = function(y, family = "gaussian", X = NULL,
   if(!family %in% c("gaussian", "negbinomial")) stop('family must be gaussian or negbinomial')
 
   if(family == "gaussian"){
-    if (cp == TRUE) {
-      if (evol_error == 'DHS' & (D == 1 || D == 2)) {
-        # Add in omega and r for finding changepoints
-        if (is.na(match('omega', mcmc_params))) {
-          mcmc_params = append(mcmc_params, list('omega'))
+    if(is.null(trend)){
+      if (cp) {
+        if (evol_error == 'DHS' & (D == 1 || D == 2)) {
+          # Add in omega and r for finding changepoints
+          if (is.na(match('omega', mcmc_params))) {
+            mcmc_params = append(mcmc_params, list('omega'))
+          }
+          if (is.na(match('r', mcmc_params))) {
+            mcmc_params = append(mcmc_params, list('r'))
+          }
+          mcmc_output = abco(y, D = D, obsSV = obsSV, useAnom = useAnom, nsave = nsave,
+                             nburn = nburn, nskip = nskip, mcmc_params = mcmc_params, verbose = verbose, cp_thres = cp_thres)
         }
-        if (is.na(match('r', mcmc_params))) {
-          mcmc_params = append(mcmc_params, list('r'))
-        }
-        mcmc_output = abco(y, D = D, obsSV = obsSV, useAnom = useAnom, nsave = nsave,
-                           nburn = nburn, nskip = nskip, mcmc_params = mcmc_params, verbose = verbose, cp_thres = cp_thres)
+      } else {
+        mcmc_output = btf(y, evol_error = evol_error, D = D, obsSV = obsSV, nsave = nsave, nburn = nburn, nskip = nskip,
+                          mcmc_params = mcmc_params, computeDIC = computeDIC, verbose = verbose)
       }
-    } else {
-      mcmc_output = btf(y, evol_error = evol_error, D = D, obsSV = obsSV, nsave = nsave, nburn = nburn, nskip = nskip,
-                        mcmc_params = mcmc_params, computeDIC = computeDIC, verbose = verbose)
     }
+    if()
   }else{
     if(family == "negbinomial"){
       if(!all(y >= 0)) stop("Negative Binomial likelihood only appropriate for positive data")
+      if(cp || useAnom) warning("Changepoint and anomaly detection not currently
+                                implemented for family = 'negbinomial'.
+                                Sampling will cont. w/o changepoint and anomaly detection.")
 
       mcmc_output = btf_nb(y = y,
                            evol_error = evol_error,
@@ -249,7 +264,7 @@ dsp_fit = function(y, family = "gaussian", X = NULL,
 #' }
 #'
 #' @import progress
-#' @export
+
 btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
                nsave = 1000, nburn = 1000, nskip = 4,
                mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
@@ -688,7 +703,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' \item ASV: Adaptive Stochastic Volatility model.
 #' }
 #' @param nsave number of MCMC iterations to record
-#' @param nburn number of MCMC iterations to discard (burin-in)
+#' @param nburn number of MCMC iterations to discard (burnin-in)
 #' @param nskip number of MCMC iterations to skip between saving iterations,
 #' i.e., save every (nskip + 1)th draw
 #' @param mcmc_params named list of parameters for which we store the MCMC output;
@@ -1242,7 +1257,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 #' mostly relying on a dynamic linear model representation.
 
 #' @param y the \code{T x 1} vector of time series observations
-#' @param x the \code{T x 1} vector of observation points; if NULL, assume equally spaced
+#' @param times the \code{T x 1} vector of observation points; if NULL, assume equally spaced
 #' @param num_knots the number of knots; if NULL, use the default of \code{max(20, min(ceiling(T/4), 150))}
 #' @param evol_error the evolution error distribution; must be one of
 #' 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
@@ -1310,7 +1325,7 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
 
   # For D = 0, return special case:
   if(D == 0){
-    return(btf_bspline0(y = y, x = x, num_knots = num_knots, evol_error = evol_error,
+    return(btf_bspline0(y = y, times = times, num_knots = num_knots, evol_error = evol_error,
                         nsave = nsave, nburn = nburn, nskip = nskip,
                         mcmc_params = mcmc_params,
                         computeDIC = computeDIC, verbose = verbose))
@@ -1320,10 +1335,10 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
   nT = length(y);
 
   # Observation points
-  if(is.null(x)) x = seq(0, 1, length.out=nT);
+  if(is.null(times)) times = seq(0, 1, length.out=nT);
 
   # Rescale to (0,1):
-  t01 = (x - min(x))/diff(range(x))
+  t01 = (times - min(times))/diff(range(times))
 
   # Compute B-spline basis matrix:
   if(is.null(num_knots)) num_knots = max(20, min(ceiling(nT/4), 150))
@@ -1507,7 +1522,7 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
 #' mostly relying on a dynamic linear model representation.
 
 #' @param y the \code{T x 1} vector of time series observations
-#' @param x the \code{T x 1} vector of observation points; if NULL, assume equally spaced
+#' @param times the \code{T x 1} vector of observation points; if NULL, assume equally spaced
 #' @param num_knots the number of knots; if NULL, use the default of \code{max(20, min(ceiling(T/4), 150))}
 #' @param evol_error the evolution error distribution; must be one of
 #' 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
@@ -1545,7 +1560,7 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
 #'
 #'
 #' @import fda progress
-btf_bspline0 = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS',
+btf_bspline0 = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS',
                         nsave = 1000, nburn = 1000, nskip = 4,
                         mcmc_params = list("mu", "yhat", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
                         computeDIC = TRUE,
@@ -1555,10 +1570,10 @@ btf_bspline0 = function(y, x = NULL, num_knots = NULL, evol_error = 'DHS',
   nT = length(y);
 
   # Observation points
-  if(is.null(x)) x = seq(0, 1, length.out=nT);
+  if(is.null(times)) times = seq(0, 1, length.out=nT);
 
   # Rescale to (0,1):
-  t01 = (x - min(x))/diff(range(x))
+  t01 = (times - min(times))/diff(range(times))
 
   # Compute B-spline basis matrix:
   if(is.null(num_knots)) num_knots = max(20, min(ceiling(nT/4), 150))
