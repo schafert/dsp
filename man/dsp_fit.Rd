@@ -7,6 +7,7 @@
 dsp_fit(
   y,
   family = "gaussian",
+  X = NULL,
   cp = FALSE,
   evol_error = "DHS",
   D = 1,
@@ -130,7 +131,7 @@ y = signal + noise
 mcmc_output = dsp_fit(y, cp=TRUE, mcmc_params = list('yhat', 'mu', "omega", "r"))
 cp = mcmc_output$cp
 print(paste0('Changepoint Locations: ', cp))
-plot_fitted(y, mu = colMeans(mcmc_output$mu), postY = mcmc_output$yhat, y_true = signal)
+plot(mcmc_output, y, y_true = signal)
 
 # Example 2: Change in mean with Outliers
 signal = c(rep(0, 100), rep(5, 100))
@@ -140,7 +141,7 @@ y[150] = -10
 
 mcmc_output = dsp_fit(y, cp=TRUE, useAnom = TRUE, mcmc_params = list('yhat', 'mu', "omega", "r"))
 cp = mcmc_output$cp
-plot_fitted(y, mu = colMeans(mcmc_output$mu), postY = mcmc_output$yhat, y_true = signal)
+plot(mcmc_output, y, y_true = signal)
 
 # Example 3: Change in linear trend
 signal = c(seq(1, 50), seq(51, 2))
@@ -148,7 +149,7 @@ y = c(seq(1, 50), seq(51, 2)) + rnorm(100)
 
 mcmc_output = dsp_fit(y, cp=TRUE, D=2, mcmc_params = list('yhat', 'mu', "omega", "r"))
 cp = mcmc_output$cp
-plot_fitted(y, mu = colMeans(mcmc_output$mu), postY = mcmc_output$yhat, y_true = signal)
+plot(mcmc_output, y,y_true = signal)
 
 
 }

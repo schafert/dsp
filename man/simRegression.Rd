@@ -5,7 +5,7 @@
 \title{Simulate noisy observations from a dynamic regression model}
 \usage{
 simRegression(
-  T = 200,
+  nT = 200,
   p = 20,
   p_0 = 15,
   sparsity = 0.05,
@@ -15,7 +15,7 @@ simRegression(
 )
 }
 \arguments{
-\item{T}{number of time points}
+\item{nT}{number of time points}
 
 \item{p}{number of predictors (total)}
 

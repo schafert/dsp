@@ -4,13 +4,13 @@
 \alias{simUnivariate}
 \title{Simulate noisy observations from a function}
 \usage{
-simUnivariate(signalName = "bumps", T = 200, RSNR = 10, include_plot = TRUE)
+simUnivariate(signalName = "bumps", nT = 200, RSNR = 10, include_plot = TRUE)
 }
 \arguments{
 \item{signalName}{string matching the "name" argument in the \code{make.signal()} function,
 e.g. "bumps" or "doppler"}
 
-\item{T}{number of points}
+\item{nT}{number of points}
 
 \item{RSNR}{root-signal-to-noise ratio}
 
@@ -32,9 +32,9 @@ to include Gaussian noise with a user-specificied root-signal-to-noise ratio.
 The root-signal-to-noise ratio is defined as RSNR = \link{sd of true function}/\link{sd of noise}.
 }
 \examples{
-\dontrun{
+
 sims = simUnivariate() # default simulations
 names(sims) # variables included in the list
-}
+
 
 }
