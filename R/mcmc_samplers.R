@@ -155,7 +155,6 @@ dsp_fit = function(y, family = "gaussian", trend = NULL,
                           mcmc_params = mcmc_params, computeDIC = computeDIC, verbose = verbose)
       }
     }
-    if()
   }else{
     if(family == "negbinomial"){
       if(!all(y >= 0)) stop("Negative Binomial likelihood only appropriate for positive data")

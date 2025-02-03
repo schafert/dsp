@@ -2,9 +2,7 @@
 
 S3method(plot,dsp)
 export(abco)
-export(btf)
 export(btf_bspline)
-export(btf_nb)
 export(btf_reg)
 export(btf_sparse)
 export(build_Q)

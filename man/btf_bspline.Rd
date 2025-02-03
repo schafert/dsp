@@ -22,6 +22,8 @@ btf_bspline(
 \arguments{
 \item{y}{the \code{T x 1} vector of time series observations}
 
+\item{times}{the \code{T x 1} vector of observation points; if NULL, assume equally spaced}
+
 \item{num_knots}{the number of knots; if NULL, use the default of \code{max(20, min(ceiling(T/4), 150))}}
 
 \item{evol_error}{the evolution error distribution; must be one of
@@ -52,8 +54,6 @@ must be one or more of:
 and the effective number of parameters \code{p_d}}
 
 \item{verbose}{logical; should R report extra information on progress?}
-
-\item{x}{the \code{T x 1} vector of observation points; if NULL, assume equally spaced}
 }
 \value{
 A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}

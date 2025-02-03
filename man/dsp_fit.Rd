@@ -7,7 +7,7 @@
 dsp_fit(
   y,
   family = "gaussian",
-  X = NULL,
+  trend = NULL,
   cp = FALSE,
   evol_error = "DHS",
   D = 1,
@@ -26,10 +26,20 @@ dsp_fit(
 \arguments{
 \item{y}{a numeric vector of the \code{T x 1} vector of time series observations}
 
-\item{family}{a string specifying expontial family for observation likelihood.
+\item{family}{a string specifying exponential family for observation likelihood.
 Defaults to "gaussian" and implementation also available for "negbinomial"}
 
-\item{cp}{a logical flag (default is FALSE) indicating to determine whether to use threshold shrinkage with changepoints.}
+\item{trend}{optional argument specifying form of the trend for family = "gaussian"; default NULL indicates trend is a dynamic conditional mean (i.e., Bayesian trend filtering) otherwise
+\itemize{
+\item "zero_error" ... for sparse trend
+\item a named list elements "times": the \code{T x 1} vector of observation points;
+if NULL, assume equally spaced and
+"num_knots" the number of knots; if NULL, use the default
+of \code{max(20, min(ceiling(T/4), 150))} with bspline trend;
+\item a \code{T x p} matrix of time series predictors for a regression trend;
+}}
+
+\item{cp}{a logical flag (default is FALSE) indicating to determine whether to use threshold shrinkage with changepoints; only implemented for family = "gaussian".}
 
 \item{evol_error}{the evolution error distribution; must be one of
 \itemize{
@@ -42,7 +52,7 @@ Defaults to "gaussian" and implementation also available for "negbinomial"}
 
 \item{D}{integer scalar indicating degree of differencing defaults to 1; implementation is available D = 0, D = 1, or D = 2}
 
-\item{obsSV}{Options for modeling the error variance. It must be one of the following:
+\item{obsSV}{Options for modeling the error variance for family = "gaussian". It must be one of the following:
 \itemize{
 \item const: Constant error variance for all time points.
 \item SV: Stochastic Volatility model.
@@ -50,7 +60,7 @@ Defaults to "gaussian" and implementation also available for "negbinomial"}
 }}
 
 \item{useAnom}{logical (default FALSE); if TRUE, include an anomaly component in the observation equation
-(only for threshold shrinkage with changepoints.)}
+(only for threshold shrinkage with changepoints and family = "gaussian".)}
 
 \item{nsave}{integer scalar (default = 1000); number of MCMC iterations to record}
 
@@ -68,13 +78,14 @@ must be one or more of:
 \item "obs_sigma_t2" (observation error variance)
 \item "dhs_phi" (DHS AR(1) coefficient)
 \item "dhs_mean" (DHS AR(1) unconditional mean)
+\item "r" (overdispersion when family = "negbinomial")
 }
 defaults to list("mu", "omega", "r")}
 
 \item{computeDIC}{logical; if TRUE (default), compute the deviance information criterion \code{DIC}
 and the effective number of parameters \code{p_d}}
 
-\item{verbose}{logical; should R report extra information on progress? Defaults to FALSE}
+\item{verbose}{logical; should extra information on progress be printed to the console? Defaults to FALSE}
 
 \item{cp_thres}{Proportion of posterior samples of latent indicator being 1 needed to declare a changepoint; defaults to 0.4}
 

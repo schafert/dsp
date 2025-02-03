@@ -26,23 +26,16 @@
 #' \item 'dhs_mean' (DHS AR(1) unconditional mean)
 #' }
 #' Defaults to everything.
-#' @param r_init numeric; initial value (defaults to 5) of MCMC sampling for overdispersion parameter;
-#' must be an integer if r_sample is 'int_mh' or `NULL`
-#' @param r_sample character string specifying sampling strategy for overdispersion;
-#' must be one of 'int_mh' (integer random walk Metropolis-Hastings; default),
-#' 'slice' (slice sampling), 'mh' (uniform random walk Metropolis-Hastings), or
-#' `NULL` (not sampled, fixed at `r_init`)
-#' @param step numeric; step length of proposal distribution for 'int_mh' and 'mh'
-#' values of `r_sample` (defaults to 1)
-#' @param mu_init length \code{T} vector of initial values for the log conditional expectation or
-#' `NULL` (default) for data driven starting value (`log(y + 1) + noise`)
-#' @param mu_sample logical; If `TRUE` (default), the log conditional mean is sampled,
-#' else it is fixed at `mu_init`
-#' @param prior_r expression of `x` for the proportional log prior density of the overdispersion;
-#' defaults to half-Cauchy prior, `log(1 + x^2/100)`.
-#' @param evol0_sample logical; If `TRUE` (default), the prior variance of the initial `D` values of mu is sampled,
+#' @param r_init numeric; initial value (defaults to 5) of MCMC sampling for
+#' overdispersion parameter; must be an integer if r_sample is 'int_mh' or
+#' `NULL` (initializes to default of 5)
+#' @param r_sample logical; If `TRUE` (default), the overdispersion is sampled,
+#' else it is fixed at `r_init`;
+#' @param step numeric (defaults to 1); step length of proposal distribution for
+#' Metropolis-Hasting sampling of overdispersion parameter; ignored if r_sample is `FALSE`
+#' @param evol0_sample logical; if `TRUE` (default), the prior variance of the initial `D` values of mu is sampled,
 #' else it is fixed at `evol0_sd`
-#' @param evol0_sd numeric; initial value (defaults to 10) or the prior standard deviation
+#' @param evol0_sd numeric; initial value (defaults to 10) or the fixed prior standard deviation
 #' for the initial `D` values of mu
 #' @param sigma_e numeric; scale value (defaults to `1/sqrt(T)`) for half-Cauchy prior on global variance parameter
 #' @param chol0 logical; If anything except `NULL` (the default), the Cholesky term of the log volatility is precomputed
@@ -59,7 +52,6 @@
 #' with a Negative Binomial distribution defined by the posterior mean of the conditional expectation + offset and posterior
 #' mean overdispersion.
 #'
-#' @export
 #' @importFrom BayesLogit rpg
 #'
 #' @examples
@@ -76,12 +68,12 @@
 #'   sigma_e = 1,
 #'   chol0 = TRUE
 #' )
+#'
+#'  @keywords internal
 btf_nb = function(y, evol_error = 'DHS', D = 2,
                   nsave = 1000, nburn = 1000, nskip = 4,
                   mcmc_params = list("mu", "yhat","evol_sigma_t2", "r", "dhs_phi", "dhs_mean"),
-                  r_init = NULL, r_sample = "int_mh", step = 1,
-                  mu_init = NULL, mu_sample = TRUE,
-                  prior_r = expression(log(1 + x^2/100)), # half-Cauchy r prior
+                  r_init = NULL, r_sample = TRUE, step = 1,
                   evol0_sample = TRUE, evol0_sd = 10, # should the initial variances for for the state vector be sampled and the fixed sd if not sampled
                   sigma_e = 1/sqrt(Nt), # What is prior variance for half-cauchy on tau
                   chol0 = NULL, computeDIC = TRUE, # TODO: bad default argument for chol0 but...
@@ -122,21 +114,10 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
 
   # Initialize the conditional mean, mu:
   # mu <- matrix(log(y + 1), ncol = 1) #this initialization breaks things when omega is 0...
-
-  if(is.null(mu_init)){
-    mu <-  matrix(log(y + 1) + 0.1*rnorm(Nt), ncol = 1)
-  }else{
-    mu <- matrix(mu_init, ncol = 1)
-  }
-
+  mu <-  matrix(log(y + 1) + 0.1*rnorm(Nt), ncol = 1)
 
   # Initial SD (implicitly assumes a constant mean)
-
-  if(is.null(r_sample) || r_sample == "int_mh"){
-    eta_t <- pgdraw::pgdraw(y + r, mu + offset - log(r))
-  }else{
-    eta_t <- BayesLogit::rpg(Nt, y + r, mu + offset - log(r))
-  }
+  eta_t <- pgdraw::pgdraw(y + r, mu + offset - log(r))
 
   sigma_et <- sqrt(1/eta_t)
 
@@ -199,7 +180,7 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
 
     # Sample the overdispersion:
     if(!is.null(r_sample)){
-      r <- sample_r(y, r, exp(mu + offset), r_sample, step = step, prior_r = prior_r)
+      r <- sample_r(y, r, exp(mu + offset), step = step)
     }
 
     # Sample auxiliary variables
@@ -285,7 +266,7 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
     # Store the DIC and the effective number of parameters (p_d)
     mcmc_output$DIC = DIC; mcmc_output$p_d = p_d
   }
-  return (mcmc_output);
+  return(mcmc_output);
 }
 
 sampleBTF_nb <- function(y, r, offset, eta_t, obs_sigma_t2, evol_sigma_t2,
@@ -344,7 +325,8 @@ sampleBTF_nb <- function(y, r, offset, eta_t, obs_sigma_t2, evol_sigma_t2,
 }
 
 
-sample_r <- function(y, d.prev, mu, r_sample, step = 1, lambda_r = 10,
+sample_r <- function(y, d.prev, mu, r_sample = "int_mh",
+                     step = 1, lambda_r = 10,
                      prior_r = expression(log(1 + x^2/100)))
 {
 

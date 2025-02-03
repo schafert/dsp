@@ -13,11 +13,8 @@ btf_nb(
   nskip = 4,
   mcmc_params = list("mu", "yhat", "evol_sigma_t2", "r", "dhs_phi", "dhs_mean"),
   r_init = NULL,
-  r_sample = "int_mh",
+  r_sample = TRUE,
   step = 1,
-  mu_init = NULL,
-  mu_sample = TRUE,
-  prior_r = expression(log(1 + x^2/100)),
   evol0_sample = TRUE,
   evol0_sd = 10,
   sigma_e = 1/sqrt(Nt),
@@ -55,30 +52,20 @@ must be one or more of:
 }
 Defaults to everything.}
 
-\item{r_init}{numeric; initial value (defaults to 5) of MCMC sampling for overdispersion parameter;
-must be an integer if r_sample is 'int_mh' or \code{NULL}}
+\item{r_init}{numeric; initial value (defaults to 5) of MCMC sampling for
+overdispersion parameter; must be an integer if r_sample is 'int_mh' or
+\code{NULL} (initializes to default of 5)}
 
-\item{r_sample}{character string specifying sampling strategy for overdispersion;
-must be one of 'int_mh' (integer random walk Metropolis-Hastings; default),
-'slice' (slice sampling), 'mh' (uniform random walk Metropolis-Hastings), or
-\code{NULL} (not sampled, fixed at \code{r_init})}
+\item{r_sample}{logical; If \code{TRUE} (default), the overdispersion is sampled,
+else it is fixed at \code{r_init};}
 
-\item{step}{numeric; step length of proposal distribution for 'int_mh' and 'mh'
-values of \code{r_sample} (defaults to 1)}
+\item{step}{numeric (defaults to 1); step length of proposal distribution for
+Metropolis-Hasting sampling of overdispersion parameter; ignored if r_sample is \code{FALSE}}
 
-\item{mu_init}{length \code{T} vector of initial values for the log conditional expectation or
-\code{NULL} (default) for data driven starting value (\code{log(y + 1) + noise})}
-
-\item{mu_sample}{logical; If \code{TRUE} (default), the log conditional mean is sampled,
-else it is fixed at \code{mu_init}}
-
-\item{prior_r}{expression of \code{x} for the proportional log prior density of the overdispersion;
-defaults to half-Cauchy prior, \code{log(1 + x^2/100)}.}
-
-\item{evol0_sample}{logical; If \code{TRUE} (default), the prior variance of the initial \code{D} values of mu is sampled,
+\item{evol0_sample}{logical; if \code{TRUE} (default), the prior variance of the initial \code{D} values of mu is sampled,
 else it is fixed at \code{evol0_sd}}
 
-\item{evol0_sd}{numeric; initial value (defaults to 10) or the prior standard deviation
+\item{evol0_sd}{numeric; initial value (defaults to 10) or the fixed prior standard deviation
 for the initial \code{D} values of mu}
 
 \item{sigma_e}{numeric; scale value (defaults to \code{1/sqrt(T)}) for half-Cauchy prior on global variance parameter}
@@ -130,4 +117,6 @@ fit <- btf_nb(
   sigma_e = 1,
   chol0 = TRUE
 )
+
+ @keywords internal
 }

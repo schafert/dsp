@@ -39,7 +39,7 @@ btf_sparse(
 
 \item{nsave}{number of MCMC iterations to record}
 
-\item{nburn}{number of MCMC iterations to discard (burin-in)}
+\item{nburn}{number of MCMC iterations to discard (burnin-in)}
 
 \item{nskip}{number of MCMC iterations to skip between saving iterations,
 i.e., save every (nskip + 1)th draw}
