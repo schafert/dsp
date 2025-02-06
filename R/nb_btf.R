@@ -75,11 +75,15 @@
 btf_nb = function(y, evol_error = 'DHS', D = 2,
                   nsave = 1000, nburn = 1000, nskip = 4,
                   mcmc_params = list("mu", "yhat","evol_sigma_t2", "r", "dhs_phi", "dhs_mean"),
-                  r_init = NULL, r_sample = TRUE, step = 1,
-                  evol0_sample = TRUE, evol0_sd = 10, # should the initial variances for for the state vector be sampled and the fixed sd if not sampled
+                  r_init = NULL, r_sample = TRUE,
+                  step = 1,
+                  evol0_sample = FALSE, # TODO: force default to not sample
+                  evol0_sd = 10, # should the initial variances for for the state vector be sampled and the fixed sd if not sampled
                   sigma_e = 1/sqrt(Nt), # What is prior variance for half-cauchy on tau
-                  chol0 = NULL, computeDIC = TRUE, # TODO: bad default argument for chol0 but...
-                  offset = 0, verbose = TRUE,
+                  chol0 = NULL, # TODO: bad default argument for chol0 but...
+                  computeDIC = TRUE,
+                  offset = 0,
+                  verbose = TRUE,
                   seed = NULL){
 
   set.seed(seed)
