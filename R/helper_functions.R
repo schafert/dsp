@@ -815,11 +815,12 @@ invlogit = function(x) exp(x - log(1+exp(x))) # exp(x)/(1+exp(x))
 #' @param include_joint_bands logical; if TRUE, compute simultaneous credible bands
 #'
 #' @examples
-#'
+#' \dontrun{
 #' simdata = simUnivariate(signalName = "doppler", nT = 128, RSNR = 7, include_plot = FALSE)
 #' y = simdata$y
 #' out = btf(y) # TODO change this so that it uses abco
 #' plot_fitted(y, mcmc_output = out, y_true = simdata$y_true)
+#' }
 #'
 #' @import coda
 #' @export

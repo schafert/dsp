@@ -104,6 +104,7 @@ Sampling is accomplished with a (parameter-expanded) Gibbs sampler,
 mostly relying on a dynamic linear model representation.
 }
 \examples{
+\dontrun{
 beta <- make.signal(name = "bumps", n = 300)
 y <- rnbinom(n = length(beta), size = 5, mu = beta)
 
@@ -117,6 +118,7 @@ fit <- btf_nb(
   sigma_e = 1,
   chol0 = TRUE
 )
-
- @keywords internal
 }
+
+}
+\keyword{internal}

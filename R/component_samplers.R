@@ -1047,14 +1047,16 @@ sampleFastGaussian = function(Phi, Ddiag, alpha){
   # Return theta:
   theta
 }
-#' Sample the conditional posterior distribution on the Gaussian Mixture component
-#' for approximating the log(\chi^2) distribution based on Omori et al. 2007
+#' Sampling from 10-component Gaussian Mixture component described in Omori et al. 2007
+#'
+#' Samples from the conditional posterior distribution of the \eqn{log(\chi^2)} distribution
+#' by approximating it with the mixture Gaussian distribution described in Omori et al. 2007.
 #'
 #'
 #' @param Td length of the vector
 #' @param obs \code{Td x 1} vector for the data.
 #' @return Dataframe containing the posterior samples: mean and variance for the mixture component.
-#' @note When the obs is not not specified, the componenets are samples from the prior distribution.
+#' @note When the obs is not not specified, the components are samples from the prior distribution.
 sample_j_wrap <- function(Td,obs=NULL){
   # Omori, Chib, Shephard, Nakajima (2007) 10-component mixture:
   m_st  = c(1.92677, 1.34744, 0.73504, 0.02266, -0.85173, -1.97278, -3.46788, -5.55246, -8.68384, -14.65000)

@@ -15,7 +15,7 @@ NULL
 #' The penalty utilizes the dynamic horseshoe prior on the evolution errors.
 #' Sampling is accomplished with a (parameter-expanded) Gibbs sampler,
 #' mostly relying on a dynamic linear model representation.
-
+#'
 #' @param y the \code{T} vector of time series observations
 #' @param D degree of differencing (D = 1, or D = 2)
 #' @param obsSV Options for modeling the error variance. It must be one of the following:

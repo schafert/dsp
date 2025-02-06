@@ -55,6 +55,7 @@
 #' @importFrom BayesLogit rpg
 #'
 #' @examples
+#' \dontrun{
 #' beta <- make.signal(name = "bumps", n = 300)
 #' y <- rnbinom(n = length(beta), size = 5, mu = beta)
 #'
@@ -68,8 +69,9 @@
 #'   sigma_e = 1,
 #'   chol0 = TRUE
 #' )
+#' }
 #'
-#'  @keywords internal
+#' @keywords internal
 btf_nb = function(y, evol_error = 'DHS', D = 2,
                   nsave = 1000, nburn = 1000, nskip = 4,
                   mcmc_params = list("mu", "yhat","evol_sigma_t2", "r", "dhs_phi", "dhs_mean"),

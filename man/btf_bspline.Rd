@@ -87,6 +87,7 @@ substantially fewer than the number of time points.
 }
 }
 \examples{
+\dontrun{
 # TODO: add dsp class or change to use dsp_fit (don't export)
 # Example 1: Blocks data
 simdata <- simUnivariate(signalName = "blocks", nT = 1000, RSNR = 3, include_plot = FALSE)
@@ -102,6 +103,6 @@ x <- mcycle$times
 plot(x, y, xlab = 'Time (ms)', ylab='Acceleration (g)', main = 'Motorcycle Crash Data')
 out <- btf_bspline(y = y, x = x)
 # plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
-
+}
 
 }

@@ -129,7 +129,7 @@ via an additional Gibbs sampling step. In general, rescaling \code{y} to have un
 deviation is recommended to avoid numerical issues when family is "gaussian".
 }
 \examples{
-
+\dontrun{
 # Example 1: Change in mean with stochastic volatility
 signal = c(rep(0, 50), rep(10, 50))
 noise = rep(1, 100)
@@ -161,6 +161,6 @@ y = c(seq(1, 50), seq(51, 2)) + rnorm(100)
 mcmc_output = dsp_fit(y, cp=TRUE, D=2, mcmc_params = list('yhat', 'mu', "omega", "r"))
 cp = mcmc_output$cp
 plot(mcmc_output, y,y_true = signal)
-
+}
 
 }

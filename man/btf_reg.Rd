@@ -88,6 +88,7 @@ via an additional Gibbs sampling step. In general, rescaling \code{y} to have un
 deviation is recommended to avoid numerical issues.
 }
 \examples{
+\dontrun{
 # TODO: add dsp class or change to use dsp_fit (don't export)
 # Example 1: all signals
 simdata = simRegression(nT = 200, p = 5, p_0 = 0)
@@ -109,6 +110,6 @@ out = btf_reg(y, X, nsave = 1000, nskip = 0) # Short MCMC run for a quick exampl
 #              mu = colMeans(out$beta[,,j]),
 #              postY = out$beta[,,j],
 #              y_true = simdata$beta_true[,j])
-
+}
 
 }

@@ -88,7 +88,7 @@
 #' deviation is recommended to avoid numerical issues when family is "gaussian".
 #'
 #' @examples
-#'
+#' \dontrun{
 #' # Example 1: Change in mean with stochastic volatility
 #' signal = c(rep(0, 50), rep(10, 50))
 #' noise = rep(1, 100)
@@ -120,7 +120,7 @@
 #' mcmc_output = dsp_fit(y, cp=TRUE, D=2, mcmc_params = list('yhat', 'mu', "omega", "r"))
 #' cp = mcmc_output$cp
 #' plot(mcmc_output, y,y_true = signal)
-#'
+#' }
 #'
 #' @export
 dsp_fit = function(y, family = "gaussian", trend = NULL,
@@ -730,6 +730,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' deviation is recommended to avoid numerical issues.
 #'
 #' @examples
+#' \dontrun{
 #' # TODO: add dsp class or change to use dsp_fit (don't export)
 #' # Example 1: Bumps Data
 #' y = make.signal(name = "bumps", n = 128, snr = 7)
@@ -752,7 +753,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #'
 #' out = btf_sparse(y, D = 1) # try D = 1 to approximate the locally constant behavior
 #' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
-#'
+#' }
 #'
 #' @import spam progress
 #' @export
@@ -1001,6 +1002,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 #' deviation is recommended to avoid numerical issues.
 #'
 #' @examples
+#' \dontrun{
 #' # TODO: add dsp class or change to use dsp_fit (don't export)
 #' # Example 1: all signals
 #' simdata = simRegression(nT = 200, p = 5, p_0 = 0)
@@ -1022,7 +1024,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 #' #              mu = colMeans(out$beta[,,j]),
 #' #              postY = out$beta[,,j],
 #' #              y_true = simdata$beta_true[,j])
-#'
+#' }
 #'
 #' @import spam progress
 #' @export
@@ -1295,6 +1297,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 #' }
 #'
 #' @examples
+#' \dontrun{
 #' # TODO: add dsp class or change to use dsp_fit (don't export)
 #' # Example 1: Blocks data
 #' simdata <- simUnivariate(signalName = "blocks", nT = 1000, RSNR = 3, include_plot = FALSE)
@@ -1310,7 +1313,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 #' plot(x, y, xlab = 'Time (ms)', ylab='Acceleration (g)', main = 'Motorcycle Crash Data')
 #' out <- btf_bspline(y = y, x = x)
 #' # plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
-#'
+#' }
 #'
 #' @import fda progress
 #' @export
