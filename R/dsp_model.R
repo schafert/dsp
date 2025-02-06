@@ -263,7 +263,7 @@ dsp_spec <- function(family,
 #'}
 #'
 #' @export
-dsp_fit_v2 = function(y,model_spec,
+dsp_fit = function(y,model_spec,
                       nsave = 1000, nburn = 1000, nskip = 4,
                       computeDIC = TRUE,
                       verbose = TRUE,
