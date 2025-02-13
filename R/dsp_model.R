@@ -263,7 +263,7 @@ dsp_spec <- function(family,
 #'}
 #'
 #' @export
-dsp_fit = function(y,model_spec,
+dsp_fit = function(y, model_spec,
                       nsave = 1000, nburn = 1000, nskip = 4,
                       computeDIC = TRUE,
                       verbose = TRUE,
@@ -293,9 +293,18 @@ dsp_fit = function(y,model_spec,
   if (is.null(fitter)) {
     stop("No valid fitter function found for the specified family and model.")
   }
-  input_args <- c(model_spec$arguments, list(y = y, nsave = nsave, nburn = nburn,
-                                             nskip = nskip, computeDIC = computeDIC,
-                                             verbose = verbose,...))
+  ## This is a temporary case until we figure out what to do about the DIC thing
+
+  if(model == "changepoint"){
+    input_args <- c(model_spec$arguments, list(y = y, nsave = nsave, nburn = nburn,
+                                               nskip = nskip,
+                                               verbose = verbose, ...))
+  }else{
+    input_args <- c(model_spec$arguments, list(y = y, nsave = nsave, nburn = nburn,
+                                               nskip = nskip, computeDIC = computeDIC,
+                                               verbose = verbose, ...))
+  }
+
   mcmc_output = do.call(fitter, input_args)
   structure(c(mcmc_output,
               list(cp = model_spec$cp_thres, #TODO change documentation or this so matches

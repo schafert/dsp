@@ -72,7 +72,7 @@ model_spec <- dsp_spec(
   family = "negbinomial",
   model = "smoothing")
 
-fit <- dsp_fit_v2(
+fit <- dsp_fit(
   y = y,
   model_spec = model_spec,
   nburn = 5000,

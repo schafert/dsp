@@ -15,7 +15,7 @@ btf_nb(
   r_init = NULL,
   r_sample = TRUE,
   step = 1,
-  evol0_sample = TRUE,
+  evol0_sample = FALSE,
   evol0_sd = 10,
   sigma_e = 1/sqrt(Nt),
   chol0 = NULL,

@@ -19,8 +19,8 @@ e.g. "bumps" or "doppler"}
 \value{
 a list containing
 \itemize{
-\item the simulated function \code{y}
-\item the true function \code{y_true}
+\item the simulated data \code{y}
+\item the true conditional mean \code{mu_true}
 \item the true observation standard deviation \code{sigma_true}
 }
 }

@@ -50,7 +50,7 @@ out = btf(y, D = 1, evol_error = "HS",
 nz = getNonZeros(post_evol_sigma_t2 = out$evol_sigma_t2,
                 post_obs_sigma_t2 = out$obs_sigma_t2)
 # True CPs:
-cp_true = 1 + which(abs(diff(simdata$y_true)) > 0)
+cp_true = 1 + which(abs(diff(simdata$mu_true)) > 0)
 
 # Plot the results:
 plot_cp(y, nz)
@@ -68,7 +68,7 @@ for(j in 1:ncol(X))
  plot_fitted(rep(0, length(y)),
              mu = colMeans(out$beta[,,j]),
              postY = out$beta[,,j],
-             y_true = simdata$beta_true[,j])
+             mu_true = simdata$beta_true[,j])
 
 # Compute the CPs
 nz = getNonZeros(post_evol_sigma_t2 = out$evol_sigma_t2,

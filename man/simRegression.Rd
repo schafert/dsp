@@ -36,7 +36,7 @@ a list containing
 \item the simulated function \code{y}
 \item the simulated predictors \code{X}
 \item the simulated dynamic regression coefficients \code{beta_true}
-\item the true function \code{y_true}
+\item the true function \code{mu_true}
 \item the true observation standard deviation \code{sigma_true}
 }
 }
