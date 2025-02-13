@@ -94,14 +94,9 @@
 #' @return A list containing the model specification.
 #'
 #' @examples
-#' \dontrun{
-#' # creating a model spec object for change point detection model.
-#' y <- rnbinom(n = length(beta), size = 5, mu = beta)
-#'
-#' #Need to typically run sampler for longer than specified below
 #' model_spec = dsp_spec(family = "gaussian",
 #'                       model = "changepoint")
-#' }
+#'
 #'
 #' @export
 dsp_spec <- function(family,
