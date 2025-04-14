@@ -105,13 +105,8 @@ A list containing the model specification.
 Method for creating dsp specification object prior to fitting.
 }
 \examples{
-\dontrun{
-# creating a model spec object for change point detection model.
-y <- rnbinom(n = length(beta), size = 5, mu = beta)
-
-#Need to typically run sampler for longer than specified below
 model_spec = dsp_spec(family = "gaussian",
                       model = "changepoint")
-}
+
 
 }

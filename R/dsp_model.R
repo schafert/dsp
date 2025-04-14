@@ -196,8 +196,12 @@ dsp_spec <- function(family,
       message(sprintf("Argument '%s' is missing. Using default value: %s", arg, default_args[[arg]]))
     }
   }
-  ret = list(family = family, model = model, arguments = input_args)
-  class(ret) <- "dsp_spec"
+  ret = structure(list(
+    family = family,
+    model = model,
+    arguments = input_args
+  ),
+  class = c("dsp_spec"))
   return(ret)
 
 }
@@ -227,15 +231,10 @@ dsp_spec <- function(family,
 #' @return \code{dsp_fit} returns an object of class "\code{dsp}".
 #'
 #' An object of class "\code{dsp}" is defined as a list containing at least the following components:
-#'    \item{pars}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}} ## TODO change so matches
-#'    \item{cp}{if threshold shrinkage with changepoints is used, also return detected changepoint locations; otherwise FALSE}
+#'    \item{mcmc_output}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}}
 #'    \item{DIC}{Deviance Information Criterion}
-#'    \item{family}{value supplied for family argument}
-#'    \item{evol_error}{value supplied for evol_error argument}
-#'    \item{D}{value supplied for D argument}
-#'    \item{obsSV}{value supplied for obsSV argument}
 #'    \item{mcpar}{named vector of supplied nsave, nburn, and nskip}
-#'    \item{cp_thres}{value supplied for cp_thres argument}
+#'    \item{model_spec}{the object supplied for model_spec argument}
 #'
 #' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
@@ -301,14 +300,11 @@ dsp_fit = function(y, model_spec,
   }
 
   mcmc_output = do.call(fitter, input_args)
-  structure(c(mcmc_output,
-              list(cp = model_spec$cp_thres, #TODO change documentation or this so matches
-                   DIC = mcmc_output[c("DIC", "p_d")],
-                   D = model_spec$D,
-                   obsSV = model_spec$obsSV,
-                   mcpar = c(nsave = nsave, nburn = nburn, nskip = nskip),
-                   cp_thres = model_spec$cp_thres)),
-            class = c(mcmc_output$class, c("dsp")))
+  structure(list(mcmc_output = mcmc_output,
+                 DIC = mcmc_output[c("DIC", "p_d")],
+                 mcpar = c(nsave = nsave, nburn = nburn, nskip = nskip),
+                 model_spec = model_spec),
+            class = c(c("dsp"), mcmc_output$class))
 
 }
 
