@@ -22,6 +22,17 @@
 #'
 #' @examples
 #'
+#' signal = c(rep(0, 50), rep(10, 50))
+#' noise = rep(1, 100)
+#' noise_var = rep(1, 100)
+#' for (k in 2:100){
+#'   noise_var[k] = exp(0.9*log(noise_var[k-1]) + rnorm(1, 0, 0.5))
+#'   noise[k] = rnorm(1, 0, sqrt(noise_var[k])) }
+#'
+#' y = signal + noise
+#' model_spec = dsp_spec(family = "gaussian", model = "changepoint")
+#' mcmc_output = dsp_fit(y, model_spec = model_spec)
+#' predict(mcmc_output)
 #'
 #'
 #' @export
@@ -71,6 +82,18 @@ predict.dsp <- function(object, cp_thres = 0.5, cp_prop = FALSE, ...){
 #' @export
 #'
 #' @examples
+#'
+#' #' signal = c(rep(0, 50), rep(10, 50))
+#' noise = rep(1, 100)
+#' noise_var = rep(1, 100)
+#' for (k in 2:100){
+#'   noise_var[k] = exp(0.9*log(noise_var[k-1]) + rnorm(1, 0, 0.5))
+#'   noise[k] = rnorm(1, 0, sqrt(noise_var[k])) }
+#'
+#' y = signal + noise
+#' model_spec = dsp_spec(family = "gaussian", model = "changepoint")
+#' mcmc_output = dsp_fit(y, model_spec = model_spec)
+#' summary(mcmc_output)
 #'
 #'
 
@@ -134,6 +157,18 @@ summary_fun <- function(col) {
 #' @export
 #'
 #' @examples
+#'
+#' #' signal = c(rep(0, 50), rep(10, 50))
+#' noise = rep(1, 100)
+#' noise_var = rep(1, 100)
+#' for (k in 2:100){
+#'   noise_var[k] = exp(0.9*log(noise_var[k-1]) + rnorm(1, 0, 0.5))
+#'   noise[k] = rnorm(1, 0, sqrt(noise_var[k])) }
+#'
+#' y = signal + noise
+#' model_spec = dsp_spec(family = "gaussian", model = "changepoint")
+#' mcmc_output = dsp_fit(y, model_spec = model_spec)
+#' print(mcmc_output)
 #'
 print.dsp <- function(object, ...){
 

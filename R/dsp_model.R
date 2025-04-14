@@ -92,7 +92,7 @@
 #' @return A list containing the model specification.
 #'
 #' @examples
-#' model_spec = dsp_spec(family = "gaussian",
+#' model_spec <- dsp_spec(family = "gaussian",
 #'                       model = "changepoint")
 #'
 #'
