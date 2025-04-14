@@ -41,7 +41,6 @@ NULL
 #' \item "dhs_mean" (DHS AR(1) unconditional mean)
 #' }
 #' @param verbose logical; should R report extra information on progress?
-#' @param cp_thres Percentage of posterior samples needed to declare a changepoint
 #'
 #' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 #'
@@ -50,7 +49,7 @@ NULL
 abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
                 nsave = 1000, nburn = 1000, nskip = 4,
                 mcmc_params = list('mu', "omega", "r"),
-                verbose = TRUE, cp_thres = 0.5){
+                verbose = TRUE){
   # Time points (in [0,1])
   nT = length(y); t01 = seq(0, 1, length.out=nT)
   evol_error = 'DHS'
@@ -222,7 +221,6 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
 
-  mcmc_output$cp = identify_cp(D, mcmc_output, cp_thres)
   return (mcmc_output)
 }
 #----------------------------------------------------------------------------

@@ -28,7 +28,7 @@
 #'
 #' \tabular{lll}{
 #'  **Family**  \tab **Model**       \tab **Required Arguments**  \cr
-#'  "gaussian"    \tab "changepoint"     \tab \code{D}, \code{useAnom}, \code{obsSV}, \code{cp_thres}  \cr
+#'  "gaussian"    \tab "changepoint"     \tab \code{D}, \code{useAnom}, \code{obsSV} \cr
 #'  "gaussian"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{zero_error}  \cr
 #'  "gaussian"    \tab "regression"      \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{X}  \cr
 #'  "gaussian"    \tab "bspline"        \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{times}, \code{num_knots}  \cr
@@ -63,8 +63,6 @@
 #'          \itemize{
 #'            \item \code{useAnom}: logical; Defaults to FALSE. if TRUE, include an anomaly component
 #'            in the observation equation.
-#'            \item \code{cp_thres}: numeric between 0 and 1. Defaults to 0.4. Percentage of posterior
-#'        samples needed to declare a changepoint.
 #'          }
 #'        \item \code{family} = "gaussian", \code{model} = "smoothing":
 #'        \itemize{
@@ -118,7 +116,7 @@ dsp_spec <- function(family,
   required_args <- function(family,model){
     if(family == "gaussian"){
       if(model == "changepoint"){
-        return(c("D", "useAnom", "obsSV","cp_thres"))
+        return(c("D", "useAnom", "obsSV"))
       }else if(model == "smoothing"){
         return(c("evol_error","D","obsSV","zero_error"))
       }else if(model == "regression"){
@@ -164,7 +162,6 @@ dsp_spec <- function(family,
       }
     },
     useAnom = function(family,x) { if (is.na(x)|| !is.logical(x)) stop("useAnom must be TRUE or FALSE.") },
-    cp_thres = function(family,x) { if (is.na(x) || !is.numeric(x) || x < 0 || x > 1) stop("cp_thres must be a numeric value between 0 and 1.") },
     obsSV = function(family,x) { if (!x %in% c("const", "SV", "ASV")) stop("obsSV must be one of 'const', 'SV', 'ASV'.") },
     zero_error = function(family,x) { if (!x %in% c("HS", "DHS", "NIG", "SV", "BL")) stop("zero_error must be one of 'HS', 'DHS', 'NIG', 'SV', 'BL'.")},
     times = function(family,x) { if (any(is.na(x)) || !is.numeric(x) || any(x < 0 || x != as.integer(x))) stop("must be a vector of positive integer or NULL") },
@@ -184,7 +181,7 @@ dsp_spec <- function(family,
   }
 
   # If any of the required arguments are missing give them default values
-  default_args <- list(D =2, useAnom = FALSE, obsSV = "const", cp_thres = 0.4,
+  default_args <- list(D =2, useAnom = FALSE, obsSV = "const",
                        evol_error = "DHS", zero_error = NULL, num_knots = 20,
                        r_init = 5, r_sample = FALSE, offset = 0)
   requiredArgs = setdiff(required_args(family,model), names(input_args))

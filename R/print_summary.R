@@ -10,7 +10,7 @@ print.dsp <- function(object, ...){
 #'
 #' @param object object of class 'dsp'
 #' @param cp_thres (default 0.5) cutoff proportion for percentage of posterior
-#'                  samples exceeding the threshold
+#'                  samples exceeding the threshold needed to label a changepoint
 #' @param cp_prop (default FALSE) logical flag determining if the posterior proportions of threshold exceedance is to be returned.
 #'
 #' @details
@@ -43,6 +43,8 @@ predict.dsp <- function(object, cp_thres = 0.5, cp_prop = FALSE, ...){
     stop("Can't calculate changepoint evidence without samples of omega and r.")
   }
 
+  if (is.na(cp_thres) || !is.numeric(cp_thres) || cp_thres < 0 || cp_thres > 1) stop("cp_thres must be a numeric value between 0 and 1.") ,
+
   cp_list = rep(0, length(object$mcmc_output$omega[1,]))
   D = object$model_spec$arguments$D
 
@@ -71,7 +73,7 @@ summary.dsp <- function(object, pars, probs = c(0.025, 0.25, 0.50, 0.75, 0.975),
     pars <- pars[pars_in]
   }
 
-  # cp need to ignore
+
 
 }
 
