@@ -13,8 +13,7 @@ abco(
   nburn = 1000,
   nskip = 4,
   mcmc_params = list("mu", "omega", "r"),
-  verbose = TRUE,
-  cp_thres = 0.5
+  verbose = TRUE
 )
 }
 \arguments{
@@ -51,8 +50,6 @@ must be one or more of:
 }}
 
 \item{verbose}{logical; should R report extra information on progress?}
-
-\item{cp_thres}{Percentage of posterior samples needed to declare a changepoint}
 }
 \value{
 A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}

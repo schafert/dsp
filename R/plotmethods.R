@@ -4,15 +4,15 @@
 #' Plot the BTF posterior mean of the conditional expectation with posterior credible intervals (pointwise and joint),
 #' the observed data, and true curves (if known)
 #'
-#' @param mcmc_output an object of class "dsp" with parameter names 'mu' and/or 'yhat'
+#' @param object an object of class 'dsp' from [dsp_fit()] with parameter name 'mu'
 #' @param y the \code{T x 1} vector of time series observations
-#' @param mu_true the \code{T x 1} vector of the true conditional mean
+#' @param mu_true (defaults to NULL) the \code{T x 1} vector of the true conditional mean
 #' @param t01 the observation points; if NULL, assume \code{T} equally spaced points from 0 to 1
 #' @param include_joint_bands logical; if TRUE, compute simultaneous credible bands
 #'
 #' @details
 #'
-#' The credible intervals plotted depends on whether `mcmc_output` contains predictions
+#' The credible intervals plotted depends on whether `object` contains predictions
 #' of the data, i.e., it contains the name 'yhat'. If it does, then a plot is created with
 #' credible intervals for the posterior prediction of y, else credible intervals are calculated
 #' for the conditional expectation contained in the named slot 'mu'.
@@ -28,34 +28,34 @@
 #' y = signal + noise
 #' model_spec = dsp_spec(family = "gaussian", model = "changepoint", mcmc_params = list('yhat', 'mu', "omega", "r"))
 #' mcmc_output = dsp_fit(y, model_spec = model_spec)
-#' plot(mcmc_output, y, mu_true = signal)
+#' plot(mcmc_output, y, mu_true = signal) # plots prediction intervals
 #'
 #' @import coda
 #' @export
-plot.dsp = function(mcmc_output, y, mu_true = NULL, t01 = NULL, include_joint_bands = FALSE){
+plot.dsp = function(object, y, mu_true = NULL, t01 = NULL, include_joint_bands = FALSE){
 
   # Time series:
   nT = length(y);
   if(is.null(t01)) t01 = seq(0, 1, length.out=nT)
 
-  if(!("mu" %in% names(mcmc_output) || "yhat" %in% names(mcmc_output))){
+  if(!("mu" %in% names(object$mcmc_output) || "yhat" %in% names(object$mcmc_output))){
 
-    stop("Expected entries named 'mu' and 'yhat' in mcmc_output")
+    stop("Expected entries named 'mu' and 'yhat' in object$mcmc_output")
 
   }
 
-  mu = colMeans(mcmc_output$mu)
-  postY = mcmc_output$yhat
+  mu = colMeans(object$mcmc_output$mu)
+  postY = object$mcmc_output$yhat
 
 
   # Credible intervals/bands:
   # TODO: restructure so that there's more conditioning because legend depends on joint_bands and mu_true
 
   if(is.null(postY)){
-    dcip = t(apply(mcmc_output$mu, 2, quantile, c(0.05/2, 1 - 0.05/2)))
+    dcip = t(apply(object$mcmc_output$mu, 2, quantile, c(0.05/2, 1 - 0.05/2)))
 
     if(include_joint_bands){
-      dcib = credBands(mcmc_output$mu)
+      dcib = credBands(object$mcmc_output$mu)
 
       plot(t01, y, type='n', ylim=range(dcib, y, na.rm=TRUE), xlab = 't',
            ylab=expression(paste("y"[t])),
@@ -209,6 +209,7 @@ plot.dsp = function(mcmc_output, y, mu_true = NULL, t01 = NULL, include_joint_ba
   }
 
 }
+
 
 #----------------------------------------------------------------------------
 #' Plot the series with change points

@@ -215,7 +215,7 @@ dsp_spec <- function(family,
 #'}
 #'
 #' @param y a numeric vector of the \code{T x 1} vector of time series observations
-#' @param model_spec a list containing model specification generated from `dsp_spec` function.
+#' @param model_spec a list containing model specification generated from [dsp_spec()].
 #' @param nsave integer scalar (default = 1000); number of MCMC iterations to record
 #' @param nburn integer scalar (default = 1000); number of MCMC iterations to discard (burn-in)
 #' @param nskip integer scalar (default = 4); number of MCMC iterations to skip between saving iterations,

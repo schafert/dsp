@@ -18,7 +18,7 @@ dsp_fit(
 \arguments{
 \item{y}{a numeric vector of the \code{T x 1} vector of time series observations}
 
-\item{model_spec}{a list containing model specification generated from \code{dsp_spec} function.}
+\item{model_spec}{a list containing model specification generated from \code{\link[=dsp_spec]{dsp_spec()}}.}
 
 \item{nsave}{integer scalar (default = 1000); number of MCMC iterations to record}
 

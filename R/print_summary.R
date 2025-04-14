@@ -1,24 +1,17 @@
-print.dsp <- function(object, ...){
-
-
-
-}
-
-
 #----------------------------------------------------------------------------
 #' Predict changepoints from the output of ABCO
 #'
-#' @param object object of class 'dsp'
+#' @param object object of class dsp from [dsp_fit()]
 #' @param cp_thres (default 0.5) cutoff proportion for percentage of posterior
 #'                  samples exceeding the threshold needed to label a changepoint
 #' @param cp_prop (default FALSE) logical flag determining if the posterior proportions of threshold exceedance is to be returned.
-#'
+#' @param ... currently unused
 #' @details
 #' The changepoint model uses a thresholding mechanism with a latent indicator variable.
 #' This function calculates the proportion of samples where the increment exceeds the threshold.
 #'
 #'
-#' @return
+#' @returns
 #' If cp_prop = FALSE, a numeric vector of indices that correspond to indices of the observed data.
 #' If cp_prop = TRUE, a list containing:
 #'
@@ -43,7 +36,7 @@ predict.dsp <- function(object, cp_thres = 0.5, cp_prop = FALSE, ...){
     stop("Can't calculate changepoint evidence without samples of omega and r.")
   }
 
-  if (is.na(cp_thres) || !is.numeric(cp_thres) || cp_thres < 0 || cp_thres > 1) stop("cp_thres must be a numeric value between 0 and 1.") ,
+  if (is.na(cp_thres) || !is.numeric(cp_thres) || cp_thres < 0 || cp_thres > 1) stop("cp_thres must be a numeric value between 0 and 1.")
 
   cp_list = rep(0, length(object$mcmc_output$omega[1,]))
   D = object$model_spec$arguments$D
@@ -62,18 +55,90 @@ predict.dsp <- function(object, cp_thres = 0.5, cp_prop = FALSE, ...){
 
 }
 
+#' Summarize DSP MCMC chains
+#'
+#' @param object object of class dsp from [dsp_fit()]
+#' @param pars parameter names specified for summaries; currently defaults to all parameters named in object$mcmc_output
+#' @param probs numeric vector of [quantile()]s requested for posterior summary of pars. Defaults to c(0.025, 0.25, 0.50, 0.75, 0.975)
+#' @param ... currently unused
+#'
+#' @returns
+#' Currently, returns a named list of the same length as pars where within each element of the list
+#' is a numeric matrix of vector. For matrices, each row is a time point of the parameter and each column
+#' is a named summary. For vectors (scalar parameters), each element is a named summary.
+#'
+#'
+#' @export
+#'
+#' @examples
+#'
+#'
+
 summary.dsp <- function(object, pars, probs = c(0.025, 0.25, 0.50, 0.75, 0.975), ...){
 
-  pars_in <- pars %in% names(object$mcmc_output)
+  # supplied or default pars?
 
-  if(!all(pars_in)){
+  if(missing(pars)){
+    pars <- names(object$mcmc_output)
+  }else{
+    pars_in <- pars %in% names(object$mcmc_output)
 
-    warning(paste("The following parameters were requested, but not available in model output:", paste(pars[!pars_in], collapse = ", ")))
+    if(all(!pars_in)) stop("None of the requested parameters are available in object$mcmc_output.")
 
-    pars <- pars[pars_in]
+    if(!all(pars_in)){
+
+      warning(paste("The following parameters were requested, but not available in model output:", paste(pars[!pars_in], collapse = ", ")))
+
+      pars <- pars[pars_in]
+
+    }
+
   }
+
+  col_names <- c("mean", paste0("q_", round(100*probs, 1)))
+  # Calculate the mean and quantiles, but return a list of same length, etc
+
+  out_list <- purrr::map(object$mcmc_output[pars], \(samps){
+
+    if(!is.null(dim(samps))){
+
+      apply(samps, MARGIN = 2, summary_fun) |>
+        t()
+
+    }else{
+
+      summary_fun(samps)
+
+    }
+
+  })
+
+  return(out_list)
+
+}
+
+summary_fun <- function(col) {
+  nums <- c(mean(col), quantile(col, probs = probs))
+  names(nums) <- col_names
+  nums
+}
+
+#' Print a summary of dsp object
+#'
+#' @inheritParams summary.dsp
+#'
+#' @details
+#'
+#'
+#'
+#' @export
+#'
+#' @examples
+#'
+print.dsp <- function(object, ...){
 
 
 
 }
+
 
