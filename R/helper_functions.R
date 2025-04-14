@@ -969,25 +969,7 @@ getARpXmat = function(y, p = 1, include_intercept = FALSE){
 
   X
 }
-#----------------------------------------------------------------------------
-#' Identify changepoints from the output of ABCO
-#'
-#' @param D the degree of differencing for changepoint
-#' @param mcmc_output MCMC outputs from ABCO, needs "omega" and "r"
-#' @param cp_thres Percentage of posterior samples needed to declare a changepoint
-identify_cp = function(D, mcmc_output, cp_thres= 0.5){
-  cp_list = rep(0, length(mcmc_output$omega[1,]))
-  for (j in 1:length(mcmc_output$omega[,1])){
-    nz_list = which(log(mcmc_output$omega[j,]^2+0.0001) > mcmc_output$r[j])+D
-    for (k in nz_list){
-      cp_list[k] = cp_list[k]+1
-    }
-  }
-  cp_list = cp_list / length(mcmc_output$omega[,1])
 
-  which(cp_list >= cp_thres)
-}
-NULL
 #----------------------------------------------------------------------------
 #' Wrapper function for C++ call for sample mat, check pre-conditions to prevent crash
 #'

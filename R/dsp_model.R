@@ -24,10 +24,10 @@
 #'   }
 #' @param ... Additional arguments based on \code{family} and \code{model}.
 #' For \code{family} = "gaussian" and \code{model} = "regression", \code{X} is required.
-#' Other parameters are optional and default to predefined value.
+#' Other arguments are optional and default to predefined value.
 #'
 #' \tabular{lll}{
-#'  **Family**  \tab **Model**       \tab **Required Parameters**  \cr
+#'  **Family**  \tab **Model**       \tab **Required Arguments**  \cr
 #'  "gaussian"    \tab "changepoint"     \tab \code{D}, \code{useAnom}, \code{obsSV}, \code{cp_thres}  \cr
 #'  "gaussian"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{zero_error}  \cr
 #'  "gaussian"    \tab "regression"      \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{X}  \cr
@@ -36,7 +36,7 @@
 #' }
 #'
 #'   \itemize{
-#'     \item **Shared Parameters**:
+#'     \item **Shared Arguments**:
 #'       \itemize{
 #'         \item \code{"D"}: integer scalar indicating degree of differencing.
 #'         Implementation is available D = 0, 1, or 2 (default) for \code{family} = "gaussian",
@@ -57,7 +57,7 @@
 #'              \item the normal-inverse-gamma prior ("NIG") (\code{family} = "gaussian" only).
 #'            }
 #'       }
-#'     \item **Model-specific Parameters**:
+#'     \item **Model-specific Arguments**:
 #'      \itemize{
 #'        \item \code{model} = "changepoint":
 #'          \itemize{
@@ -184,7 +184,7 @@ dsp_spec <- function(family,
   }
 
   # If any of the required arguments are missing give them default values
-  default_args <- list(D =2, useAnom = FALSE, obsSV = "const", cp_thre = 0.4,
+  default_args <- list(D =2, useAnom = FALSE, obsSV = "const", cp_thres = 0.4,
                        evol_error = "DHS", zero_error = NULL, num_knots = 20,
                        r_init = 5, r_sample = FALSE, offset = 0)
   requiredArgs = setdiff(required_args(family,model), names(input_args))
