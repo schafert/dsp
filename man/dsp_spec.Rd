@@ -31,11 +31,11 @@ Adaptive Bayesian Changepoint analysis and local Outlier (ABCO),
 
 \item{...}{Additional arguments based on \code{family} and \code{model}.
 For \code{family} = "gaussian" and \code{model} = "regression", \code{X} is required.
-Other parameters are optional and default to predefined value.
+Other arguments are optional and default to predefined value.
 
 \tabular{lll}{
-\strong{Family}  \tab \strong{Model}       \tab \strong{Required Parameters}  \cr
-"gaussian"    \tab "changepoint"     \tab \code{D}, \code{useAnom}, \code{obsSV}, \code{cp_thres}  \cr
+\strong{Family}  \tab \strong{Model}       \tab \strong{Required Arguments}  \cr
+"gaussian"    \tab "changepoint"     \tab \code{D}, \code{useAnom}, \code{obsSV} \cr
 "gaussian"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{zero_error}  \cr
 "gaussian"    \tab "regression"      \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{X}  \cr
 "gaussian"    \tab "bspline"        \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{times}, \code{num_knots}  \cr
@@ -43,7 +43,7 @@ Other parameters are optional and default to predefined value.
 }
 
 \itemize{
-\item \strong{Shared Parameters}:
+\item \strong{Shared Arguments}:
 \itemize{
 \item \code{"D"}: integer scalar indicating degree of differencing.
 Implementation is available D = 0, 1, or 2 (default) for \code{family} = "gaussian",
@@ -64,14 +64,12 @@ It must be one of the following:
 \item the normal-inverse-gamma prior ("NIG") (\code{family} = "gaussian" only).
 }
 }
-\item \strong{Model-specific Parameters}:
+\item \strong{Model-specific Arguments}:
 \itemize{
 \item \code{model} = "changepoint":
 \itemize{
 \item \code{useAnom}: logical; Defaults to FALSE. if TRUE, include an anomaly component
 in the observation equation.
-\item \code{cp_thres}: numeric between 0 and 1. Defaults to 0.4. Percentage of posterior
-samples needed to declare a changepoint.
 }
 \item \code{family} = "gaussian", \code{model} = "smoothing":
 \itemize{
@@ -105,13 +103,8 @@ A list containing the model specification.
 Method for creating dsp specification object prior to fitting.
 }
 \examples{
-\dontrun{
-# creating a model spec object for change point detection model.
-y <- rnbinom(n = length(beta), size = 5, mu = beta)
-
-#Need to typically run sampler for longer than specified below
 model_spec = dsp_spec(family = "gaussian",
                       model = "changepoint")
-}
+
 
 }

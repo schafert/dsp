@@ -24,11 +24,11 @@
 #'   }
 #' @param ... Additional arguments based on \code{family} and \code{model}.
 #' For \code{family} = "gaussian" and \code{model} = "regression", \code{X} is required.
-#' Other parameters are optional and default to predefined value.
+#' Other arguments are optional and default to predefined value.
 #'
 #' \tabular{lll}{
-#'  **Family**  \tab **Model**       \tab **Required Parameters**  \cr
-#'  "gaussian"    \tab "changepoint"     \tab \code{D}, \code{useAnom}, \code{obsSV}, \code{cp_thres}  \cr
+#'  **Family**  \tab **Model**       \tab **Required Arguments**  \cr
+#'  "gaussian"    \tab "changepoint"     \tab \code{D}, \code{useAnom}, \code{obsSV} \cr
 #'  "gaussian"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{zero_error}  \cr
 #'  "gaussian"    \tab "regression"      \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{X}  \cr
 #'  "gaussian"    \tab "bspline"        \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{times}, \code{num_knots}  \cr
@@ -36,7 +36,7 @@
 #' }
 #'
 #'   \itemize{
-#'     \item **Shared Parameters**:
+#'     \item **Shared Arguments**:
 #'       \itemize{
 #'         \item \code{"D"}: integer scalar indicating degree of differencing.
 #'         Implementation is available D = 0, 1, or 2 (default) for \code{family} = "gaussian",
@@ -57,14 +57,12 @@
 #'              \item the normal-inverse-gamma prior ("NIG") (\code{family} = "gaussian" only).
 #'            }
 #'       }
-#'     \item **Model-specific Parameters**:
+#'     \item **Model-specific Arguments**:
 #'      \itemize{
 #'        \item \code{model} = "changepoint":
 #'          \itemize{
 #'            \item \code{useAnom}: logical; Defaults to FALSE. if TRUE, include an anomaly component
 #'            in the observation equation.
-#'            \item \code{cp_thres}: numeric between 0 and 1. Defaults to 0.4. Percentage of posterior
-#'        samples needed to declare a changepoint.
 #'          }
 #'        \item \code{family} = "gaussian", \code{model} = "smoothing":
 #'        \itemize{
@@ -118,7 +116,7 @@ dsp_spec <- function(family,
   required_args <- function(family,model){
     if(family == "gaussian"){
       if(model == "changepoint"){
-        return(c("D", "useAnom", "obsSV","cp_thres"))
+        return(c("D", "useAnom", "obsSV"))
       }else if(model == "smoothing"){
         return(c("evol_error","D","obsSV","zero_error"))
       }else if(model == "regression"){
@@ -164,7 +162,6 @@ dsp_spec <- function(family,
       }
     },
     useAnom = function(family,x) { if (is.na(x)|| !is.logical(x)) stop("useAnom must be TRUE or FALSE.") },
-    cp_thres = function(family,x) { if (is.na(x) || !is.numeric(x) || x < 0 || x > 1) stop("cp_thres must be a numeric value between 0 and 1.") },
     obsSV = function(family,x) { if (!x %in% c("const", "SV", "ASV")) stop("obsSV must be one of 'const', 'SV', 'ASV'.") },
     zero_error = function(family,x) { if (!x %in% c("HS", "DHS", "NIG", "SV", "BL")) stop("zero_error must be one of 'HS', 'DHS', 'NIG', 'SV', 'BL'.")},
     times = function(family,x) { if (any(is.na(x)) || !is.numeric(x) || any(x < 0 || x != as.integer(x))) stop("must be a vector of positive integer or NULL") },
@@ -184,7 +181,7 @@ dsp_spec <- function(family,
   }
 
   # If any of the required arguments are missing give them default values
-  default_args <- list(D =2, useAnom = FALSE, obsSV = "const", cp_thre = 0.4,
+  default_args <- list(D =2, useAnom = FALSE, obsSV = "const",
                        evol_error = "DHS", zero_error = NULL, num_knots = 20,
                        r_init = 5, r_sample = FALSE, offset = 0)
   requiredArgs = setdiff(required_args(family,model), names(input_args))
@@ -196,8 +193,12 @@ dsp_spec <- function(family,
       message(sprintf("Argument '%s' is missing. Using default value: %s", arg, default_args[[arg]]))
     }
   }
-  ret = list(family = family, model = model, arguments = input_args)
-  class(ret) <- "dsp_spec"
+  ret = structure(list(
+    family = family,
+    model = model,
+    arguments = input_args
+  ),
+  class = c("dsp_spec"))
   return(ret)
 
 }
@@ -214,7 +215,7 @@ dsp_spec <- function(family,
 #'}
 #'
 #' @param y a numeric vector of the \code{T x 1} vector of time series observations
-#' @param model_spec a list containing model specification generated from `dsp_spec` function.
+#' @param model_spec a list containing model specification generated from [dsp_spec()].
 #' @param nsave integer scalar (default = 1000); number of MCMC iterations to record
 #' @param nburn integer scalar (default = 1000); number of MCMC iterations to discard (burn-in)
 #' @param nskip integer scalar (default = 4); number of MCMC iterations to skip between saving iterations,
@@ -227,15 +228,10 @@ dsp_spec <- function(family,
 #' @return \code{dsp_fit} returns an object of class "\code{dsp}".
 #'
 #' An object of class "\code{dsp}" is defined as a list containing at least the following components:
-#'    \item{pars}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}} ## TODO change so matches
-#'    \item{cp}{if threshold shrinkage with changepoints is used, also return detected changepoint locations; otherwise FALSE}
+#'    \item{mcmc_output}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}}
 #'    \item{DIC}{Deviance Information Criterion}
-#'    \item{family}{value supplied for family argument}
-#'    \item{evol_error}{value supplied for evol_error argument}
-#'    \item{D}{value supplied for D argument}
-#'    \item{obsSV}{value supplied for obsSV argument}
 #'    \item{mcpar}{named vector of supplied nsave, nburn, and nskip}
-#'    \item{cp_thres}{value supplied for cp_thres argument}
+#'    \item{model_spec}{the object supplied for model_spec argument}
 #'
 #' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
@@ -301,14 +297,11 @@ dsp_fit = function(y, model_spec,
   }
 
   mcmc_output = do.call(fitter, input_args)
-  structure(c(mcmc_output,
-              list(cp = model_spec$cp_thres, #TODO change documentation or this so matches
-                   DIC = mcmc_output[c("DIC", "p_d")],
-                   D = model_spec$D,
-                   obsSV = model_spec$obsSV,
-                   mcpar = c(nsave = nsave, nburn = nburn, nskip = nskip),
-                   cp_thres = model_spec$cp_thres)),
-            class = c(mcmc_output$class, c("dsp")))
+  structure(list(mcmc_output = mcmc_output,
+                 DIC = mcmc_output[c("DIC", "p_d")],
+                 mcpar = c(nsave = nsave, nburn = nburn, nskip = nskip),
+                 model_spec = model_spec),
+            class = c(c("dsp"), mcmc_output$class))
 
 }
 

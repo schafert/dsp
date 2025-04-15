@@ -18,7 +18,7 @@ dsp_fit(
 \arguments{
 \item{y}{a numeric vector of the \code{T x 1} vector of time series observations}
 
-\item{model_spec}{a list containing model specification generated from \code{dsp_spec} function.}
+\item{model_spec}{a list containing model specification generated from \code{\link[=dsp_spec]{dsp_spec()}}.}
 
 \item{nsave}{integer scalar (default = 1000); number of MCMC iterations to record}
 
@@ -38,15 +38,10 @@ and the effective number of parameters \code{p_d}}
 \code{dsp_fit} returns an object of class "\code{dsp}".
 
 An object of class "\code{dsp}" is defined as a list containing at least the following components:
-\item{pars}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}} ## TODO change so matches
-\item{cp}{if threshold shrinkage with changepoints is used, also return detected changepoint locations; otherwise FALSE}
+\item{mcmc_output}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}}
 \item{DIC}{Deviance Information Criterion}
-\item{family}{value supplied for family argument}
-\item{evol_error}{value supplied for evol_error argument}
-\item{D}{value supplied for D argument}
-\item{obsSV}{value supplied for obsSV argument}
 \item{mcpar}{named vector of supplied nsave, nburn, and nskip}
-\item{cp_thres}{value supplied for cp_thres argument}
+\item{model_spec}{the object supplied for model_spec argument}
 }
 \description{
 Wrapper function for fitting models with Dynamic Shrinkage Processes (DSP), including:
