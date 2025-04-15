@@ -51,8 +51,9 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
                    sigma_e = pi/sqrt(2)){
   nT = length(y)
   y = y - beta
+  sample_sd = sd(y)
   # initializing parameters
-  sParams = init_paramsASV(y,evol_error,D)
+  sParams = init_paramsASV(y/sample_sd,evol_error,D)
 
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
@@ -85,7 +86,7 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
     else if( ((nsi%%1000) == 0) & verbose){
       pb$tick(1000)
     }
-    sParams = fit_paramsASV(y,sParams,evol_error,D,sigma_e)
+    sParams = fit_paramsASV(y/sample_sd,sParams,evol_error,D,sigma_e)
 
     # Store the MCMC output:
     if(nsi > nburn){
@@ -98,16 +99,16 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
         isave = isave + 1
         # Save the MCMC samples:
 
-
-        sigma2 = exp(sParams$s_mu)
-        if(!is.na(match('h', mcmc_params)) || computeDIC) post_s_mu[isave,] = sParams$s_mu
-        if(!is.na(match('logy2hat', mcmc_params))) post_s_logy2hat[isave,] = generate_ly2hat(sParams$s_mu,sParams$s_p_error_term)
+        h = sParams$s_mu + log(sample_sd^2)
+        sigma2 = exp(h)
+        if(!is.na(match('h', mcmc_params)) || computeDIC) post_s_mu[isave,] = h
+        if(!is.na(match('logy2hat', mcmc_params))) post_s_logy2hat[isave,] = generate_ly2hat(h,sParams$s_p_error_term)*sample_sd
         if(!is.na(match('sigma2', mcmc_params)) || computeDIC) post_sigma2[isave,] = sigma2
         if(!is.na(match('evol_sigma_t2', mcmc_params))) post_s_evol_sigma_t2[isave,] = c(sParams$s_evolParams0$sigma_w0^2,
                                                                                          sParams$s_evolParams$sigma_wt^2)
         if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi[isave] = sParams$s_evolParams$dhs_phi
         if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean[isave] = sParams$s_evolParams$dhs_mean
-        post_loglike[isave] = sum(dnorm(y, mean = beta, sd = exp(sParams$s_mu/2), log = TRUE))
+        post_loglike[isave] = sum(dnorm(y, mean = beta, sd = exp(h/2), log = TRUE))
 
 
         # And reset the skip counter:
