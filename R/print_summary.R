@@ -66,6 +66,7 @@ predict.dsp <- function(object, cp_thres = 0.5, cp_prop = FALSE, ...){
 
 }
 
+#----------------------------------------------------------------------------
 #' Summarize DSP MCMC chains
 #'
 #' @param object object of class dsp from [dsp_fit()]
@@ -78,8 +79,6 @@ predict.dsp <- function(object, cp_thres = 0.5, cp_prop = FALSE, ...){
 #' is a numeric matrix of vector. For matrices, each row is a time point of the parameter and each column
 #' is a named summary. For vectors (scalar parameters), each element is a named summary.
 #'
-#'
-#' @export
 #'
 #' @examples
 #'
@@ -95,7 +94,7 @@ predict.dsp <- function(object, cp_thres = 0.5, cp_prop = FALSE, ...){
 #' mcmc_output = dsp_fit(y, model_spec = model_spec)
 #' summary(mcmc_output)
 #'
-#'
+#' @export
 
 summary.dsp <- function(object, pars, probs = c(0.025, 0.25, 0.50, 0.75, 0.975), ...){
 
@@ -146,15 +145,11 @@ summary_fun <- function(col) {
   nums
 }
 
+#----------------------------------------------------------------------------
 #' Print a summary of dsp object
 #'
 #' @inheritParams summary.dsp
 #'
-#' @details
-#'
-#'
-#'
-#' @export
 #'
 #' @examples
 #'
@@ -170,9 +165,13 @@ summary_fun <- function(col) {
 #' mcmc_output = dsp_fit(y, model_spec = model_spec)
 #' print(mcmc_output)
 #'
+#'
+#'
+#' @export
+
 print.dsp <- function(object, ...){
 
-
+  invisible(NULL)
 
 }
 

@@ -28,4 +28,6 @@ model_spec = dsp_spec(family = "gaussian", model = "changepoint")
 mcmc_output = dsp_fit(y, model_spec = model_spec)
 print(mcmc_output)
 
+
+
 }
