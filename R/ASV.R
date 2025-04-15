@@ -47,7 +47,8 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
                    nsave = 1000, nburn = 1000, nskip = 4,
                    mcmc_params = list("h", "logy2hat","sigma2","evol_sigma_t2"),
                    computeDIC = TRUE,
-                   verbose = TRUE){
+                   verbose = TRUE,
+                   sigma_e = pi/sqrt(2)){
   nT = length(y)
   y = y - beta
   # initializing parameters
@@ -84,7 +85,7 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
     else if( ((nsi%%1000) == 0) & verbose){
       pb$tick(1000)
     }
-    sParams = fit_paramsASV(y,sParams,evol_error,D)
+    sParams = fit_paramsASV(y,sParams,evol_error,D,sigma_e)
 
     # Store the MCMC output:
     if(nsi > nburn){
@@ -205,7 +206,7 @@ init_paramsASV <- function(data,evol_error,D){
 #' \item s_evolParams0: a list containing posterior samples of parameters associated with the variance of first D observation of the log variance term, h.
 #' \item s_evolParams: a list containing posterior samples parameters associated with the variance of D to the last observations of the log variance temr , h.
 #' }
-fit_paramsASV <- function(data,sParams,evol_error,D){
+fit_paramsASV <- function(data,sParams,evol_error,D,sigma_e){
   yoffset = any(data^2 < 10^-16)*mad(data)/10^10
   data = log(data^2 + yoffset)
   nT = length(data);
@@ -230,7 +231,7 @@ fit_paramsASV <- function(data,sParams,evol_error,D){
   s_evolParams0 = dsp::sampleEvol0(s_mu0, sParams$s_evolParams0)
   s_evolParams = dsp::sampleEvolParams(omega = s_omega,
                                        evolParams = sParams$s_evolParams,
-                                       sigma_e = 1,
+                                       sigma_e = sigma_e,
                                        evol_error = evol_error,
                                        loc = sParams$loc_error)
   sParams$s_p_error_term = s_p_error_term
