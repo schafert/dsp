@@ -17,8 +17,8 @@ summary.dsp(object, pars, probs = c(0.025, 0.25, 0.5, 0.75, 0.975), ...)
 }
 \value{
 Currently, returns a named list of the same length as pars where within each element of the list
-is a numeric matrix of vector. For matrices, each row is a time point of the parameter and each column
-is a named summary. For vectors (scalar parameters), each element is a named summary.
+is a numeric matrix (vector parameters) or vector (scalar parameters). For matrices, each row is a time point (or dimension) of the parameter and each column
+is a named summary. The names are accessible with \code{colnames}. For vectors (scalar parameters), each element is a named summary.
 }
 \description{
 Summarize DSP MCMC chains

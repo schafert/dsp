@@ -14,9 +14,13 @@ print.dsp(object, ...)
 \description{
 Print a summary of dsp object
 }
+\details{
+A brief summary of the settings used to fit the model including number of iterations,
+burn in, and thinning rates.
+}
 \examples{
 
-#' signal = c(rep(0, 50), rep(10, 50))
+signal = c(rep(0, 50), rep(10, 50))
 noise = rep(1, 100)
 noise_var = rep(1, 100)
 for (k in 2:100){

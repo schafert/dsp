@@ -76,8 +76,8 @@ predict.dsp <- function(object, cp_thres = 0.5, cp_prop = FALSE, ...){
 #'
 #' @returns
 #' Currently, returns a named list of the same length as pars where within each element of the list
-#' is a numeric matrix of vector. For matrices, each row is a time point of the parameter and each column
-#' is a named summary. For vectors (scalar parameters), each element is a named summary.
+#' is a numeric matrix (vector parameters) or vector (scalar parameters). For matrices, each row is a time point (or dimension) of the parameter and each column
+#' is a named summary. The names are accessible with `colnames`. For vectors (scalar parameters), each element is a named summary.
 #'
 #'
 #' @examples
@@ -150,10 +150,13 @@ summary_fun <- function(col) {
 #'
 #' @inheritParams summary.dsp
 #'
+#' @details
+#' A brief summary of the settings used to fit the model including number of iterations,
+#' burn in, and thinning rates.
 #'
 #' @examples
 #'
-#' #' signal = c(rep(0, 50), rep(10, 50))
+#' signal = c(rep(0, 50), rep(10, 50))
 #' noise = rep(1, 100)
 #' noise_var = rep(1, 100)
 #' for (k in 2:100){
@@ -170,6 +173,12 @@ summary_fun <- function(col) {
 #' @export
 
 print.dsp <- function(object, ...){
+
+  # TODO add print for model spec here?
+  cat("Total number of MCMC samples burned in:", object$mcpar["nburn"], "\n")
+  cat("Thinning interval use:", object$mcpar["nskip"], "\n")
+  cat("Total number of MCMC samples saved:", object$mcpar["nsave"])
+
 
   invisible(NULL)
 
