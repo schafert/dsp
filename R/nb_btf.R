@@ -56,7 +56,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' beta <- make.signal(name = "bumps", n = 300)
+#' beta <- make_signal(name = "bumps", n = 300)
 #' y <- rnbinom(n = length(beta), size = 5, mu = beta)
 #'
 #' # Need to typically run sampler for longer than specified below

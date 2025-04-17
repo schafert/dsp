@@ -17,13 +17,13 @@
 #' @examples
 #'
 #' nms <- c("blocks", "linchirp", "mishmash1", "bumps")
-#' z <- lapply(nms, make.signal)
+#' z <- lapply(nms, make_signal)
 #'
 #' @export
-"make.signal" <- function(name, n=1024, snr=Inf)
+make_signal <- function(name, n=1024, snr=Inf)
 {
 
-  ".wave.demo.signals" <- c("dirac", "kronecker", "heavisine", "bumps", "blocks",
+  .wave.demo.signals <- c("dirac", "kronecker", "heavisine", "bumps", "blocks",
                             "doppler", "ramp", "cusp", "crease", "sing", "hisine",
                             "losine", "linchirp", "twochirp", "quadchirp",
                             "mishmash1", "mishmash2", "mishmash3", "levelshift",
