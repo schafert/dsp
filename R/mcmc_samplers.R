@@ -598,7 +598,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
   sigma_e = sd(y, na.rm=TRUE); sigma_et = rep(sigma_e, nT)
 
   # Compute the Cholesky term (uses random variances for a more conservative sparsity pattern)
-  chol0 = initChol.spam(nT = nT, D = D)
+  chol0 = initChol_spam(nT = nT, D = D)
 
   # Initialize the conditional mean, mu, via sampling:
   mu = sampleBTF(y, obs_sigma_t2 = sigma_et^2, evol_sigma_t2 = 0.01*sigma_et^2, D = D, chol0 = chol0)

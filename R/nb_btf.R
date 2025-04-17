@@ -116,7 +116,7 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
   }
 
   # Compute the Cholesky term (uses random variances for a more conservative sparsity pattern)
-  if(!is.null(chol0)) chol0 = initChol.spam(nT = Nt, D = D)
+  if(!is.null(chol0)) chol0 = initChol_spam(nT = Nt, D = D)
 
   # Initialize the conditional mean, mu:
   # mu <- matrix(log(y + 1), ncol = 1) #this initialization breaks things when omega is 0...

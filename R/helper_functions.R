@@ -374,7 +374,8 @@ build_XtX = function(X){
 #' @import Matrix
 #' @importFrom spam chol.spam as.spam.dgCMatrix
 #' @export
-initChol.spam = function(nT, D = 1){
+
+initChol_spam = function(nT, D = 1){
 
   # Random initialization
   QHt_Matrix = build_Q(obs_sigma_t2 = abs(rnorm(nT)),
