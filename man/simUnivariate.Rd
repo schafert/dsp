@@ -4,13 +4,13 @@
 \alias{simUnivariate}
 \title{Simulate noisy observations from a function}
 \usage{
-simUnivariate(signalName = "bumps", T = 200, RSNR = 10, include_plot = TRUE)
+simUnivariate(signalName = "bumps", nT = 200, RSNR = 10, include_plot = TRUE)
 }
 \arguments{
 \item{signalName}{string matching the "name" argument in the \code{make.signal()} function,
 e.g. "bumps" or "doppler"}
 
-\item{T}{number of points}
+\item{nT}{number of points}
 
 \item{RSNR}{root-signal-to-noise ratio}
 
@@ -19,8 +19,8 @@ e.g. "bumps" or "doppler"}
 \value{
 a list containing
 \itemize{
-\item the simulated function \code{y}
-\item the true function \code{y_true}
+\item the simulated data \code{y}
+\item the true conditional mean \code{mu_true}
 \item the true observation standard deviation \code{sigma_true}
 }
 }

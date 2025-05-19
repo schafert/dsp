@@ -46,7 +46,7 @@ t_sampleR_mh(
 the sampled threshold value \code{r}
 }
 \description{
-Compute one draw of thee threshold parameter in th TAR(1) model with Gaussian innovations
+Compute one draw of the threshold parameter in th TAR(1) model with Gaussian innovations
 and time-dependent innovation variances. The sampler utilizes metropolis hasting to draw
 from uniform prior.
 }

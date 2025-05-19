@@ -19,12 +19,12 @@
 #' @examples
 #' \dontrun{
 #' # Simulate some data:
-#' T = 1000
-#' y = seq(0, 10, length.out = T) + rnorm(T)
+#' nT = 1000
+#' y = seq(0, 10, length.out = nT) + rnorm(nT)
 #' plot(y) # plot the data
 #'
-#' obs_sigma_t2 = rep(1, T)  # These could be static or dynamic
-#' evol_sigma_t2 = rep(0.001, T)
+#' obs_sigma_t2 = rep(1, nT)  # These could be static or dynamic
+#' evol_sigma_t2 = rep(0.001, nT)
 #'
 #' # Simulate one draw of the states:
 #' mu = sampleBTF(y = y, obs_sigma_t2, evol_sigma_t2, D = 1)
@@ -41,7 +41,7 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol
 
   if(any(is.na(y))) stop('y cannot contain NAs')
 
-  T = length(y)
+  nT = length(y)
 
   # Linear term:
   linht = y/obs_sigma_t2
@@ -56,7 +56,7 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol
     postMean = (linht)*postSD^2
 
     # Sample the states:
-    mu = rnorm(n = T, mean = postMean, sd = postSD)
+    mu = rnorm(n = nT, mean = postMean, sd = postSD)
 
   } else {
 
@@ -79,19 +79,19 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol
       chQht_Matrix = Matrix::chol(QHt_Matrix)
 
       # Sample the states:
-      mu = as.matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(T)))
+      mu = as.matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(nT)))
 
       }else{
         if (D == 1) {
           diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(1/evol_sigma_t2[-1], 0)
           diag2 = -1/evol_sigma_t2[-1]
-          rd = RcppZiggurat::zrnorm(T)
+          rd = RcppZiggurat::zrnorm(nT)
           mu = as.matrix(sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2), length(diag1), length(loc_obs$r), c(linht), rd, D))
         } else {
           diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(0, 4/evol_sigma_t2[-(1:2)], 0) + c(1/evol_sigma_t2[-(1:2)], 0, 0)
           diag2 = c(-2/evol_sigma_t2[3], -2*(1/evol_sigma_t2[-(1:2)] + c(1/evol_sigma_t2[-(1:3)],0)))
           diag3 = 1/evol_sigma_t2[-(1:2)]
-          rd = RcppZiggurat::zrnorm(T)
+          rd = RcppZiggurat::zrnorm(nT)
           mu = as.matrix(sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2, diag3, diag3), length(diag1), length(loc_obs$r), c(linht), rd, D))
         }
       }
@@ -123,13 +123,13 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol
 #' @examples
 #' \dontrun{
 #' # Simulate some data:
-#' T = 1000
-#' y = seq(0, 10, length.out = T) + rnorm(T)
+#' nT = 1000
+#' y = seq(0, 10, length.out = nT) + rnorm(nT)
 #' plot(y) # plot the data
 #'
-#' obs_sigma_t2 = rep(1, T)  # These could be static or dynamic
-#' evol_sigma_t2 = rep(0.001, T)
-#' zero_sigma_t2 = rep(1, T)
+#' obs_sigma_t2 = rep(1, nT)  # These could be static or dynamic
+#' evol_sigma_t2 = rep(0.001, nT)
+#' zero_sigma_t2 = rep(1, nT)
 #'
 #' # Simulate one draw of the states:
 #' mu = sampleBTF_sparse(y = y, obs_sigma_t2, evol_sigma_t2, zero_sigma_t2, D = 1)
@@ -150,7 +150,7 @@ sampleBTF_sparse = function(y,
 
   if(any(is.na(y))) stop('y cannot contain NAs')
 
-  T = length(y)
+  nT = length(y)
 
   # Linear term:
   linht = y/obs_sigma_t2
@@ -165,7 +165,7 @@ sampleBTF_sparse = function(y,
     postMean = (linht)*postSD^2
 
     # Sample the states:
-    mu = rnorm(n = T, mean = postMean, sd = postSD)
+    mu = rnorm(n = nT, mean = postMean, sd = postSD)
 
   } else {
     # All other cases: positive integer differencing (D = 1 or D = 2)
@@ -191,7 +191,7 @@ sampleBTF_sparse = function(y,
       chQht_Matrix = Matrix::chol(QHt_Matrix)
 
       # Sample the states:
-      mu = as.matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(T)))
+      mu = as.matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(nT)))
 
     }
   }
@@ -230,24 +230,24 @@ sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = 
   if(any(is.na(y))) stop('y cannot contain NAs')
 
   # Dimensions of X:
-  T = nrow(X); p = ncol(X)
+  nT = nrow(X); p = ncol(X)
 
   if(D == 1){
     # Lagged version of transposed precision matrix, with zeros as appropriate (needed below)
-    t_evol_prec_lag_mat = matrix(0, nrow = p, ncol = T);
-    t_evol_prec_lag_mat[,1:(T-1)] = t(1/evol_sigma_t2[-1,])
+    t_evol_prec_lag_mat = matrix(0, nrow = p, ncol = nT);
+    t_evol_prec_lag_mat[,1:(nT-1)] = t(1/evol_sigma_t2[-1,])
 
     # Diagonal of quadratic term:
     Q_diag = matrix(t(1/evol_sigma_t2) + t_evol_prec_lag_mat)
 
     # Off-diagonal of quadratic term:
-    Q_off = matrix(-t_evol_prec_lag_mat)[-(T*p)]
+    Q_off = matrix(-t_evol_prec_lag_mat)[-(nT*p)]
 
     # Quadratic term:
-    Qevol = bandSparse(T*p, k = c(0,p), diagonals = list(Q_diag, Q_off), symmetric = TRUE)
+    Qevol = bandSparse(nT*p, k = c(0,p), diagonals = list(Q_diag, Q_off), symmetric = TRUE)
 
     # For checking via direct computation:
-    # H1 = bandSparse(T, k = c(0,-1), diag = list(rep(1, T), rep(-1, T)), symmetric = FALSE)
+    # H1 = bandSparse(nT, k = c(0,-1), diag = list(rep(1, nT), rep(-1, nT)), symmetric = FALSE)
     # IH = kronecker(as.matrix(H1), diag(p));
     # Q0 = t(IH)%*%diag(as.numeric(1/matrix(t(evol_sigma_t2))))%*%(IH)
     # print(sum((Qevol - Q0)^2))
@@ -260,26 +260,26 @@ sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = 
 
       # Diagonal of quadratic term:
       Q_diag = t(1/evol_sigma_t2)
-      Q_diag[,2:(T-1)] = Q_diag[,2:(T-1)] + 4*t_evol_prec_lag2
-      Q_diag[,1:(T-2)] = Q_diag[,1:(T-2)] + t_evol_prec_lag2
+      Q_diag[,2:(nT-1)] = Q_diag[,2:(nT-1)] + 4*t_evol_prec_lag2
+      Q_diag[,1:(nT-2)] = Q_diag[,1:(nT-2)] + t_evol_prec_lag2
       Q_diag = matrix(Q_diag)
 
       # Off-diagonal (1) of quadratic term:
-      Q_off_1 = matrix(0, nrow = p, ncol = T);
+      Q_off_1 = matrix(0, nrow = p, ncol = nT);
       Q_off_1[,1] = -2/evol_sigma_t2[3,]
-      Q_off_1[,2:(T-1)] = Q_off_1[,2:(T-1)] + -2*t_evol_prec_lag2
-      Q_off_1[,2:(T-2)] = Q_off_1[,2:(T-2)] + -2*t_evol_prec_lag2[,-1]
+      Q_off_1[,2:(nT-1)] = Q_off_1[,2:(nT-1)] + -2*t_evol_prec_lag2
+      Q_off_1[,2:(nT-2)] = Q_off_1[,2:(nT-2)] + -2*t_evol_prec_lag2[,-1]
       Q_off_1 = matrix(Q_off_1)
 
       # Off-diagonal (2) of quadratic term:
-      Q_off_2 =  matrix(0, nrow = p, ncol = T); Q_off_2[,1:(T-2)] = t_evol_prec_lag2
+      Q_off_2 =  matrix(0, nrow = p, ncol = nT); Q_off_2[,1:(nT-2)] = t_evol_prec_lag2
       Q_off_2 = matrix(Q_off_2)
 
       # Quadratic term:
-      Qevol = bandSparse(T*p, k = c(0, p, 2*p), diagonals= list(Q_diag, Q_off_1, Q_off_2), symmetric = TRUE)
+      Qevol = bandSparse(nT*p, k = c(0, p, 2*p), diagonals= list(Q_diag, Q_off_1, Q_off_2), symmetric = TRUE)
 
       # For checking via direct computation:
-      # H2 = bandSparse(T, k = c(0,-1, -2), diag = list(rep(1, T), c(0, rep(-2, T-1)), rep(1, T)), symmetric = FALSE)
+      # H2 = bandSparse(nT, k = c(0,-1, -2), diag = list(rep(1, nT), c(0, rep(-2, nT-1)), rep(1, nT)), symmetric = FALSE)
       # IH = kronecker(as.matrix(H2), diag(p));
       # Q0 = t(IH)%*%diag(as.numeric(1/matrix(t(evol_sigma_t2))))%*%(IH)
       # print(sum((Qevol - Q0)^2))
@@ -305,7 +305,7 @@ sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = 
                                     b = linht,
                                     Q = QHt_Matrix,
                                     Rstruct = chol0),
-                  nrow = T, byrow = TRUE)
+                  nrow = nT, byrow = TRUE)
   } else {
     # Use original sampler:
 
@@ -313,7 +313,7 @@ sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = 
     chQht_Matrix = Matrix::chol(Qpost)
 
     # NOTE: reorder (opposite of log-vol!)
-    beta = matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(T*p)), nrow = T, byrow = TRUE)
+    beta = matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(nT*p)), nrow = nT, byrow = TRUE)
   }
   beta
 }
@@ -348,7 +348,7 @@ sampleBTF_reg_backfit = function(y, X, beta, obs_sigma_t2, evol_sigma_t2, D = 1)
   if(any(is.na(y))) stop('y cannot contain NAs')
 
   # Dimensions of X:
-  T = nrow(X); p = ncol(X)
+  nT = nrow(X); p = ncol(X)
 
   # Sample each predictor curve via backfitting:
   for(j in sample(1:p,p)){
@@ -369,7 +369,7 @@ sampleBTF_reg_backfit = function(y, X, beta, obs_sigma_t2, evol_sigma_t2, D = 1)
       postMean = (linht)*postSD^2
 
       # Sample the states:
-      beta[,j] = rnorm(n = T, mean = postMean, sd = postSD)
+      beta[,j] = rnorm(n = nT, mean = postMean, sd = postSD)
 
     } else {
       # Quadratic term (D = 1 or D = 2)
@@ -382,7 +382,7 @@ sampleBTF_reg_backfit = function(y, X, beta, obs_sigma_t2, evol_sigma_t2, D = 1)
       chQht_Matrix = Matrix::chol(QHt_Matrix)
 
       # Sample the states:
-      beta[,j] = as.matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(T)))
+      beta[,j] = as.matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(nT)))
     }
   }
   beta
@@ -417,7 +417,7 @@ sampleBTF_bspline = function(y, X, obs_sigma2, evol_sigma_t2, XtX_bands, Xty = N
   if(any(is.na(y))) stop('y cannot contain NAs')
 
   # Dimensions of X:
-  T = nrow(X); p = ncol(X)
+  nT = nrow(X); p = ncol(X)
 
   # Linear term:
   if(is.null(Xty)) Xty = crossprod(X, y)
@@ -1047,14 +1047,16 @@ sampleFastGaussian = function(Phi, Ddiag, alpha){
   # Return theta:
   theta
 }
-#' Sample the conditional posterior distribution on the Gaussian Mixture component
-#' for approximating the log(\chi^2) distribution based on Omori et al. 2007
+#' Sampling from 10-component Gaussian Mixture component described in Omori et al. 2007
+#'
+#' Samples from the conditional posterior distribution of the \eqn{log(\chi^2)} distribution
+#' by approximating it with the mixture Gaussian distribution described in Omori et al. 2007.
 #'
 #'
 #' @param Td length of the vector
 #' @param obs \code{Td x 1} vector for the data.
 #' @return Dataframe containing the posterior samples: mean and variance for the mixture component.
-#' @note When the obs is not not specified, the componenets are samples from the prior distribution.
+#' @note When the obs is not not specified, the components are samples from the prior distribution.
 sample_j_wrap <- function(Td,obs=NULL){
   # Omori, Chib, Shephard, Nakajima (2007) 10-component mixture:
   m_st  = c(1.92677, 1.34744, 0.73504, 0.02266, -0.85173, -1.97278, -3.46788, -5.55246, -8.68384, -14.65000)

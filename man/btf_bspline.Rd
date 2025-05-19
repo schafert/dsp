@@ -6,7 +6,7 @@
 \usage{
 btf_bspline(
   y,
-  x = NULL,
+  times = NULL,
   num_knots = NULL,
   evol_error = "DHS",
   D = 2,
@@ -22,7 +22,7 @@ btf_bspline(
 \arguments{
 \item{y}{the \code{T x 1} vector of time series observations}
 
-\item{x}{the \code{T x 1} vector of observation points; if NULL, assume equally spaced}
+\item{times}{the \code{T x 1} vector of observation points; if NULL, assume equally spaced}
 
 \item{num_knots}{the number of knots; if NULL, use the default of \code{max(20, min(ceiling(T/4), 150))}}
 
@@ -87,9 +87,10 @@ substantially fewer than the number of time points.
 }
 }
 \examples{
+\dontrun{
 # TODO: add dsp class or change to use dsp_fit (don't export)
 # Example 1: Blocks data
-simdata <- simUnivariate(signalName = "blocks", T = 1000, RSNR = 3, include_plot = FALSE)
+simdata <- simUnivariate(signalName = "blocks", nT = 1000, RSNR = 3, include_plot = FALSE)
 y <- simdata$y
 out <- btf_bspline(y, D = 1)
 #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
@@ -102,6 +103,6 @@ x <- mcycle$times
 plot(x, y, xlab = 'Time (ms)', ylab='Acceleration (g)', main = 'Motorcycle Crash Data')
 out <- btf_bspline(y = y, x = x)
 # plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
-
+}
 
 }

@@ -14,7 +14,8 @@ fit_ASV(
   nskip = 4,
   mcmc_params = list("h", "logy2hat", "sigma2", "evol_sigma_t2"),
   computeDIC = TRUE,
-  verbose = TRUE
+  verbose = TRUE,
+  sigma_e = pi/sqrt(2)
 )
 }
 \arguments{

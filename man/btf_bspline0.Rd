@@ -6,7 +6,7 @@
 \usage{
 btf_bspline0(
   y,
-  x = NULL,
+  times = NULL,
   num_knots = NULL,
   evol_error = "DHS",
   nsave = 1000,
@@ -21,7 +21,7 @@ btf_bspline0(
 \arguments{
 \item{y}{the \code{T x 1} vector of time series observations}
 
-\item{x}{the \code{T x 1} vector of observation points; if NULL, assume equally spaced}
+\item{times}{the \code{T x 1} vector of observation points; if NULL, assume equally spaced}
 
 \item{num_knots}{the number of knots; if NULL, use the default of \code{max(20, min(ceiling(T/4), 150))}}
 

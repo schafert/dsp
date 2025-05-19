@@ -6,14 +6,14 @@
 #'
 #' @param signalName string matching the "name" argument in the \code{make.signal()} function,
 #' e.g. "bumps" or "doppler"
-#' @param T number of points
+#' @param nT number of points
 #' @param RSNR root-signal-to-noise ratio
 #' @param include_plot logical; if TRUE, include a plot of the simulated data and the true curve
 #'
 #' @return a list containing
 #' \itemize{
-#' \item the simulated function \code{y}
-#' \item the true function \code{y_true}
+#' \item the simulated data \code{y}
+#' \item the true conditional mean \code{mu_true}
 #' \item the true observation standard deviation \code{sigma_true}
 #' }
 #'
@@ -26,22 +26,22 @@
 #'
 #'
 #' @export
-simUnivariate = function(signalName = "bumps", T = 200, RSNR = 10, include_plot = TRUE){
+simUnivariate = function(signalName = "bumps", nT = 200, RSNR = 10, include_plot = TRUE){
 
   # The true function:
-  y_true = make.signal(signalName, n=T)
+  mu_true = make.signal(signalName, n=nT)
 
   # Noise SD, based on RSNR (also put in a check for constant/zero functions)
-  sigma_true = sd(y_true)/RSNR; if(sigma_true==0) sigma_true = sqrt(sum(y_true^2)/T)/RSNR + 10^-3
+  sigma_true = sd(mu_true)/RSNR; if(sigma_true==0) sigma_true = sqrt(sum(mu_true^2)/nT)/RSNR + 10^-3
 
   # Simulate the data:
-  y = y_true + sigma_true*rnorm(T)
+  y = mu_true + sigma_true*rnorm(nT)
 
   # Plot?
-  if(include_plot) {t = seq(0, 1, length.out=T); plot(t, y, main = 'Simulated Data and True Curve'); lines(t, y_true, lwd=8, col='black') }
+  if(include_plot) {t = seq(0, 1, length.out=nT); plot(t, y, main = 'Simulated Data and True Curve'); lines(t, mu_true, lwd=8, col='black') }
 
   # Return the raw data and the true values:
-  list(y = y, y_true = y_true, sigma_true = sigma_true)
+  list(y = y, mu_true = mu_true, sigma_true = sigma_true)
 }
 #----------------------------------------------------------------------------
 #' Simulate noisy observations from a dynamic regression model
@@ -51,7 +51,7 @@ simUnivariate = function(signalName = "bumps", T = 200, RSNR = 10, include_plot 
 #' where jumps occur with a pre-specified probability \code{sparsity}.
 #' The coefficients are initialized by a N(0,1) simulation.
 #'
-#' @param T number of time points
+#' @param nT number of time points
 #' @param p number of predictors (total)
 #' @param p_0 number of true zero regression terms
 #' @param sparsity the probability of a jump
@@ -65,7 +65,7 @@ simUnivariate = function(signalName = "bumps", T = 200, RSNR = 10, include_plot 
 #' \item the simulated function \code{y}
 #' \item the simulated predictors \code{X}
 #' \item the simulated dynamic regression coefficients \code{beta_true}
-#' \item the true function \code{y_true}
+#' \item the true function \code{mu_true}
 #' \item the true observation standard deviation \code{sigma_true}
 #' }
 #'
@@ -80,7 +80,7 @@ simUnivariate = function(signalName = "bumps", T = 200, RSNR = 10, include_plot 
 #'
 #' @importFrom stats arima.sim
 #' @export
-simRegression = function(T = 200, p = 20, p_0 = 15,
+simRegression = function(nT = 200, p = 20, p_0 = 15,
                          sparsity = 0.05, RSNR = 5, ar1 = 0,
                          include_plot = FALSE){
 
@@ -89,13 +89,13 @@ simRegression = function(T = 200, p = 20, p_0 = 15,
   # Simulate the predictors: autocorrelated or independent?
     # Either way, use N(0,1) innovations
   if(ar1 == 0){
-    X = cbind(1,matrix(rnorm(n = T*(p-1)), nrow = T, ncol = p-1))
+    X = cbind(1,matrix(rnorm(n = nT*(p-1)), nrow = nT, ncol = p-1))
   } else X = cbind(1,
-                   apply(matrix(0, nrow = T, ncol = p-1), 2, function(x)
-                     arima.sim(n = T, list(ar = ar1), sd = sqrt(1-ar1^2))))
+                   apply(matrix(0, nrow = nT, ncol = p-1), 2, function(x)
+                     arima.sim(n = nT, list(ar = ar1), sd = sqrt(1-ar1^2))))
 
   # Simulate the true regression signals
-  beta_true = matrix(0, nrow = T, ncol = p);
+  beta_true = matrix(0, nrow = nT, ncol = p);
 
   # Value of intercept:
   beta_true[,1] = 1
@@ -104,23 +104,23 @@ simRegression = function(T = 200, p = 20, p_0 = 15,
   if((p - p_0) > 1){for(j in 2:(p - p_0)){
     # Simulate the paths:
     beta_true[,j] = rnorm(n = 1) +
-      cumsum(rnorm(n = T)*rbinom(n = T, size = 1, prob = sparsity))
+      cumsum(rnorm(n = nT)*rbinom(n = nT, size = 1, prob = sparsity))
   }}
 
   # Conditional mean:
-  y_true = rowSums(X*beta_true)
+  mu_true = rowSums(X*beta_true)
 
   # Noise SD, based on RSNR (also put in a check for constant/zero functions)
-  sigma_true = sd(y_true)/RSNR; if(sigma_true==0) sigma_true = sqrt(sum(y_true^2)/T)/RSNR + 10^-3
+  sigma_true = sd(mu_true)/RSNR; if(sigma_true==0) sigma_true = sqrt(sum(mu_true^2)/nT)/RSNR + 10^-3
 
   # Observed data:
-  y = y_true + sigma_true*rnorm(T)
+  y = mu_true + sigma_true*rnorm(nT)
 
   # Plot?
-  if(include_plot) {t = seq(0, 1, length.out=T); plot(t, y, main = 'Simulated Data and True Curve'); lines(t, y_true, lwd=8, col='black') }
+  if(include_plot) {t = seq(0, 1, length.out=nT); plot(t, y, main = 'Simulated Data and True Curve'); lines(t, mu_true, lwd=8, col='black') }
 
   # Return the raw data and the true values:
-  list(y = y, X = X, beta_true = beta_true, y_true = y_true, sigma_true = sigma_true)
+  list(y = y, X = X, beta_true = beta_true, mu_true = mu_true, sigma_true = sigma_true)
 }
 #----------------------------------------------------------------------------
 #' Simulate noisy observations from a dynamic regression model
@@ -131,7 +131,7 @@ simRegression = function(T = 200, p = 20, p_0 = 15,
 #'
 #' @param signalNames vector of strings matching the "name" argument in the \code{make.signal()} function,
 #' e.g. "bumps" or "doppler"
-#' @param T number of points
+#' @param nT number of points
 #' @param RSNR root-signal-to-noise ratio
 #' @param p_0 number of true zero regression terms to include
 #' @param include_intercept logical; if TRUE, the first column of X is 1's
@@ -144,7 +144,7 @@ simRegression = function(T = 200, p = 20, p_0 = 15,
 #' \item the simulated function \code{y}
 #' \item the simulated predictors \code{X}
 #' \item the simulated dynamic regression coefficients \code{beta_true}
-#' \item the true function \code{y_true}
+#' \item the true function \code{mu_true}
 #' \item the true observation standard deviation \code{sigma_true}
 #' }
 #'
@@ -153,7 +153,7 @@ simRegression = function(T = 200, p = 20, p_0 = 15,
 #' @note The root-signal-to-noise ratio is defined as RSNR = [sd of true function]/[sd of noise].
 #'
 #' @importFrom stats arima.sim
-simRegression0 = function(signalNames = c("bumps", "blocks"), T = 200, RSNR = 10, p_0 = 5, include_intercept = TRUE, scale_all = TRUE, include_plot = TRUE, ar1 = 0){
+simRegression0 = function(signalNames = c("bumps", "blocks"), nT = 200, RSNR = 10, p_0 = 5, include_intercept = TRUE, scale_all = TRUE, include_plot = TRUE, ar1 = 0){
 
   # True number of signals
   p_true = length(signalNames)
@@ -162,32 +162,32 @@ simRegression0 = function(signalNames = c("bumps", "blocks"), T = 200, RSNR = 10
   p = p_true + p_0
 
   # Simulate the true regression signals
-  beta_true = matrix(0, nrow = T, ncol = p)
-  for(j in 1:p_true) beta_true[,j] = make.signal(signalNames[j], n=T);
+  beta_true = matrix(0, nrow = nT, ncol = p)
+  for(j in 1:p_true) beta_true[,j] = make.signal(signalNames[j], n=nT);
   if(scale_all) beta_true[,1:p_true] = apply(as.matrix(beta_true[,1:p_true]), 2, function(x) (x - min(x))/(max(x) - min(x)))
 
   # Simulate the predictors: autocorrelated or independent? Either way, use N(0,1) innovations
   if(ar1 == 0){
-    X = matrix(rnorm(T*p), nrow=T, ncol = p)
-  } else X = apply(matrix(0, nrow = T, ncol = p), 2, function(x) arima.sim(n = T, list(ar = ar1), sd = sqrt(1-ar1^2)))
+    X = matrix(rnorm(nT*p), nrow=nT, ncol = p)
+  } else X = apply(matrix(0, nrow = nT, ncol = p), 2, function(x) arima.sim(n = nT, list(ar = ar1), sd = sqrt(1-ar1^2)))
 
   # If we want an intercept, simply replace the first column w/ 1s
   if(include_intercept) X[,1] = matrix(1, nrow = nrow(X), ncol = 1)
 
   # The true response function:
-  y_true = rowSums(X*beta_true)
+  mu_true = rowSums(X*beta_true)
 
   # Noise SD, based on RSNR (also put in a check for constant/zero functions)
-  sigma_true = sd(y_true)/RSNR; if(sigma_true==0) sigma_true = sqrt(sum(y_true^2)/T)/RSNR + 10^-3
+  sigma_true = sd(mu_true)/RSNR; if(sigma_true==0) sigma_true = sqrt(sum(mu_true^2)/nT)/RSNR + 10^-3
 
   # Simulate the data:
-  y = y_true + sigma_true*rnorm(T)
+  y = mu_true + sigma_true*rnorm(nT)
 
   # Plot?
-  if(include_plot) {t = seq(0, 1, length.out=T); plot(t, y, main = 'Simulated Data and True Curve'); lines(t, y_true, lwd=8, col='black') }
+  if(include_plot) {t = seq(0, 1, length.out=nT); plot(t, y, main = 'Simulated Data and True Curve'); lines(t, mu_true, lwd=8, col='black') }
 
   # Return the raw data and the true values:
-  list(y = y, X = X, beta_true = beta_true, y_true = y_true, sigma_true = sigma_true)
+  list(y = y, X = X, beta_true = beta_true, mu_true = mu_true, sigma_true = sigma_true)
 }
 #----------------------------------------------------------------------------
 #' Initialize the evolution error variance parameters
@@ -349,14 +349,14 @@ initEvol0 = function(mu0, commonSD = TRUE){
 build_XtX = function(X){
 
   # Store the dimensions:
-  T = nrow(X); p = ncol(X)
+  nT = nrow(X); p = ncol(X)
 
   # Store the matrix
-  XtX = bandSparse(T*p, k = 0, diagonals= list(rep(1,T*p)), symmetric = TRUE)
+  XtX = bandSparse(nT*p, k = 0, diagonals= list(rep(1,nT*p)), symmetric = TRUE)
 
-  t.seq.p = seq(1, T*(p+1), by = p)
+  t.seq.p = seq(1, nT*(p+1), by = p)
 
-  for(t in 1:T){
+  for(t in 1:nT){
     t.ind = t.seq.p[t]:(t.seq.p[t+1]-1)
     XtX[t.ind, t.ind] = tcrossprod(matrix(X[t,]))
   }
@@ -369,16 +369,16 @@ build_XtX = function(X){
 #' of the Bayesian Trend Filtering coefficients. The sparsity pattern will not change during the
 #' MCMC, so we can save computation time by computing this up front.
 #'
-#' @param T number of time points
+#' @param nT number of time points
 #' @param D degree of differencing (D = 1 or D = 2)
 #' @import Matrix
 #' @importFrom spam chol.spam as.spam.dgCMatrix
 #' @export
-initChol.spam = function(T, D = 1){
+initChol.spam = function(nT, D = 1){
 
   # Random initialization
-  QHt_Matrix = build_Q(obs_sigma_t2 = abs(rnorm(T)),
-                       evol_sigma_t2 = abs(rnorm(T)),
+  QHt_Matrix = build_Q(obs_sigma_t2 = abs(rnorm(nT)),
+                       evol_sigma_t2 = abs(rnorm(nT)),
                        D = D)
 
   # And return the Cholesky piece:
@@ -406,24 +406,24 @@ initCholReg.spam = function(obs_sigma_t2, evol_sigma_t2, XtX, D = 1){
   if((D < 0) || (D != round(D)))  stop('D must be a positive integer')
 
   # Dimensions of X:
-  T = nrow(evol_sigma_t2); p = ncol(evol_sigma_t2)
+  nT = nrow(evol_sigma_t2); p = ncol(evol_sigma_t2)
 
   if(D == 1){
     # Lagged version of transposed precision matrix, with zeros as appropriate (needed below)
-    t_evol_prec_lag_mat = matrix(0, nrow = p, ncol = T);
-    t_evol_prec_lag_mat[,1:(T-1)] = t(1/evol_sigma_t2[-1,])
+    t_evol_prec_lag_mat = matrix(0, nrow = p, ncol = nT);
+    t_evol_prec_lag_mat[,1:(nT-1)] = t(1/evol_sigma_t2[-1,])
 
     # Diagonal of quadratic term:
     Q_diag = matrix(t(1/evol_sigma_t2) + t_evol_prec_lag_mat)
 
     # Off-diagonal of quadratic term:
-    Q_off = matrix(-t_evol_prec_lag_mat)[-(T*p)]
+    Q_off = matrix(-t_evol_prec_lag_mat)[-(nT*p)]
 
     # Quadratic term:
-    Qevol = bandSparse(T*p, k = c(0,p), diagonals= list(Q_diag, Q_off), symmetric = TRUE)
+    Qevol = bandSparse(nT*p, k = c(0,p), diagonals= list(Q_diag, Q_off), symmetric = TRUE)
 
     # For checking via direct computation:
-    # H1 = bandSparse(T, k = c(0,-1), diag = list(rep(1, T), rep(-1, T)), symmetric = FALSE)
+    # H1 = bandSparse(nT, k = c(0,-1), diag = list(rep(1, nT), rep(-1, nT)), symmetric = FALSE)
     # IH = kronecker(as.matrix(H1), diag(p));
     # Q0 = t(IH)%*%diag(as.numeric(1/matrix(t(evol_sigma_t2))))%*%(IH)
     # print(sum((Qevol - Q0)^2))
@@ -436,26 +436,26 @@ initCholReg.spam = function(obs_sigma_t2, evol_sigma_t2, XtX, D = 1){
 
       # Diagonal of quadratic term:
       Q_diag = t(1/evol_sigma_t2)
-      Q_diag[,2:(T-1)] = Q_diag[,2:(T-1)] + 4*t_evol_prec_lag2
-      Q_diag[,1:(T-2)] = Q_diag[,1:(T-2)] + t_evol_prec_lag2
+      Q_diag[,2:(nT-1)] = Q_diag[,2:(nT-1)] + 4*t_evol_prec_lag2
+      Q_diag[,1:(nT-2)] = Q_diag[,1:(nT-2)] + t_evol_prec_lag2
       Q_diag = matrix(Q_diag)
 
       # Off-diagonal (1) of quadratic term:
-      Q_off_1 = matrix(0, nrow = p, ncol = T);
+      Q_off_1 = matrix(0, nrow = p, ncol = nT);
       Q_off_1[,1] = -2/evol_sigma_t2[3,]
-      Q_off_1[,2:(T-1)] = Q_off_1[,2:(T-1)] + -2*t_evol_prec_lag2
-      Q_off_1[,2:(T-2)] = Q_off_1[,2:(T-2)] + -2*t_evol_prec_lag2[,-1]
+      Q_off_1[,2:(nT-1)] = Q_off_1[,2:(nT-1)] + -2*t_evol_prec_lag2
+      Q_off_1[,2:(nT-2)] = Q_off_1[,2:(nT-2)] + -2*t_evol_prec_lag2[,-1]
       Q_off_1 = matrix(Q_off_1)
 
       # Off-diagonal (2) of quadratic term:
-      Q_off_2 =  matrix(0, nrow = p, ncol = T); Q_off_2[,1:(T-2)] = t_evol_prec_lag2
+      Q_off_2 =  matrix(0, nrow = p, ncol = nT); Q_off_2[,1:(nT-2)] = t_evol_prec_lag2
       Q_off_2 = matrix(Q_off_2)
 
       # Quadratic term:
-      Qevol = bandSparse(T*p, k = c(0, p, 2*p), diagonals= list(Q_diag, Q_off_1, Q_off_2), symmetric = TRUE)
+      Qevol = bandSparse(nT*p, k = c(0, p, 2*p), diagonals= list(Q_diag, Q_off_1, Q_off_2), symmetric = TRUE)
 
       # For checking via direct computation:
-      # H2 = bandSparse(T, k = c(0,-1, -2), diag = list(rep(1, T), c(0, rep(-2, T-1)), rep(1, T)), symmetric = FALSE)
+      # H2 = bandSparse(nT, k = c(0,-1, -2), diag = list(rep(1, nT), c(0, rep(-2, nT-1)), rep(1, nT)), symmetric = FALSE)
       # IH = kronecker(as.matrix(H2), diag(p));
       # Q0 = t(IH)%*%diag(as.numeric(1/matrix(t(evol_sigma_t2))))%*%(IH)
       # print(sum((Qevol - Q0)^2))
@@ -493,22 +493,22 @@ build_Q = function(obs_sigma_t2, evol_sigma_t2, D = 1){
 
   if(!(D == 1 || D == 2)) stop('build_Q requires D = 1 or D = 2')
 
-  T = length(evol_sigma_t2)
+  nT = length(evol_sigma_t2)
 
   # For reference: first and second order difference matrices (not needed below)
-  #H1 = bandSparse(T, k = c(0,-1), diag = list(rep(1, T), rep(-1, T)), symmetric = FALSE)
-  #H2 = bandSparse(T, k = c(0,-1, -2), diag = list(rep(1, T), c(0, rep(-2, T-1)), rep(1, T)), symmetric = FALSE)
+  #H1 = bandSparse(nT, k = c(0,-1), diag = list(rep(1, nT), rep(-1, nT)), symmetric = FALSE)
+  #H2 = bandSparse(nT, k = c(0,-1, -2), diag = list(rep(1, nT), c(0, rep(-2, nT-1)), rep(1, nT)), symmetric = FALSE)
 
-  # Quadratic term: can construct directly for D = 1 or D = 2 using [diag(1/obs_sigma_t2, T) + (t(HD)%*%diag(1/evol_sigma_t2, T))%*%HD]
+  # Quadratic term: can construct directly for D = 1 or D = 2 using [diag(1/obs_sigma_t2, nT) + (t(HD)%*%diag(1/evol_sigma_t2, nT))%*%HD]
   if(D == 1){
     # D = 1 case:
-    Q = bandSparse(T, k = c(0,1),
+    Q = bandSparse(nT, k = c(0,1),
                    diagonals= list(1/obs_sigma_t2 + 1/evol_sigma_t2 + c(1/evol_sigma_t2[-1], 0),
                                -1/evol_sigma_t2[-1]),
                    symmetric = TRUE)
   } else {
     # D = 2 case:
-    Q = bandSparse(T, k = c(0,1,2),
+    Q = bandSparse(nT, k = c(0,1,2),
                    diagonals= list(1/obs_sigma_t2 + 1/evol_sigma_t2 + c(0, 4/evol_sigma_t2[-(1:2)], 0) + c(1/evol_sigma_t2[-(1:2)], 0, 0),
                                c(-2/evol_sigma_t2[3], -2*(1/evol_sigma_t2[-(1:2)] + c(1/evol_sigma_t2[-(1:3)],0))),
                                1/evol_sigma_t2[-(1:2)]),
@@ -548,7 +548,7 @@ build_Q = function(obs_sigma_t2, evol_sigma_t2, D = 1){
 #' @examples
 #' \dontrun{
 #' # Simulate a function with many changes:
-#' simdata = simUnivariate(signalName = "blocks", T = 128, RSNR = 7, include_plot = TRUE)
+#' simdata = simUnivariate(signalName = "blocks", nT = 128, RSNR = 7, include_plot = TRUE)
 #' y = simdata$y
 #'
 #' # Run the MCMC:
@@ -558,7 +558,7 @@ build_Q = function(obs_sigma_t2, evol_sigma_t2, D = 1){
 #' nz = getNonZeros(post_evol_sigma_t2 = out$evol_sigma_t2,
 #'                 post_obs_sigma_t2 = out$obs_sigma_t2)
 #' # True CPs:
-#' cp_true = 1 + which(abs(diff(simdata$y_true)) > 0)
+#' cp_true = 1 + which(abs(diff(simdata$mu_true)) > 0)
 #'
 #' # Plot the results:
 #' plot_cp(y, nz)
@@ -566,7 +566,7 @@ build_Q = function(obs_sigma_t2, evol_sigma_t2, D = 1){
 #' # abline(v = cp_true)
 #'
 #' # Regression example:
-#' simdata = simRegression(T = 200, p = 5, p_0 = 2)
+#' simdata = simRegression(nT = 200, p = 5, p_0 = 2)
 #' y = simdata$y; X = simdata$X
 #' # Run the MCMC:
 #' out = btf_reg(y, X, D = 1, evol_error = 'DHS',
@@ -576,7 +576,7 @@ build_Q = function(obs_sigma_t2, evol_sigma_t2, D = 1){
 #'  plot_fitted(rep(0, length(y)),
 #'              mu = colMeans(out$beta[,,j]),
 #'              postY = out$beta[,,j],
-#'              y_true = simdata$beta_true[,j])
+#'              mu_true = simdata$beta_true[,j])
 #'
 #' # Compute the CPs
 #' nz = getNonZeros(post_evol_sigma_t2 = out$evol_sigma_t2,
@@ -621,39 +621,8 @@ ncind = function(y,mu,sig,q){
          size = 1,
          prob = q*dnorm(y,mu,sig))
 }
-#----------------------------------------------------------------------------
-#' Plot the series with change points
-#'
-#' Plot the time series with distinct segments identified by color.
-#'
-#' @param mu the \code{T x 1} vector of time series observations (or fitted values)
-#' @param cp_inds the \code{n_cp x 1} vector of indices at which a changepoint is identified
-#' @export
-plot_cp = function(mu, cp_inds){
 
-  dev.new(); par(mfrow=c(1,1), mai = c(1,1,1,1))
 
-  # If no CP's, just plot mu:
-  if(length(cp_inds) == 0) return(plot(mu, lwd=8, col =1, type='o'))
-
-  # Assume the CP starts at 1
-  if(cp_inds[1]!=1) cp_inds = c(1, cp_inds)
-
-  # Number of changepoints:
-  n_cp = length(cp_inds)
-
-  plot(mu, type='n')
-
-  for(j in 1:n_cp) {
-    # Indices of CP:
-    if(j < n_cp){
-      j_ind = cp_inds[j]:(cp_inds[j+1] - 1)
-    } else j_ind = cp_inds[length(cp_inds)]:length(mu)
-
-    # Plot in the same color:
-    lines(j_ind, mu[j_ind], lwd=8, col =j, type='o')
-  }
-}
 #####################################################################################################
 #' Compute Simultaneous Credible Bands
 #'
@@ -726,7 +695,7 @@ simBaS = function(sampFuns){
   PsimBaS_t = rowMeans(sapply(Maxfx, function(x) abs(Efx)/SDfx <= x))
 
   # Alternatively, using a loop:
-  #PsimBaS_t = numeric(T); for(t in 1:m) PsimBaS_t[t] = mean((abs(Efx)/SDfx)[t] <= Maxfx)
+  #PsimBaS_t = numeric(nT); for(t in 1:m) PsimBaS_t[t] = mean((abs(Efx)/SDfx)[t] <= Maxfx)
 
   PsimBaS_t
 }
@@ -803,55 +772,6 @@ logit = function(x) {
 #' @export
 invlogit = function(x) exp(x - log(1+exp(x))) # exp(x)/(1+exp(x))
 
-#----------------------------------------------------------------------------
-#' Plot the Bayesian trend filtering fitted values
-#'
-#' Plot the BTF posterior means with posterior credible intervals (pointwise and joint),
-#' the observed data, and true curves (if known)
-#'
-#' @param mcmc_output an object of class "acf" with parameter names 'mu' and 'yhat'
-#' @param y the \code{T x 1} vector of time series observations
-#' @param t01 the observation points; if NULL, assume \code{T} equally spaced points from 0 to 1
-#' @param include_joint_bands logical; if TRUE, compute simultaneous credible bands
-#'
-#' @examples
-#'
-#' simdata = simUnivariate(signalName = "doppler", T = 128, RSNR = 7, include_plot = FALSE)
-#' y = simdata$y
-#' out = btf(y) # TODO change this so that it uses abco
-#' plot_fitted(y, mcmc_output = out, y_true = simdata$y_true)
-#'
-#' @import coda
-#' @export
-plot.dsp = function(mcmc_output, y, y_true = NULL, t01 = NULL, include_joint_bands = FALSE){
-
-  # Time series:
-  nT = length(y);
-  if(is.null(t01)) t01 = seq(0, 1, length.out=nT)
-
-  if(!("mu" %in% names(mcmc_output) || "yhat" %in% names(mcmc_output))){
-
-    stop("Expected entries named 'mu' and 'yhat' in mcmc_output")
-
-  }
-
-  mu = colMeans(mcmc_output$mu)
-  postY = mcmc_output$yhat
-
-
-  # Credible intervals/bands:
-  #dcip = HPDinterval(as.mcmc(postY)); dcib = credBands(postY)
-  dcip = dcib = t(apply(postY, 2, quantile, c(0.05/2, 1 - 0.05/2)));
-  if(include_joint_bands) dcib = credBands(postY)
-
-  # Plot
-  plot(t01, y, type='n', ylim=range(dcib, y, na.rm=TRUE), xlab = 't', ylab=expression(paste("y"[t])), main = 'Fitted Values: Conditional Expectation', cex.lab = 1.5, cex.main = 2, cex.axis = 1)
-  polygon(c(t01, rev(t01)), c(dcib[,2], rev(dcib[,1])), col='gray50', border=NA)
-  polygon(c(t01, rev(t01)), c(dcip[,2], rev(dcip[,1])), col='grey', border=NA)
-  if(!is.null(y_true))  lines(t01, y_true, lwd=8, col='black', lty=6);
-  lines(t01, y, type='p');
-  lines(t01, mu, lwd=8, col = 'cyan');
-}
 #----------------------------------------------------------------------------
 #' Univariate Slice Sampler from Neal (2008)
 #'
@@ -1040,34 +960,16 @@ spec_dsp = function(ar_coefs, sigma_e, n.freq = 500){
 #' @param include_intercept logical; if TRUE, first column of X is ones
 getARpXmat = function(y, p = 1, include_intercept = FALSE){
   if(p==0) return(NULL)
-  T = length(y);
-  X = matrix(1, nrow = T - p, ncol = p)
-  for(j in 1:p) X[,j] = y[(p-j+1):(T-j)]
+  nT = length(y);
+  X = matrix(1, nrow = nT - p, ncol = p)
+  for(j in 1:p) X[,j] = y[(p-j+1):(nT-j)]
 
   # Not the most efficient, but should be fine
   if(include_intercept) X = cbind(1,X)
 
   X
 }
-#----------------------------------------------------------------------------
-#' Identify changepoints from the output of ABCO
-#'
-#' @param D the degree of differencing for changepoint
-#' @param mcmc_output MCMC outputs from ABCO, needs "omega" and "r"
-#' @param cp_thres Percentage of posterior samples needed to declare a changepoint
-identify_cp = function(D, mcmc_output, cp_thres= 0.5){
-  cp_list = rep(0, length(mcmc_output$omega[1,]))
-  for (j in 1:length(mcmc_output$omega[,1])){
-    nz_list = which(log(mcmc_output$omega[j,]^2+0.0001) > mcmc_output$r[j])+D
-    for (k in nz_list){
-      cp_list[k] = cp_list[k]+1
-    }
-  }
-  cp_list = cp_list / length(mcmc_output$omega[,1])
 
-  which(cp_list >= cp_thres)
-}
-NULL
 #----------------------------------------------------------------------------
 #' Wrapper function for C++ call for sample mat, check pre-conditions to prevent crash
 #'

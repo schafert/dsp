@@ -42,13 +42,13 @@ Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are avai
 \examples{
 \dontrun{
 # Simulate some data:
-T = 1000
-y = seq(0, 10, length.out = T) + rnorm(T)
+nT = 1000
+y = seq(0, 10, length.out = nT) + rnorm(nT)
 plot(y) # plot the data
 
-obs_sigma_t2 = rep(1, T)  # These could be static or dynamic
-evol_sigma_t2 = rep(0.001, T)
-zero_sigma_t2 = rep(1, T)
+obs_sigma_t2 = rep(1, nT)  # These could be static or dynamic
+evol_sigma_t2 = rep(0.001, nT)
+zero_sigma_t2 = rep(1, nT)
 
 # Simulate one draw of the states:
 mu = sampleBTF_sparse(y = y, obs_sigma_t2, evol_sigma_t2, zero_sigma_t2, D = 1)

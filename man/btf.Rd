@@ -84,14 +84,14 @@ deviation is recommended to avoid numerical issues.
 \dontrun{
 # TODO: add dsp class to btf? or maybe don't export and force use of dsp_fit
 # Example 1: Bumps Data
-simdata = simUnivariate(signalName = "bumps", T = 128, RSNR = 7, include_plot = TRUE)
+simdata = simUnivariate(signalName = "bumps", nT = 128, RSNR = 7, include_plot = TRUE)
 y = simdata$y
 
 out = btf(y, D=1)
 plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
 
 # Example 2: Doppler Data; longer series, more noise
-simdata = simUnivariate(signalName = "doppler", T = 500, RSNR = 5, include_plot = TRUE)
+simdata = simUnivariate(signalName = "doppler", nT = 500, RSNR = 5, include_plot = TRUE)
 y = simdata$y
 
 out = btf(y)
@@ -102,7 +102,7 @@ plot(as.ts(out$dhs_phi)) # AR(1) coefficient
 plot(as.ts(out$dhs_mean)) # Unconditional mean
 
 # Example 3: Blocks data (locally constant)
-simdata = simUnivariate(signalName = "blocks", T = 1000, RSNR = 3, include_plot = TRUE)
+simdata = simUnivariate(signalName = "blocks", nT = 1000, RSNR = 3, include_plot = TRUE)
 y = simdata$y
 
 out = btf(y, D = 1) # try D = 1 to approximate the locally constant behavior

@@ -39,7 +39,7 @@ btf_sparse(
 
 \item{nsave}{number of MCMC iterations to record}
 
-\item{nburn}{number of MCMC iterations to discard (burin-in)}
+\item{nburn}{number of MCMC iterations to discard (burnin-in)}
 
 \item{nskip}{number of MCMC iterations to skip between saving iterations,
 i.e., save every (nskip + 1)th draw}
@@ -90,6 +90,7 @@ via an additional Gibbs sampling step. In general, rescaling \code{y} to have un
 deviation is recommended to avoid numerical issues.
 }
 \examples{
+\dontrun{
 # TODO: add dsp class or change to use dsp_fit (don't export)
 # Example 1: Bumps Data
 y = make.signal(name = "bumps", n = 128, snr = 7)
@@ -112,6 +113,6 @@ y = make.signal(name = "blocks", n = 1000, snr = 3)
 
 out = btf_sparse(y, D = 1) # try D = 1 to approximate the locally constant behavior
 #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
-
+}
 
 }

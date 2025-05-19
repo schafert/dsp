@@ -15,7 +15,7 @@ NULL
 #' The penalty utilizes the dynamic horseshoe prior on the evolution errors.
 #' Sampling is accomplished with a (parameter-expanded) Gibbs sampler,
 #' mostly relying on a dynamic linear model representation.
-
+#'
 #' @param y the \code{T} vector of time series observations
 #' @param D degree of differencing (D = 1, or D = 2)
 #' @param obsSV Options for modeling the error variance. It must be one of the following:
@@ -41,7 +41,6 @@ NULL
 #' \item "dhs_mean" (DHS AR(1) unconditional mean)
 #' }
 #' @param verbose logical; should R report extra information on progress?
-#' @param cp_thres Percentage of posterior samples needed to declare a changepoint
 #'
 #' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 #'
@@ -50,9 +49,9 @@ NULL
 abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
                 nsave = 1000, nburn = 1000, nskip = 4,
                 mcmc_params = list('mu', "omega", "r"),
-                verbose = TRUE, cp_thres = 0.5){
+                verbose = TRUE){
   # Time points (in [0,1])
-  T = length(y); t01 = seq(0, 1, length.out=T)
+  nT = length(y); t01 = seq(0, 1, length.out=nT)
   evol_error = 'DHS'
 
   # Store the original (w/ missing) data, then impute the active "data"
@@ -64,7 +63,7 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
   loc_obs = t_create_loc(length(y), D)
 
   # Initial SD (implicitly assumes a constant mean)
-  sigma_e = rep(sd(y, na.rm=TRUE), T)
+  sigma_e = rep(sd(y, na.rm=TRUE), nT)
   sigma_et = sd(y)
 
   evolParams0 = list(sigma_w0 = rep(1000,D))
@@ -105,15 +104,15 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
   #Array to store omega
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
-  if(!is.na(match('mu', mcmc_params))) post_mu = array(NA, c(nsave, T))
-  if(!is.na(match('zeta', mcmc_params))) post_zeta = array(NA, c(nsave, T-D))
-  if(!is.na(match('yhat', mcmc_params))) post_yhat = array(NA, c(nsave, T))
-  if(!is.na(match('h', mcmc_params))) post_h = array(NA, c(nsave, T-D))
+  if(!is.na(match('mu', mcmc_params))) post_mu = array(NA, c(nsave, nT))
+  if(!is.na(match('zeta', mcmc_params))) post_zeta = array(NA, c(nsave, nT-D))
+  if(!is.na(match('yhat', mcmc_params))) post_yhat = array(NA, c(nsave, nT))
+  if(!is.na(match('h', mcmc_params))) post_h = array(NA, c(nsave, nT-D))
   if(!is.na(match('r', mcmc_params)) && evol_error == "DHS") post_r = numeric(nsave)
-  if(!is.na(match('omega', mcmc_params))) post_omega = array(NA, c(nsave, T-D))
-  if(!is.na(match('zeta_sigma_t2', mcmc_params))) post_zeta_sigma_t2 = array(NA, c(nsave, T-D))
-  if(!is.na(match('obs_sigma_t2', mcmc_params))) post_obs_sigma_t2 = array(NA, c(nsave, T))
-  if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, T))
+  if(!is.na(match('omega', mcmc_params))) post_omega = array(NA, c(nsave, nT-D))
+  if(!is.na(match('zeta_sigma_t2', mcmc_params))) post_zeta_sigma_t2 = array(NA, c(nsave, nT-D))
+  if(!is.na(match('obs_sigma_t2', mcmc_params))) post_obs_sigma_t2 = array(NA, c(nsave, nT))
+  if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = numeric(nsave)
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean = numeric(nsave)
 
@@ -150,7 +149,7 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
     }
     omega = diff(mu, differences = D)
 
-    evolParams = t_sampleEvolParams(omega, evolParams, D, 1/T, lower_b, upper_b, loc)
+    evolParams = t_sampleEvolParams(omega, evolParams, D, 1/nT, lower_b, upper_b, loc)
     #Observational Params
     if (useAnom){
       if (obsSV == "SV"){
@@ -158,9 +157,9 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
         sigma_e = svParams$sigma_wt
       } else if(obsSV == "const"){
         sigma_et = uni.slice(sigma_et, g = function(x){
-          -(T+2)*log(x) - 0.5*sum((y - mu - c(rep(0,D), zeta))^2, na.rm=TRUE)/x^2
+          -(nT+2)*log(x) - 0.5*sum((y - mu - c(rep(0,D), zeta))^2, na.rm=TRUE)/x^2
         }, lower = 0, upper = Inf)[1]
-        sigma_e = rep(sigma_et, T)
+        sigma_e = rep(sigma_et, nT)
       } else if(obsSV == "ASV"){
         sParams = fit_paramsASV(y-mu - c(rep(0, D), zeta),sParams,evol_error = "HS", D = 2)
         sigma_e = exp(sParams$s_mu/2)
@@ -173,9 +172,9 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
         sigma_e = svParams$sigma_wt
       }else if(obsSV == "const"){
         sigma_et = uni.slice(sigma_et, g = function(x){
-          -(T+2)*log(x) - 0.5*sum((y - mu)^2, na.rm=TRUE)/x^2 - log(1 + (sqrt(T)*exp(evolParams$dhs_mean/2)/x)^2)
+          -(nT+2)*log(x) - 0.5*sum((y - mu)^2, na.rm=TRUE)/x^2 - log(1 + (sqrt(nT)*exp(evolParams$dhs_mean/2)/x)^2)
         }, lower = 0, upper = Inf)[1]
-        sigma_e = rep(sigma_et, T)
+        sigma_e = rep(sigma_et, nT)
       }else if(obsSV == "ASV"){
         sParams = fit_paramsASV(y-mu,sParams,evol_error = "HS", D = 2)
         sigma_e = exp(sParams$s_mu/2)
@@ -193,7 +192,7 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
         isave = isave + 1
 
         if(!is.na(match('mu', mcmc_params))) post_mu[isave,] = mu
-        if(!is.na(match('yhat', mcmc_params))) post_yhat[isave,] = mu + rnorm(T, 0, sigma_e)
+        if(!is.na(match('yhat', mcmc_params))) post_yhat[isave,] = mu + rnorm(nT, 0, sigma_e)
         if (useAnom) {
           if(!is.na(match('zeta', mcmc_params))) post_zeta[isave,] = zeta
           if(!is.na(match('zeta_sigma_t2', mcmc_params))) post_zeta_sigma_t2[isave,] = zeta_params$sigma_wt^2
@@ -222,7 +221,6 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
 
-  mcmc_output$cp = identify_cp(D, mcmc_output, cp_thres)
   return (mcmc_output)
 }
 #----------------------------------------------------------------------------
@@ -313,7 +311,7 @@ t_sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs){
 
   if(any(is.na(y))) stop('y cannot contain NAs')
 
-  T = length(y)
+  nT = length(y)
 
   # Linear term:
   linht = y/obs_sigma_t2
@@ -328,20 +326,20 @@ t_sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs){
     postMean = (linht)*postSD^2
 
     # Sample the states:
-    mu = rnorm(n = T, mean = postMean, sd = postSD)
+    mu = rnorm(n = nT, mean = postMean, sd = postSD)
 
   } else {
     # Original sampler, based on Matrix package:
     if (D == 1) {
       diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(1/evol_sigma_t2[-1], 0)
       diag2 = -1/evol_sigma_t2[-1]
-      rd = RcppZiggurat::zrnorm(T)
+      rd = RcppZiggurat::zrnorm(nT)
       mu = sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2), length(diag1), length(loc_obs$r), c(linht), rd, D)
     } else {
       diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(0, 4/evol_sigma_t2[-(1:2)], 0) + c(1/evol_sigma_t2[-(1:2)], 0, 0)
       diag2 = c(-2/evol_sigma_t2[3], -2*(1/evol_sigma_t2[-(1:2)] + c(1/evol_sigma_t2[-(1:3)],0)))
       diag3 = 1/evol_sigma_t2[-(1:2)]
-      rd = RcppZiggurat::zrnorm(T)
+      rd = RcppZiggurat::zrnorm(nT)
       mu = sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2, diag3, diag3), length(diag1), length(loc_obs$r), c(linht), rd, D)
     }
   }
@@ -602,7 +600,7 @@ t_sampleLogVolMu = function(h, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_sigma_eta_0
 #----------------------------------------------------------------------------
 #' Sample the threshold parameter
 #'
-#' Compute one draw of thee threshold parameter in th TAR(1) model with Gaussian innovations
+#' Compute one draw of the threshold parameter in th TAR(1) model with Gaussian innovations
 #' and time-dependent innovation variances. The sampler utilizes metropolis hasting to draw
 #' from uniform prior.
 #'

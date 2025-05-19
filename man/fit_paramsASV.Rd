@@ -4,7 +4,7 @@
 \alias{fit_paramsASV}
 \title{Helper function for Sampling parameters for ASV model}
 \usage{
-fit_paramsASV(data, sParams, evol_error, D)
+fit_paramsASV(data, sParams, evol_error, D, sigma_e)
 }
 \arguments{
 \item{data}{the \code{T x 1} vector of time series observations.}

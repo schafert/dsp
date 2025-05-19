@@ -2,8 +2,7 @@
 % Please edit documentation in R/component_samplers.R
 \name{sample_j_wrap}
 \alias{sample_j_wrap}
-\title{Sample the conditional posterior distribution on the Gaussian Mixture component
-for approximating the log(\chi^2) distribution based on Omori et al. 2007}
+\title{Sampling from 10-component Gaussian Mixture component described in Omori et al. 2007}
 \usage{
 sample_j_wrap(Td, obs = NULL)
 }
@@ -16,9 +15,9 @@ sample_j_wrap(Td, obs = NULL)
 Dataframe containing the posterior samples: mean and variance for the mixture component.
 }
 \description{
-Sample the conditional posterior distribution on the Gaussian Mixture component
-for approximating the log(\chi^2) distribution based on Omori et al. 2007
+Samples from the conditional posterior distribution of the \eqn{log(\chi^2)} distribution
+by approximating it with the mixture Gaussian distribution described in Omori et al. 2007.
 }
 \note{
-When the obs is not not specified, the componenets are samples from the prior distribution.
+When the obs is not not specified, the components are samples from the prior distribution.
 }

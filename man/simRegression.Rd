@@ -5,7 +5,7 @@
 \title{Simulate noisy observations from a dynamic regression model}
 \usage{
 simRegression(
-  T = 200,
+  nT = 200,
   p = 20,
   p_0 = 15,
   sparsity = 0.05,
@@ -15,7 +15,7 @@ simRegression(
 )
 }
 \arguments{
-\item{T}{number of time points}
+\item{nT}{number of time points}
 
 \item{p}{number of predictors (total)}
 
@@ -36,7 +36,7 @@ a list containing
 \item the simulated function \code{y}
 \item the simulated predictors \code{X}
 \item the simulated dynamic regression coefficients \code{beta_true}
-\item the true function \code{y_true}
+\item the true function \code{mu_true}
 \item the true observation standard deviation \code{sigma_true}
 }
 }

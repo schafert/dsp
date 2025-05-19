@@ -6,7 +6,7 @@
 \usage{
 simRegression0(
   signalNames = c("bumps", "blocks"),
-  T = 200,
+  nT = 200,
   RSNR = 10,
   p_0 = 5,
   include_intercept = TRUE,
@@ -19,7 +19,7 @@ simRegression0(
 \item{signalNames}{vector of strings matching the "name" argument in the \code{make.signal()} function,
 e.g. "bumps" or "doppler"}
 
-\item{T}{number of points}
+\item{nT}{number of points}
 
 \item{RSNR}{root-signal-to-noise ratio}
 
@@ -39,7 +39,7 @@ a list containing
 \item the simulated function \code{y}
 \item the simulated predictors \code{X}
 \item the simulated dynamic regression coefficients \code{beta_true}
-\item the true function \code{y_true}
+\item the true function \code{mu_true}
 \item the true observation standard deviation \code{sigma_true}
 }
 }
