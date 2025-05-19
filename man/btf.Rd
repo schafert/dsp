@@ -82,6 +82,7 @@ deviation is recommended to avoid numerical issues.
 }
 \examples{
 \dontrun{
+# TODO: add dsp class to btf? or maybe don't export and force use of dsp_fit
 # Example 1: Bumps Data
 simdata = simUnivariate(signalName = "bumps", T = 128, RSNR = 7, include_plot = TRUE)
 y = simdata$y

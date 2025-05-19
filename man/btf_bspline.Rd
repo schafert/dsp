@@ -87,12 +87,12 @@ substantially fewer than the number of time points.
 }
 }
 \examples{
-
+# TODO: add dsp class or change to use dsp_fit (don't export)
 # Example 1: Blocks data
 simdata <- simUnivariate(signalName = "blocks", T = 1000, RSNR = 3, include_plot = FALSE)
 y <- simdata$y
 out <- btf_bspline(y, D = 1)
-plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
+#plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
 
 
 # Example 2: motorcycle data (unequally-spaced points)
@@ -101,7 +101,7 @@ y <- scale(mcycle$accel) # Center and Scale for numerical stability
 x <- mcycle$times
 plot(x, y, xlab = 'Time (ms)', ylab='Acceleration (g)', main = 'Motorcycle Crash Data')
 out <- btf_bspline(y = y, x = x)
-plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
+# plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
 
 
 }
