@@ -26,7 +26,7 @@
 #'
 #'
 #'
-#' @export print.dsp
+#' @export
 #'
 
 print.dsp <- function(object, ...){
@@ -50,7 +50,7 @@ print.dsp <- function(object, ...){
 #' @param ... currently not used
 #'
 #' @returns NULL
-#' @export print.dsp_spec
+#' @export
 #'
 #' @examples
 #' model_spec = dsp_spec(family = "gaussian", model = "changepoint")

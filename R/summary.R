@@ -26,7 +26,7 @@
 #' mcmc_output = dsp_fit(y, model_spec = model_spec)
 #' summary(mcmc_output)
 #'
-#' @export summary.dsp
+#' @export
 
 summary.dsp <- function(object, pars, probs = c(0.025, 0.25, 0.50, 0.75, 0.975), ...){
 
