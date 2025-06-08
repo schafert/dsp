@@ -34,7 +34,7 @@
 #' @import Matrix
 #' @importFrom spam rmvnorm.canonical as.spam.dgCMatrix
 #' @export
-sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol0 = NULL){
+sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol0 = NULL, prior_mean = NULL){
 
   # Some quick checks:
   if((D < 0) || (D != round(D)))  stop('D must be a positive integer')
@@ -50,7 +50,7 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol
 
   if(D == 0){
     # Special case: no differencing
-
+    if(!is.null(prior_mean)) linht = linht + prior_mean/evol_sigma_t2
     # Posterior SDs and posterior means:
     postSD = 1/sqrt(1/obs_sigma_t2 + 1/evol_sigma_t2)
     postMean = (linht)*postSD^2
@@ -62,7 +62,7 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol
 
     # New sampler, based on spam package:
     QHt_Matrix = build_Q(obs_sigma_t2 = obs_sigma_t2, evol_sigma_t2 = evol_sigma_t2, D = D)
-
+    if(!is.null(prior_mean)) linht = linht + crossprod(QHt_Matrix,prior_mean)
     if(!is.null(chol0)){
 
       # Sample the states:
@@ -617,8 +617,8 @@ sampleEvolParams = function(omega, evolParams,  sigma_e = 1, evol_error = "DHS",
 
     # Global scale params:
     evolParams$tauLambda = rgamma(n = p, shape = 0.5 + n/2, colSums(evolParams$xiLambdaj) + evolParams$xiLambda)
-    #evolParams$xiLambda = rgamma(n = p, shape = 1, rate = evolParams$tauLambda + 1/sigma_e^2)
-    evolParams$xiLambda = rgamma(n = p, shape = 1, rate = evolParams$tauLambda + 1)
+    evolParams$xiLambda = rgamma(n = p, shape = 1, rate = evolParams$tauLambda + 1/sigma_e^2)
+    #evolParams$xiLambda = rgamma(n = p, shape = 1, rate = evolParams$tauLambda + 1)
 
     evolParams$sigma_wt = 1/sqrt(evolParams$tauLambdaj)
 

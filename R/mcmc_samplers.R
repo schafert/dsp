@@ -134,7 +134,7 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
 
   # SV parameters, if necessary:
   if(obsSV == "SV") {svParams = initSV(y - mu); sigma_et = svParams$sigma_wt}
-  else if(obsSV == "ASV"){sParams = init_paramsASV(y-mu, evol_error = "HS", D = 2); sigma_et = exp(sParams$s_mu/2)}
+  else if(obsSV == "ASV"){sParams = init_paramsASV_n(y-mu, evol_error = "HS", D = 1); sigma_et = exp(sParams$s_mu/2)}
 
   # For HS MCMC comparisons:
   # evolParams$dhs_phi = 0
@@ -147,6 +147,8 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = numeric(nsave)
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean = numeric(nsave)
+  if(obsSV == "ASV") post_h = array(NA,c(nsave,nT))
+  if(obsSV == "ASV") post_h_smooth = array(NA,c(nsave,nT))
   post_loglike = numeric(nsave)
 
   # Total number of MCMC simulations:
@@ -218,7 +220,7 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
       evolParams = sampleEvolParams(omega, evolParams, 1/sqrt(nT), evol_error, loc)
 
       # Observation error variance + params:
-      sParams = fit_paramsASV(y-mu,sParams,evol_error = "HS", D = 2)
+      sParams = fit_paramsASV_n(y-mu,sParams,evol_error = "HS", D = 1)
       sigma_et = exp(sParams$s_mu/2)
     }else{
       stop('obsSV has to be one of const, SV, or ASV')
@@ -242,7 +244,8 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
         if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi[isave] = evolParams$dhs_phi
         if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean[isave] = evolParams$dhs_mean
         post_loglike[isave] = sum(dnorm(y, mean = mu, sd = sigma_et, log = TRUE))
-
+        if(obsSV == "ASV") post_h[isave,] = sParams$s_mu
+        if(obsSV == "ASV") post_h_smooth[isave,] = sParams$s_mu_sm
         # And reset the skip counter:
         skipcount = 0
       }
@@ -255,7 +258,8 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
-
+  if(obsSV == "ASV") mcmc_output$h = post_h
+  if(obsSV == "ASV") mcmc_output$h_smooth = post_h_smooth
   # Also include the log-likelihood:
   mcmc_output$loglike = post_loglike
 
