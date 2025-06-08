@@ -15,7 +15,7 @@ test_that("new initChol works same as old", {
   set.seed(1)
   old_res <- initChol.spam_old(20)
   set.seed(1)
-  res <- initChol.spam(20)
+  res <- initChol_spam(20)
 
   expect_equal(as.matrix(old_res), as.matrix(res))
 })

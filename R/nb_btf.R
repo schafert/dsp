@@ -56,7 +56,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' beta <- make.signal(name = "bumps", n = 300)
+#' beta <- make_signal(name = "bumps", n = 300)
 #' y <- rnbinom(n = length(beta), size = 5, mu = beta)
 #'
 #' # Need to typically run sampler for longer than specified below
@@ -116,7 +116,7 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
   }
 
   # Compute the Cholesky term (uses random variances for a more conservative sparsity pattern)
-  if(!is.null(chol0)) chol0 = initChol.spam(nT = Nt, D = D)
+  if(!is.null(chol0)) chol0 = initChol_spam(nT = Nt, D = D)
 
   # Initialize the conditional mean, mu:
   # mu <- matrix(log(y + 1), ncol = 1) #this initialization breaks things when omega is 0...

@@ -7,7 +7,7 @@
 simUnivariate(signalName = "bumps", nT = 200, RSNR = 10, include_plot = TRUE)
 }
 \arguments{
-\item{signalName}{string matching the "name" argument in the \code{make.signal()} function,
+\item{signalName}{string matching the "name" argument in the \code{make_signal()} function,
 e.g. "bumps" or "doppler"}
 
 \item{nT}{number of points}
@@ -25,7 +25,7 @@ a list containing
 }
 }
 \description{
-Builds upon the \code{make.signal()} function in the \code{wmtsa} package
+Builds upon the \code{make_signal()} function in the \code{wmtsa} package
 to include Gaussian noise with a user-specificied root-signal-to-noise ratio.
 }
 \note{

@@ -552,13 +552,13 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' \dontrun{
 #' # TODO: add dsp class or change to use dsp_fit (don't export)
 #' # Example 1: Bumps Data
-#' y = make.signal(name = "bumps", n = 128, snr = 7)
+#' y = make_signal(name = "bumps", n = 128, snr = 7)
 #'
 #' out = btf_sparse(y)
 #' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
 #'
 #' # Example 2: Doppler Data; longer series, more noise
-#' y = make.signal(name = "doppler", n = 500, snr = 7)
+#' y = make_signal(name = "doppler", n = 500, snr = 7)
 #'
 #' out = btf_sparse(y)
 #' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
@@ -568,7 +568,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' plot(as.ts(out$dhs_mean)) # Unconditional mean
 #'
 #' # Example 3: Blocks data (locally constant)
-#' y = make.signal(name = "blocks", n = 1000, snr = 3)
+#' y = make_signal(name = "blocks", n = 1000, snr = 3)
 #'
 #' out = btf_sparse(y, D = 1) # try D = 1 to approximate the locally constant behavior
 #' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
@@ -602,7 +602,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
   sigma_e = sd(y, na.rm=TRUE); sigma_et = rep(sigma_e, nT)
 
   # Compute the Cholesky term (uses random variances for a more conservative sparsity pattern)
-  chol0 = initChol.spam(nT = nT, D = D)
+  chol0 = initChol_spam(nT = nT, D = D)
 
   # Initialize the conditional mean, mu, via sampling:
   mu = sampleBTF(y, obs_sigma_t2 = sigma_et^2, evol_sigma_t2 = 0.01*sigma_et^2, D = D, chol0 = chol0)

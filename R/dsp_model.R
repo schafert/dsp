@@ -239,7 +239,7 @@ dsp_spec <- function(family,
 #'
 #' @examples
 #' \dontrun{
-#' beta <- make.signal(name = "bumps", n = 300)
+#' beta <- make_signal(name = "bumps", n = 300)
 #' y <- rnbinom(n = length(beta), size = 5, mu = beta)
 #' # Creating a `model_spec` object
 #' model_spec <- dsp_spec(

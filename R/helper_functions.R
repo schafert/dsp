@@ -1,10 +1,10 @@
 #----------------------------------------------------------------------------
 #' Simulate noisy observations from a function
 #'
-#' Builds upon the \code{make.signal()} function in the \code{wmtsa} package
+#' Builds upon the \code{make_signal()} function in the \code{wmtsa} package
 #' to include Gaussian noise with a user-specificied root-signal-to-noise ratio.
 #'
-#' @param signalName string matching the "name" argument in the \code{make.signal()} function,
+#' @param signalName string matching the "name" argument in the \code{make_signal()} function,
 #' e.g. "bumps" or "doppler"
 #' @param nT number of points
 #' @param RSNR root-signal-to-noise ratio
@@ -29,7 +29,7 @@
 simUnivariate = function(signalName = "bumps", nT = 200, RSNR = 10, include_plot = TRUE){
 
   # The true function:
-  mu_true = make.signal(signalName, n=nT)
+  mu_true = make_signal(signalName, n=nT)
 
   # Noise SD, based on RSNR (also put in a check for constant/zero functions)
   sigma_true = sd(mu_true)/RSNR; if(sigma_true==0) sigma_true = sqrt(sum(mu_true^2)/nT)/RSNR + 10^-3
@@ -127,9 +127,9 @@ simRegression = function(nT = 200, p = 20, p_0 = 15,
 #'
 #' Simulates data from a time series regression with dynamic regression coefficients.
 #' The dynamic regression coefficients are selected using the options from the
-#' \code{make.signal()} function in the \code{wmtsa} package.
+#' \code{make_signal()} function in the \code{wmtsa} package.
 #'
-#' @param signalNames vector of strings matching the "name" argument in the \code{make.signal()} function,
+#' @param signalNames vector of strings matching the "name" argument in the \code{make_signal()} function,
 #' e.g. "bumps" or "doppler"
 #' @param nT number of points
 #' @param RSNR root-signal-to-noise ratio
@@ -163,7 +163,7 @@ simRegression0 = function(signalNames = c("bumps", "blocks"), nT = 200, RSNR = 1
 
   # Simulate the true regression signals
   beta_true = matrix(0, nrow = nT, ncol = p)
-  for(j in 1:p_true) beta_true[,j] = make.signal(signalNames[j], n=nT);
+  for(j in 1:p_true) beta_true[,j] = make_signal(signalNames[j], n=nT);
   if(scale_all) beta_true[,1:p_true] = apply(as.matrix(beta_true[,1:p_true]), 2, function(x) (x - min(x))/(max(x) - min(x)))
 
   # Simulate the predictors: autocorrelated or independent? Either way, use N(0,1) innovations
@@ -374,7 +374,8 @@ build_XtX = function(X){
 #' @import Matrix
 #' @importFrom spam chol.spam as.spam.dgCMatrix
 #' @export
-initChol.spam = function(nT, D = 1){
+
+initChol_spam = function(nT, D = 1){
 
   # Random initialization
   QHt_Matrix = build_Q(obs_sigma_t2 = abs(rnorm(nT)),
