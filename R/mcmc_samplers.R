@@ -78,7 +78,6 @@
 #' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
 #' }
 #'
-#' @import progress
 
 btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
                nsave = 1000, nburn = 1000, nskip = 4,
@@ -574,7 +573,6 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
 #' }
 #'
-#' @import spam progress
 #' @export
 btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = "const",
                       nsave = 1000, nburn = 1000, nskip = 4,
@@ -845,7 +843,6 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 #' #              y_true = simdata$beta_true[,j])
 #' }
 #'
-#' @import spam progress
 #' @export
 btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
                    nsave = 1000, nburn = 1000, nskip = 4,
@@ -883,7 +880,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
   sigma_e = sd(y, na.rm=TRUE); sigma_et = rep(sigma_e, nT)
 
   # Compute the Cholesky term: use random variances for a more conservative sparsity pattern
-  chol0 = initCholReg.spam(obs_sigma_t2 = abs(rnorm(nT)),
+  chol0 = initCholReg_spam(obs_sigma_t2 = abs(rnorm(nT)),
                            evol_sigma_t2 = matrix(abs(rnorm(nT*p)), nrow = nT),
                            XtX = XtX, D = D)
 
@@ -1134,7 +1131,6 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 #' # plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
 #' }
 #'
-#' @import fda progress
 #' @export
 btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D = 2,
                        nsave = 1000, nburn = 1000, nskip = 4,
@@ -1164,7 +1160,7 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
 
   # Compute B-spline basis matrix:
   if(is.null(num_knots)) num_knots = max(20, min(ceiling(nT/4), 150))
-  X = eval.basis(t01, create.bspline.basis(c(0,1), nbasis = num_knots))
+  X = fda::eval.basis(t01, fda::create.bspline.basis(c(0,1), nbasis = num_knots))
   p = ncol(X)
 
   # In place of XtX, store the 4-bands of XtX:
@@ -1381,7 +1377,7 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
 #' }
 #'
 #'
-#' @import fda progress
+
 btf_bspline0 = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS',
                         nsave = 1000, nburn = 1000, nskip = 4,
                         mcmc_params = list("mu", "yhat", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
@@ -1399,7 +1395,7 @@ btf_bspline0 = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS',
 
   # Compute B-spline basis matrix:
   if(is.null(num_knots)) num_knots = max(20, min(ceiling(nT/4), 150))
-  X = eval.basis(t01, create.bspline.basis(c(0,1), nbasis = num_knots))
+  X = fda::eval.basis(t01, fda::create.bspline.basis(c(0,1), nbasis = num_knots))
   p = ncol(X)
 
   # In place of XtX, store the 4-bands of XtX:

@@ -3,6 +3,8 @@
 
 ## usethis namespace: start
 #' @import rlang
+#' @importFrom fda create.bspline.basis
+#' @importFrom fda eval.basis
 #' @importFrom glue glue
 #' @importFrom graphics legend
 #' @importFrom lifecycle deprecated
@@ -10,6 +12,7 @@
 #' @importFrom mgcv rig
 #' @importFrom purrr map
 #' @importFrom RcppZiggurat zrnorm
+#' @importFrom spam chol
 #' @importFrom stats dgamma
 #' @importFrom stats dnbinom
 #' @importFrom stats dpois

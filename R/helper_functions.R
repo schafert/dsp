@@ -92,7 +92,7 @@ simRegression = function(nT = 200, p = 20, p_0 = 15,
     X = cbind(1,matrix(rnorm(n = nT*(p-1)), nrow = nT, ncol = p-1))
   } else X = cbind(1,
                    apply(matrix(0, nrow = nT, ncol = p-1), 2, function(x)
-                     arima.sim(n = nT, list(ar = ar1), sd = sqrt(1-ar1^2))))
+                     stats::arima.sim(n = nT, list(ar = ar1), sd = sqrt(1-ar1^2))))
 
   # Simulate the true regression signals
   beta_true = matrix(0, nrow = nT, ncol = p);
@@ -152,7 +152,7 @@ simRegression = function(nT = 200, p = 20, p_0 = 15,
 #'
 #' @note The root-signal-to-noise ratio is defined as RSNR = (sd of true function)/(sd of noise).
 #'
-#' @importFrom stats arima.sim
+
 simRegression0 = function(signalNames = c("bumps", "blocks"), nT = 200, RSNR = 10, p_0 = 5, include_intercept = TRUE, scale_all = TRUE, include_plot = TRUE, ar1 = 0){
 
   # True number of signals
@@ -169,7 +169,7 @@ simRegression0 = function(signalNames = c("bumps", "blocks"), nT = 200, RSNR = 1
   # Simulate the predictors: autocorrelated or independent? Either way, use N(0,1) innovations
   if(ar1 == 0){
     X = matrix(rnorm(nT*p), nrow=nT, ncol = p)
-  } else X = apply(matrix(0, nrow = nT, ncol = p), 2, function(x) arima.sim(n = nT, list(ar = ar1), sd = sqrt(1-ar1^2)))
+  } else X = apply(matrix(0, nrow = nT, ncol = p), 2, function(x) stats::arima.sim(n = nT, list(ar = ar1), sd = sqrt(1-ar1^2)))
 
   # If we want an intercept, simply replace the first column w/ 1s
   if(include_intercept) X[,1] = matrix(1, nrow = nrow(X), ncol = 1)
@@ -280,7 +280,6 @@ initDHS = function(omega){
 #' @param omega \code{T x p} matrix of errors
 #' @return List of relevant components: \code{sigma_wt}, the \code{T x p} matrix of standard deviations,
 #' and additional parameters (unconditional mean, AR(1) coefficient, and standard deviation).
-#' @importFrom methods is
 #' @export
 initSV = function(omega){
 
@@ -344,7 +343,6 @@ initEvol0 = function(mu0, commonSD = TRUE){
 #' @note X'X is a one-time computing cost. Special cases may have more efficient computing options,
 #' but the Matrix representation is important for efficient computations within the sampler.
 #'
-#' @import Matrix
 #' @export
 build_XtX = function(X){
 
@@ -352,7 +350,7 @@ build_XtX = function(X){
   nT = nrow(X); p = ncol(X)
 
   # Store the matrix
-  XtX = bandSparse(nT*p, k = 0, diagonals= list(rep(1,nT*p)), symmetric = TRUE)
+  XtX = Matrix::bandSparse(nT*p, k = 0, diagonals= list(rep(1,nT*p)), symmetric = TRUE)
 
   t.seq.p = seq(1, nT*(p+1), by = p)
 
@@ -371,8 +369,6 @@ build_XtX = function(X){
 #'
 #' @param nT number of time points
 #' @param D degree of differencing (D = 1 or D = 2)
-#' @import Matrix
-#' @importFrom spam chol.spam as.spam.dgCMatrix
 #' @export
 
 initChol_spam = function(nT, D = 1){
@@ -384,7 +380,7 @@ initChol_spam = function(nT, D = 1){
 
   # And return the Cholesky piece:
   # TODO: this is where the warning is being
-  chQht_Matrix0 = chol.spam(as.spam.dgCMatrix(as(QHt_Matrix, "dgCMatrix")))
+  chQht_Matrix0 = spam::chol(spam::as.spam.dgCMatrix(as(QHt_Matrix, "dgCMatrix")))
 
   chQht_Matrix0
 }
@@ -398,10 +394,9 @@ initChol_spam = function(nT, D = 1){
 #' @param evol_sigma_t2 the \code{T x p} matrix of evolution error variances
 #' @param XtX the \code{Tp x Tp} matrix of X'X (one-time cost; see ?build_XtX)
 #' @param D the degree of differencing (one or two)
-#' @import Matrix
-#' @importFrom spam as.spam.dgCMatrix chol.spam
+#'
 #' @export
-initCholReg.spam = function(obs_sigma_t2, evol_sigma_t2, XtX, D = 1){
+initCholReg_spam = function(obs_sigma_t2, evol_sigma_t2, XtX, D = 1){
 
   # Some quick checks:
   if((D < 0) || (D != round(D)))  stop('D must be a positive integer')
@@ -421,7 +416,7 @@ initCholReg.spam = function(obs_sigma_t2, evol_sigma_t2, XtX, D = 1){
     Q_off = matrix(-t_evol_prec_lag_mat)[-(nT*p)]
 
     # Quadratic term:
-    Qevol = bandSparse(nT*p, k = c(0,p), diagonals= list(Q_diag, Q_off), symmetric = TRUE)
+    Qevol = Matrix::bandSparse(nT*p, k = c(0,p), diagonals= list(Q_diag, Q_off), symmetric = TRUE)
 
     # For checking via direct computation:
     # H1 = bandSparse(nT, k = c(0,-1), diag = list(rep(1, nT), rep(-1, nT)), symmetric = FALSE)
@@ -453,7 +448,7 @@ initCholReg.spam = function(obs_sigma_t2, evol_sigma_t2, XtX, D = 1){
       Q_off_2 = matrix(Q_off_2)
 
       # Quadratic term:
-      Qevol = bandSparse(nT*p, k = c(0, p, 2*p), diagonals= list(Q_diag, Q_off_1, Q_off_2), symmetric = TRUE)
+      Qevol = Matrix::bandSparse(nT*p, k = c(0, p, 2*p), diagonals= list(Q_diag, Q_off_1, Q_off_2), symmetric = TRUE)
 
       # For checking via direct computation:
       # H2 = bandSparse(nT, k = c(0,-1, -2), diag = list(rep(1, nT), c(0, rep(-2, nT-1)), rep(1, nT)), symmetric = FALSE)
@@ -468,10 +463,10 @@ initCholReg.spam = function(obs_sigma_t2, evol_sigma_t2, XtX, D = 1){
   Qpost = Qobs + Qevol
 
   # New version (NOTE: reorder; opposite of log-vol!)
-  QHt_Matrix = as.spam.dgCMatrix(as(Qpost, "dgCMatrix"))
+  QHt_Matrix = spam::as.spam.dgCMatrix(as(Qpost, "dgCMatrix"))
 
   # And return the Cholesky piece:
-  chQht_Matrix0 = chol.spam(QHt_Matrix)
+  chQht_Matrix0 = spam::chol(QHt_Matrix)
 
   chQht_Matrix0
 }
@@ -721,11 +716,11 @@ simBaS = function(sampFuns){
 #' getEffSize(rand_ar1)
 #' }
 #'
-#' @import coda
+#' @importFrom coda effectiveSize as.mcmc
 #' @export
 getEffSize = function(postX) {
   if(is.null(dim(postX))) return(effectiveSize(postX))
-  summary(effectiveSize(as.mcmc(array(postX, c(dim(postX)[1], prod(dim(postX)[-1]))))))
+  summary(coda::effectiveSize(coda::as.mcmc(array(postX, c(dim(postX)[1], prod(dim(postX)[-1]))))))
 }
 #----------------------------------------------------------------------------
 #' Compute the ergodic (running) mean.
