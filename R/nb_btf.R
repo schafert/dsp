@@ -53,6 +53,7 @@
 #' mean overdispersion.
 #'
 #' @importFrom BayesLogit rpg
+#' @importFrom stats rnbinom dnbinom dgamma dpois
 #'
 #' @examples
 #' \dontrun{
@@ -199,12 +200,10 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
     sigma_et <- sqrt(1/eta_t)
 
     # Sample the states:
-    if(mu_sample){
       mu = sampleBTF_nb(y, r, offset = offset,
                         eta_t = eta_t, obs_sigma_t2 = sigma_et^2,
                         evol_sigma_t2 = c(evolParams0$sigma_w0^2, evolParams$sigma_wt^2),
                         D = D, chol0 = chol0)
-    }
 
     # Compute the evolution errors:
     omega = diff(mu, differences = D)
@@ -233,12 +232,12 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
 
         # Save the MCMC samples:
         if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu[isave,] = mu
-        if(!is.na(match('yhat', mcmc_params))) post_yhat[isave,] = rnbinom(Nt, size = r, mu = exp(mu + offset))
+        if(!is.na(match('yhat', mcmc_params))) post_yhat[isave,] = stats::rnbinom(Nt, size = r, mu = exp(mu + offset))
         if(!is.na(match('r', mcmc_params)) || computeDIC) post_r[isave] = r
         if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2[isave,] = c(evolParams0$sigma_w0^2, evolParams$sigma_wt^2)
         if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi[isave] = evolParams$dhs_phi
         if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean[isave] = evolParams$dhs_mean
-        post_loglike[isave] = sum(dnbinom(y, size = r, mu = exp(mu + offset), log = TRUE))
+        post_loglike[isave] = sum(stats::dnbinom(y, size = r, mu = exp(mu + offset), log = TRUE))
 
         # And reset the skip counter:
         skipcount = 0
@@ -351,16 +350,16 @@ sample_r <- function(y, d.prev, mu, r_sample = "int_mh",
 
     d.prop = sample(rw.grid, 1, prob=rw.p);
 
-    ltarget = sum(dnbinom(y,
+    ltarget = sum(stats::dnbinom(y,
                           size = d.prop,
                           mu = mu,
                           log = TRUE)) + #proposal likelihood
-      dpois(d.prop, lambda_r, log = TRUE) - # proposal prior
-      sum(dnbinom(y,
+      stats::dpois(d.prop, lambda_r, log = TRUE) - # proposal prior
+      sum(stats::dnbinom(y,
                   size = d.prev,
                   mu = mu,
                   log = TRUE)) - # previous likelihood
-      dpois(d.prev, lambda_r, log = TRUE) # previous prior
+      stats::dpois(d.prev, lambda_r, log = TRUE) # previous prior
     lppsl = log(ifelse(d.prev - step <= 1, 1/(d.prev + step), 1/(2*step+1))) -
       log(ifelse(d.prop - step <= 1, 1/(d.prop + step), 1/(2*step+1)));
     lratio = ltarget + lppsl # (llik.prop + lprior.prop + ll.J(d.prev)) - (llik.prev + + lprior.prev + ll.J(d.prop))
@@ -376,7 +375,7 @@ sample_r <- function(y, d.prev, mu, r_sample = "int_mh",
     # e0 <- 1/sigma_c^2 # variance of the half cauchy (10^2)
 
     r = uni.slice(d.prev, g = function(x){
-      sum(dnbinom(y, size = x, mu = mu, log = TRUE)) + eval(prior_r)
+      sum(stats::dnbinom(y, size = x, mu = mu, log = TRUE)) + eval(prior_r)
     }, lower = 0, upper = 1000)
 
     return(r)
@@ -389,10 +388,10 @@ sample_r <- function(y, d.prev, mu, r_sample = "int_mh",
 
     if(d.prev > 1) rstar = runif(1,d.prev-1,d.prev+1)
     else rstar = runif(1,0,2)
-    ll = sum(dnbinom(y, d.prev, mu = mu, log=TRUE)) + # previous likelihood
-      dgamma(1/d.prev, 1, 1, log = TRUE) # previous prior
-    llstar = sum(dnbinom(y, rstar, mu = mu, log=TRUE)) + # proposal likelihood
-      dgamma(1/rstar, 1, 1, log = TRUE) # proposal prior
+    ll = sum(stats::dnbinom(y, d.prev, mu = mu, log=TRUE)) + # previous likelihood
+      stats::dgamma(1/d.prev, 1, 1, log = TRUE) # previous prior
+    llstar = sum(stats::dnbinom(y, rstar, mu = mu, log=TRUE)) + # proposal likelihood
+      stats::dgamma(1/rstar, 1, 1, log = TRUE) # proposal prior
     lalpha = llstar - ll
     ## TODO: add prior for this sampler
 

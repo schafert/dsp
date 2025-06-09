@@ -27,7 +27,7 @@ e.g. "bumps" or "doppler"}
 
 \item{include_intercept}{logical; if TRUE, the first column of X is 1's}
 
-\item{scale_all}{logical; if TRUE, scale all regression coefficients to \link{0,1}}
+\item{scale_all}{logical; if TRUE, scale all regression coefficients to [0,1]}
 
 \item{include_plot}{logical; if TRUE, include a plot of the simulated data and the true curve}
 

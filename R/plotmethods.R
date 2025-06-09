@@ -32,6 +32,8 @@
 #' plot(mcmc_output, y, mu_true = signal) # plots prediction intervals
 #'
 #' @import coda
+#' @importFrom graphics legend
+#'
 #' @method plot dsp
 #' @export
 plot.dsp = function(x, y, mu_true = NULL, t01 = NULL, include_joint_bands = FALSE, ...){
@@ -72,7 +74,7 @@ plot.dsp = function(x, y, mu_true = NULL, t01 = NULL, include_joint_bands = FALS
         lines(t01, mu_true, lwd=8, col='black', lty=6)
         lines(t01, y, type='p')
         lines(t01, mu, lwd=8, col = 'cyan')
-        legend("topleft",
+        graphics::legend("topleft",
                legend = c("Joint CI", "Pointwise CI", "Pointwise Mean", "True Mean"),
                pch    = c(15, 15, NA, NA),      # squares for the first two
                pt.cex = 2,
