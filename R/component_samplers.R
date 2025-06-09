@@ -847,7 +847,7 @@ sampleSVparams0 = function(omega, svParams){
 #' @note For the standard AR(1) case, \code{p = 1}. However, the function applies more
 #' generally for sampling \code{p > 1} independent AR(1) processes (jointly).
 #'
-#' @import truncdist
+#' @importFrom truncdist rtrunc
 #' @export
 sampleAR1 = function(h_yc, h_phi, h_sigma_eta_t, prior_dhs_phi = NULL){
 
@@ -879,7 +879,7 @@ sampleAR1 = function(h_yc, h_phi, h_sigma_eta_t, prior_dhs_phi = NULL){
 
     } else {
       # For h_phi ~ Unif(-1, 1), the posterior is truncated normal
-      h_phi[j] = rtrunc(n = 1, spec = 'norm',
+      h_phi[j] = truncdist::rtrunc(n = 1, spec = 'norm',
                         a = -1, b = 1,
                         mean = sum(y_ar*x_ar)/sum(x_ar^2),
                         sd = 1/sqrt(sum(x_ar^2)))

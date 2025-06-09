@@ -44,7 +44,7 @@ NULL
 #'
 #' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 #'
-#' @import Matrix progress
+#' @importFrom progress progress_bar
 #' @export
 abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
                 nsave = 1000, nburn = 1000, nskip = 4,
@@ -233,21 +233,21 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
 #' @return List of relevant components: \code{sigma_wt}, the \code{T} vector of standard deviations,
 #' and additional parameters for inverse gamma priors (shape and scale).
 #'
-#' @import MCMCpack
+#' @importFrom MCMCpack rinvgamma
 #' @export
 t_initEvolZeta_ps = function(zeta){
   zeta = as.matrix(zeta)
   n = nrow(zeta)
 
-  xi = rinvgamma(1, 1/2, 1)
-  tau_t2 = rinvgamma(1, 1/2, 1/xi)
+  xi = MCMCpack::rinvgamma(1, 1/2, 1)
+  tau_t2 = MCMCpack::rinvgamma(1, 1/2, 1/xi)
 
-  #eta_v = rinvgamma(n, 1/2, 1)
-  #eta_t2 = rinvgamma(n, 1/2, 1/eta_v)
+  #eta_v = MCMCpack::rinvgamma(n, 1/2, 1)
+  #eta_t2 = MCMCpack::rinvgamma(n, 1/2, 1/eta_v)
 
-  #v = rinvgamma(n, 1/2, 1/eta_t2/tau_t2)
-  v = rinvgamma(n, 1/2, 1/tau_t2)
-  lambda_t2 = rinvgamma(n, 1/2, 1/v)
+  #v = MCMCpack::rinvgamma(n, 1/2, 1/eta_t2/tau_t2)
+  v = MCMCpack::rinvgamma(n, 1/2, 1/tau_t2)
+  lambda_t2 = MCMCpack::rinvgamma(n, 1/2, 1/v)
 
   #list(xi=xi, v=v, eta_v = eta_v, tau_t2 = tau_t2, lambda_t2 = lambda_t2, eta_t2 = eta_t2,
   #     sigma_wt = sqrt(lambda_t2))
@@ -263,7 +263,7 @@ t_initEvolZeta_ps = function(zeta){
 #' @return List of relevant components in \code{evolParams}:  \code{sigma_wt},
 #' the \code{T} vector of standard deviations, and additional parameters for inverse gamma priors (shape and scale).
 #'
-#' @import MCMCpack
+#' @importFrom MCMCpack rinvgamma
 #' @export
 t_sampleEvolZeta_ps = function(omega, evolParams){
   #omega = as.matrix(omega)
@@ -271,16 +271,16 @@ t_sampleEvolZeta_ps = function(omega, evolParams){
 
   hsInput2 = omega^2
 
-  evolParams$lambda_t2 = rinvgamma(n, 1, 1/evolParams$v + hsInput2/2)
-  #evolParams$v = rinvgamma(n, 1, 1/evolParams$lambda_t2 + 1/evolParams$tau_t2/evolParams$eta_t2)
-  evolParams$v = rinvgamma(n, 1, 1/evolParams$lambda_t2 + 1/evolParams$tau_t2)
+  evolParams$lambda_t2 = MCMCpack::rinvgamma(n, 1, 1/evolParams$v + hsInput2/2)
+  #evolParams$v = MCMCpack::rinvgamma(n, 1, 1/evolParams$lambda_t2 + 1/evolParams$tau_t2/evolParams$eta_t2)
+  evolParams$v = MCMCpack::rinvgamma(n, 1, 1/evolParams$lambda_t2 + 1/evolParams$tau_t2)
 
-  #evolParams$tau_t2 = rinvgamma(1, (n+1)/2, 1/evolParams$xi + sum(1/evolParams$v/evolParams$eta_t2))
-  evolParams$tau_t2 = rinvgamma(1, (n+1)/2, 1/evolParams$xi + sum(1/evolParams$v))
-  evolParams$xi = rinvgamma(1, 1, 1+1/evolParams$tau_t2)
+  #evolParams$tau_t2 = MCMCpack::rinvgamma(1, (n+1)/2, 1/evolParams$xi + sum(1/evolParams$v/evolParams$eta_t2))
+  evolParams$tau_t2 = MCMCpack::rinvgamma(1, (n+1)/2, 1/evolParams$xi + sum(1/evolParams$v))
+  evolParams$xi = MCMCpack::rinvgamma(1, 1, 1+1/evolParams$tau_t2)
 
-  #evolParams$eta_t2 = rinvgamma(n, 1, 1/evolParams$eta_v+1/evolParams$v/evolParams$tau_t2)
-  #evolParams$eta_v = rinvgamma(n, 1, 1/16+1/evolParams$eta_t2)
+  #evolParams$eta_t2 = MCMCpack::rinvgamma(n, 1, 1/evolParams$eta_v+1/evolParams$v/evolParams$tau_t2)
+  #evolParams$eta_v = MCMCpack::rinvgamma(n, 1, 1/16+1/evolParams$eta_t2)
 
   evolParams$sigma_wt = sqrt(evolParams$lambda_t2)
 
@@ -302,7 +302,7 @@ t_sampleEvolZeta_ps = function(omega, evolParams){
 #'
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 #'
-#' @import Matrix Rcpp RcppZiggurat
+#' @importFrom RcppZiggurat zrnorm
 #' @export
 t_sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs){
 
@@ -380,7 +380,7 @@ t_sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs){
 #'
 #' @note The priors induced by \code{prior_dhs_phi} all imply a stationary (log-) volatility process.
 #'
-#' @import pgdraw
+#' @importFrom pgdraw pgdraw
 t_sampleEvolParams = function(omega, evolParams, D = 1, sigma_e = 1, lower_b, upper_b, loc, prior_dhs_phi = c(20,1), alphaPlusBeta = 1){
   # Store the DSP parameters locally:
   ht = evolParams$ht; dhs_mean = evolParams$dhs_mean; dhs_phi = evolParams$dhs_phi; dhs_phi2 = evolParams$dhs_phi2
@@ -409,8 +409,8 @@ t_sampleEvolParams = function(omega, evolParams, D = 1, sigma_e = 1, lower_b, up
   eta_t = ht_tilde[-1] - (dhs_phi+ dhs_phi2*st[-n])*ht_tilde[-n]       # Residuals
   #sigma_eta_t = matrix(1/sqrt(rpg(num = (n-1), h = alphaPlusBeta, z = eta_t)), nc = 1) # Sample
   #sigma_eta_0 = 1/sqrt(rpg(num = 1, h = 1, z = ht_tilde[1]))                # Sample the inital
-  sigma_eta_t = 1/sqrt(pgdraw(alphaPlusBeta, eta_t))
-  sigma_eta_0 = 1/sqrt(pgdraw(1, ht_tilde[1]))
+  sigma_eta_t = 1/sqrt(pgdraw::pgdraw(alphaPlusBeta, eta_t))
+  sigma_eta_0 = 1/sqrt(pgdraw::pgdraw(1, ht_tilde[1]))
 
   r = t_sampleR_mh(h_yc = ht_tilde, h_phi = dhs_phi, h_phi2 = dhs_phi2, h_sigma_eta_t = sigma_eta_t,
                    h_sigma_eta_0 = sigma_eta_0, h_st = st, h_r = r, lower_b = lower_b, upper_b = upper_b, omega = omega, D = D)
@@ -445,7 +445,7 @@ t_sampleEvolParams = function(omega, evolParams, D = 1, sigma_e = 1, lower_b, up
 #' @note For Bayesian trend filtering, \code{p = 1}. More generally, the sampler allows for
 #' \code{p > 1} but assumes (contemporaneous) independence across the log-vols for \code{j = 1,...,p}.
 #'
-#' @import Matrix RcppZiggurat
+
 t_sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_sigma_eta_0, h_st, loc){
 
   # Compute dimensions:
@@ -518,7 +518,6 @@ t_sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_si
 #'
 #' @return \code{2} vector of sampled TAR(1) coefficient(s)
 #'
-#' @import truncdist
 #' @export
 t_sampleAR1 = function(h_yc, h_phi, h_phi2, h_sigma_eta_t, h_st, prior_dhs_phi = NULL){
 
@@ -570,7 +569,7 @@ t_sampleAR1 = function(h_yc, h_phi, h_phi2, h_sigma_eta_t, h_st, prior_dhs_phi =
 #'
 #' @return the sampled mean(s) \code{dhs_mean}
 #'
-#' @import pgdraw
+#' @importFrom pgdraw pgdraw
 #' @export
 t_sampleLogVolMu = function(h, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_sigma_eta_0, h_st, h_log_scale = 0){
 
@@ -578,8 +577,8 @@ t_sampleLogVolMu = function(h, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_sigma_eta_0
   n = length(h)
 
   # Sample the precision term(s)
-  dhs_mean_prec_j = pgdraw(1, h_mu - h_log_scale)
-  #dhs_mean_prec_j = pgdraw(1, h_mu - h_log_scale)
+  dhs_mean_prec_j = pgdraw::pgdraw(1, h_mu - h_log_scale)
+  #dhs_mean_prec_j = pgdraw::pgdraw(1, h_mu - h_log_scale)
 
   # Now, form the "y" and "x" terms in the (auto)regression
   y_mu = (h[-1] - (h_phi+h_phi2*h_st[-n])*h[-n])/h_sigma_eta_t;
@@ -654,7 +653,7 @@ t_sampleR_mh = function(h_yc, h_phi, h_phi2, h_sigma_eta_t, h_sigma_eta_0, h_st,
 #' @return List of relevant components: \code{sigma_wt}, the \code{T} vector of evolution standard deviations,
 #' and additional parameters associated with the DHS priors.
 #'
-#' @import msm
+#' @importFrom msm rtnorm
 #' @export
 t_initEvolParams_no = function(y, D, omega){
 
@@ -668,7 +667,7 @@ t_initEvolParams_no = function(y, D, omega){
   # Initialize the AR(1) model to obtain unconditional mean and AR(1) coefficient
   arCoefs = arima(ht, c(1,0,0), method="ML")$coef
   dhs_mean = arCoefs[2]; dhs_phi = arCoefs[1]
-  dhs_phi2 = rtnorm(1, mean = -0.5, sd = .5, upper = 0, lower = -1)
+  dhs_phi2 = msm::rtnorm(1, mean = -0.5, sd = .5, upper = 0, lower = -1)
 
   # Initialize the SD of log-vol innovations simply using the expectation:
   sigma_eta_t = matrix(pi, nrow = n-1, ncol = 1)
@@ -723,7 +722,7 @@ t_initSV = function(omega){
 #' @return List of relevant components in \code{svParams}: \code{sigma_wt}, the \code{T} vector of standard deviations,
 #' and additional parameters associated with SV model.
 #'
-#' @import stochvol
+#' @importFrom stochvol svsample_fast_cpp
 t_sampleSVparams = function(omega, svParams){
 
   # Make sure omega is (n x p) matrix
