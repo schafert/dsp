@@ -4,7 +4,7 @@
 \alias{summary.dsp}
 \title{Summarize DSP MCMC chains}
 \usage{
-\method{summary}{dsp}(object, pars, probs = c(0.025, 0.25, 0.5, 0.75, 0.975), ...)
+summary.dsp(object, pars, probs = c(0.025, 0.25, 0.5, 0.75, 0.975), ...)
 }
 \arguments{
 \item{object}{object of class dsp from \code{\link[=dsp_fit]{dsp_fit()}}}
@@ -25,7 +25,7 @@ Summarize DSP MCMC chains
 }
 \examples{
 
-#' signal = c(rep(0, 50), rep(10, 50))
+signal = c(rep(0, 50), rep(10, 50))
 noise = rep(1, 100)
 noise_var = rep(1, 100)
 for (k in 2:100){

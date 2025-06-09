@@ -50,6 +50,8 @@ must be one or more of:
 and the effective number of parameters \code{p_d}}
 
 \item{verbose}{logical; should R report extra information on progress?}
+
+\item{sigma_e}{}
 }
 \value{
 A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}

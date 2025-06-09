@@ -33,6 +33,7 @@
 #' @param computeDIC logical; if TRUE, compute the deviance information criterion \code{DIC}
 #' and the effective number of parameters \code{p_d}
 #' @param verbose logical; should R report extra information on progress?
+#' @param sigma_e
 #'
 #' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 #'
@@ -199,6 +200,7 @@ init_paramsASV <- function(data,evol_error,D){
 #' @param evol_error the evolution error distribution; must be one of
 #' 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
 #' @param D degree of differencing (D = 1, or D = 2)
+#' @param sigma_e
 #'
 #' @return a list containing 4 sets of parameters
 #' \itemize{

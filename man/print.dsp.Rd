@@ -5,9 +5,9 @@
 \alias{print.dsp_spec}
 \title{Print a summary of a model specification or fitted dsp object}
 \usage{
-\method{print}{dsp}(object, ...)
+print.dsp(object, ...)
 
-\method{print}{dsp_spec}(object, ...)
+print.dsp_spec(object, ...)
 }
 \arguments{
 \item{object}{object of class dsp_spec from \code{\link[=dsp_spec]{dsp_spec()}}}

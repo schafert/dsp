@@ -19,5 +19,5 @@ ncind(y, mu, sig, q)
 Sample from \{1,...,k\}
 }
 \description{
-Sample Z from 1,2,...,k, with P(Z=i) proportional to q\link{i}N(mu\link{i},sig2\link{i}).
+Sample Z from 1,2,...,k, with P(Z=i) proportional to q_iN(mu_i,sig2_i).
 }

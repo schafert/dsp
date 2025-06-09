@@ -17,7 +17,7 @@
 #' \item the true observation standard deviation \code{sigma_true}
 #' }
 #'
-#' @note The root-signal-to-noise ratio is defined as RSNR = [sd of true function]/[sd of noise].
+#' @note The root-signal-to-noise ratio is defined as RSNR = (sd of true function)/(sd of noise).
 #'
 #' @examples
 #'
@@ -70,7 +70,7 @@ simUnivariate = function(signalName = "bumps", nT = 200, RSNR = 10, include_plot
 #' }
 #'
 #'
-#' @note The root-signal-to-noise ratio is defined as RSNR = [sd of true function]/[sd of noise].
+#' @note The root-signal-to-noise ratio is defined as RSNR = (sd of true function)/(sd of noise).
 #'
 #' @examples
 #' \dontrun{
@@ -150,7 +150,7 @@ simRegression = function(nT = 200, p = 20, p_0 = 15,
 #'
 #' @note The number of predictors is \code{p = length(signalNames) + p_0}.
 #'
-#' @note The root-signal-to-noise ratio is defined as RSNR = [sd of true function]/[sd of noise].
+#' @note The root-signal-to-noise ratio is defined as RSNR = (sd of true function)/(sd of noise).
 #'
 #' @importFrom stats arima.sim
 simRegression0 = function(signalNames = c("bumps", "blocks"), nT = 200, RSNR = 10, p_0 = 5, include_intercept = TRUE, scale_all = TRUE, include_plot = TRUE, ar1 = 0){
@@ -609,7 +609,7 @@ getNonZeros = function(post_evol_sigma_t2, post_obs_sigma_t2 = NULL){
 }
 #' Sample components from a discrete mixture of normals
 #'
-#' Sample Z from 1,2,...,k, with P(Z=i) proportional to q[i]N(mu[i],sig2[i]).
+#' Sample Z from 1,2,...,k, with P(Z=i) proportional to q_iN(mu_i,sig2_i).
 #'
 #' @param y vector of data
 #' @param mu vector of component means

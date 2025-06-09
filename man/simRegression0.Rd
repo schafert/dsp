@@ -51,5 +51,5 @@ The dynamic regression coefficients are selected using the options from the
 \note{
 The number of predictors is \code{p = length(signalNames) + p_0}.
 
-The root-signal-to-noise ratio is defined as RSNR = \link{sd of true function}/\link{sd of noise}.
+The root-signal-to-noise ratio is defined as RSNR = (sd of true function)/(sd of noise).
 }

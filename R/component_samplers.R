@@ -666,10 +666,10 @@ sampleEvolParams = function(omega, evolParams,  sigma_e = 1, evol_error = "DHS",
 #' @param sigma_e the observation error standard deviation; for (optional) scaling purposes
 #' @param loc list of the row and column indices to fill in a band-sparse matrix
 #' @param prior_dhs_phi the parameters of the prior for the log-volatility AR(1) coefficient \code{dhs_phi};
-#' either \code{NULL} for uniform on [-1,1] or a 2-dimensional vector of (shape1, shape2) for a Beta prior
+#' either \code{NULL} for uniform on \[-1,1\] or a 2-dimensional vector of (shape1, shape2) for a Beta prior
 #' on \code{[(dhs_phi + 1)/2]}
 #' @param alphaPlusBeta For the symmetric prior kappa ~ Beta(alpha, beta) with alpha=beta,
-#' specify the sum [alpha + beta]
+#' specify the sum \[alpha + beta\]
 #' @return List of relevant components:
 #' \itemize{
 #' \item the \code{T x p} evolution error standard deviations \code{sigma_wt},
@@ -837,7 +837,7 @@ sampleSVparams0 = function(omega, svParams){
 #' @param h_phi the \code{p x 1} vector of previous AR(1) coefficient(s)
 #' @param h_sigma_eta_t the \code{T x p} matrix of log-vol innovation standard deviations
 #' @param prior_dhs_phi the parameters of the prior for the log-volatility AR(1) coefficient \code{dhs_phi};
-#' either \code{NULL} for uniform on [-1,1] or a 2-dimensional vector of (shape1, shape2) for a Beta prior
+#' either \code{NULL} for uniform on \[ -1,1 \] or a 2-dimensional vector of (shape1, shape2) for a Beta prior
 #' on \code{[(dhs_phi + 1)/2]}
 #'
 #' @return \code{p x 1} vector of sampled AR(1) coefficient(s)

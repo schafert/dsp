@@ -14,7 +14,7 @@
 #'
 #' @examples
 #'
-#' #' signal = c(rep(0, 50), rep(10, 50))
+#' signal = c(rep(0, 50), rep(10, 50))
 #' noise = rep(1, 100)
 #' noise_var = rep(1, 100)
 #' for (k in 2:100){
@@ -25,6 +25,8 @@
 #' model_spec = dsp_spec(family = "gaussian", model = "changepoint")
 #' mcmc_output = dsp_fit(y, model_spec = model_spec)
 #' summary(mcmc_output)
+#'
+#' @importFrom purrr map
 #'
 #' @export
 

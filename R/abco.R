@@ -362,10 +362,10 @@ t_sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs){
 #' @param lower_b the lower bound in the uniform prior of the threshold variable
 #' @param loc list of the row and column indices to fill in a band-sparse matrix
 #' @param prior_dhs_phi the parameters of the prior for the log-volatility AR(1) coefficient \code{dhs_phi};
-#' either \code{NULL} for uniform on [-1,1] or a 2-dimensional vector of (shape1, shape2) for a Beta prior
+#' either \code{NULL} for uniform on \[-1,1\] or a 2-dimensional vector of (shape1, shape2) for a Beta prior
 #' on \code{[(dhs_phi + 1)/2]}
 #' @param alphaPlusBeta For the symmetric prior kappa ~ Beta(alpha, beta) with alpha=beta,
-#' specify the sum [alpha + beta]
+#' specify the sum \[alpha + beta\]
 #' @return List of relevant components:
 #' \itemize{
 #' \item the \code{T} evolution error standard deviations \code{sigma_wt},
@@ -513,7 +513,7 @@ t_sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_si
 #' @param h_sigma_eta_t the \code{T} vector of log-vol innovation standard deviations
 #' @param h_st the \code{T} vector of indicators on whether each time-step exceed the estimated threshold
 #' @param prior_dhs_phi the parameters of the prior for the log-volatility AR(1) coefficient \code{dhs_phi};
-#' either \code{NULL} for uniform on [-1,1] or a 2-dimensional vector of (shape1, shape2) for a Beta prior
+#' either \code{NULL} for uniform on \[-1,1\] or a 2-dimensional vector of (shape1, shape2) for a Beta prior
 #' on \code{[(dhs_phi + 1)/2]}
 #'
 #' @return \code{2} vector of sampled TAR(1) coefficient(s)

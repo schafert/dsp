@@ -4,10 +4,10 @@
 \alias{plot.dsp}
 \title{Plot the Bayesian trend filtering fitted values}
 \usage{
-\method{plot}{dsp}(object, y, mu_true = NULL, t01 = NULL, include_joint_bands = FALSE)
+\method{plot}{dsp}(x, y, mu_true = NULL, t01 = NULL, include_joint_bands = FALSE, ...)
 }
 \arguments{
-\item{object}{an object of class 'dsp' from \code{\link[=dsp_fit]{dsp_fit()}} with parameter name 'mu'}
+\item{x}{an object of class 'dsp' from \code{\link[=dsp_fit]{dsp_fit()}} with parameter name 'mu'}
 
 \item{y}{the \code{T x 1} vector of time series observations}
 
@@ -22,7 +22,7 @@ Plot the BTF posterior mean of the conditional expectation with posterior credib
 the observed data, and true curves (if known)
 }
 \details{
-The credible intervals plotted depends on whether \code{object} contains predictions
+The credible intervals plotted depends on whether \code{x} contains predictions
 of the data, i.e., it contains the name 'yhat'. If it does, then a plot is created with
 credible intervals for the posterior prediction of y, else credible intervals are calculated
 for the conditional expectation contained in the named slot 'mu'.
@@ -36,7 +36,8 @@ for (k in 2:100){
   noise[k] = rnorm(1, 0, sqrt(noise_var[k])) }
 
 y = signal + noise
-model_spec = dsp_spec(family = "gaussian", model = "changepoint", mcmc_params = list('yhat', 'mu', "omega", "r"))
+model_spec = dsp_spec(family = "gaussian", model = "changepoint",
+                      mcmc_params = list('yhat', 'mu', "omega", "r"))
 mcmc_output = dsp_fit(y, model_spec = model_spec)
 plot(mcmc_output, y, mu_true = signal) # plots prediction intervals
 

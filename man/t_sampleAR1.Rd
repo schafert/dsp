@@ -19,7 +19,7 @@ t_sampleAR1(h_yc, h_phi, h_phi2, h_sigma_eta_t, h_st, prior_dhs_phi = NULL)
 \item{h_st}{the \code{T} vector of indicators on whether each time-step exceed the estimated threshold}
 
 \item{prior_dhs_phi}{the parameters of the prior for the log-volatility AR(1) coefficient \code{dhs_phi};
-either \code{NULL} for uniform on \link{-1,1} or a 2-dimensional vector of (shape1, shape2) for a Beta prior
+either \code{NULL} for uniform on [-1,1] or a 2-dimensional vector of (shape1, shape2) for a Beta prior
 on \code{[(dhs_phi + 1)/2]}}
 }
 \value{

@@ -47,7 +47,7 @@ where jumps occur with a pre-specified probability \code{sparsity}.
 The coefficients are initialized by a N(0,1) simulation.
 }
 \note{
-The root-signal-to-noise ratio is defined as RSNR = \link{sd of true function}/\link{sd of noise}.
+The root-signal-to-noise ratio is defined as RSNR = (sd of true function)/(sd of noise).
 }
 \examples{
 \dontrun{
