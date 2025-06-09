@@ -4,7 +4,7 @@
 \alias{summary.dsp}
 \title{Summarize DSP MCMC chains}
 \usage{
-summary.dsp(object, pars, probs = c(0.025, 0.25, 0.5, 0.75, 0.975), ...)
+\method{summary}{dsp}(object, pars, probs = c(0.025, 0.25, 0.5, 0.75, 0.975), ...)
 }
 \arguments{
 \item{object}{object of class dsp from \code{\link[=dsp_fit]{dsp_fit()}}}

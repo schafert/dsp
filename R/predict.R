@@ -34,7 +34,7 @@
 #' mcmc_output = dsp_fit(y, model_spec = model_spec)
 #' predict(mcmc_output)
 #'
-#'
+#' @method predict dsp
 #' @export
 
 predict.dsp <- function(object, cp_thres = 0.5, cp_prop = FALSE, ...){

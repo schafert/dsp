@@ -27,6 +27,8 @@ sampleBTF(
 
 \item{chol0}{(optional) the \code{m x m} matrix of initial Cholesky factorization;
 if NULL, use the \code{Matrix} package for sampling, otherwise use the \code{spam} package}
+
+\item{prior_mean}{optional (default is NULL); numeric \code{T x 1} vector specifying the prior mean of \code{mu}}
 }
 \value{
 \code{T x 1} vector of simulated states

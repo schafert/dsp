@@ -5,9 +5,9 @@
 \alias{print.dsp_spec}
 \title{Print a summary of a model specification or fitted dsp object}
 \usage{
-print.dsp(object, ...)
+\method{print}{dsp}(object, ...)
 
-print.dsp_spec(object, ...)
+\method{print}{dsp_spec}(object, ...)
 }
 \arguments{
 \item{object}{object of class dsp_spec from \code{\link[=dsp_spec]{dsp_spec()}}}
@@ -36,7 +36,6 @@ y = signal + noise
 model_spec = dsp_spec(family = "gaussian", model = "changepoint")
 mcmc_output = dsp_fit(y, model_spec = model_spec)
 print(mcmc_output)
-
 
 
 model_spec = dsp_spec(family = "gaussian", model = "changepoint")

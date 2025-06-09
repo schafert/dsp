@@ -9,6 +9,7 @@
 #' @param mu_true (defaults to NULL) the \code{T x 1} vector of the true conditional mean
 #' @param t01 the observation points; if NULL, assume \code{T} equally spaced points from 0 to 1
 #' @param include_joint_bands logical; if TRUE, compute simultaneous credible bands
+#' @param ... currently not used
 #'
 #' @details
 #'

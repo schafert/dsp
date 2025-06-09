@@ -12,6 +12,8 @@
 #' @param loc_obs list of the row and column indices to fill in a band-sparse matrix
 #' @param chol0 (optional) the \code{m x m} matrix of initial Cholesky factorization;
 #' if NULL, use the \code{Matrix} package for sampling, otherwise use the \code{spam} package
+#' @param prior_mean optional (default is NULL); numeric \code{T x 1} vector specifying the prior mean of \code{mu}
+#'
 #' @return \code{T x 1} vector of simulated states
 #'
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.

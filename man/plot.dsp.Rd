@@ -16,6 +16,8 @@
 \item{t01}{the observation points; if NULL, assume \code{T} equally spaced points from 0 to 1}
 
 \item{include_joint_bands}{logical; if TRUE, compute simultaneous credible bands}
+
+\item{...}{currently not used}
 }
 \description{
 Plot the BTF posterior mean of the conditional expectation with posterior credible intervals (pointwise and joint),

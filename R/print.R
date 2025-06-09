@@ -25,7 +25,7 @@
 #' print(mcmc_output)
 #'
 #'
-#'
+#' @method print dsp
 #' @export
 #'
 
@@ -56,6 +56,7 @@ print.dsp <- function(object, ...){
 #' model_spec = dsp_spec(family = "gaussian", model = "changepoint")
 #' print(model_spec)
 #'
+#' @method print dsp_spec
 #' @rdname print.dsp
 print.dsp_spec <- function(object, ...){
 

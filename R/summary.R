@@ -28,6 +28,7 @@
 #'
 #' @importFrom purrr map
 #'
+#' @method summary dsp
 #' @export
 
 summary.dsp <- function(object, pars, probs = c(0.025, 0.25, 0.50, 0.75, 0.975), ...){
