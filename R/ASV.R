@@ -41,8 +41,6 @@
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
 #' deviation is recommended to avoid numerical issues.
 #'
-#' @import spam
-#' @import progress
 #' @export
 fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
                    nsave = 1000, nburn = 1000, nskip = 4,
@@ -143,7 +141,7 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
   # Also include the log-likelihood:
   mcmc_output$loglike = post_loglike
   if(computeDIC){
-    list_dic_p_d = computeDIC_ASV(y,beta,post_sigma2,post_loglike)
+    list_dic_p_d = computeDIC_ASV(y, beta, post_sigma2, post_loglike)
     mcmc_output$DIC = list_dic_p_d$DIC
     mcmc_output$p_d = list_dic_p_d$p_d
   }
@@ -159,8 +157,8 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
 #'
 generate_ly2hat <- function(h,p_error_term){
   return(h + matrix(rnorm(length(h),
-                           mean = p_error_term$mean,
-                           sd = sqrt(p_error_term$var)))
+                          mean = p_error_term$mean,
+                          sd = sqrt(p_error_term$var)))
   )
 }
 #' Helper function for initializing parameters for ASV model
@@ -192,15 +190,15 @@ init_paramsASV <- function(data,evol_error,D){
   loc_error = t_create_loc(nT-D,1)
 
   s_p_error_term = sample_j_wrap(nT,NULL)
-  s_mu = dsp::sampleBTF(data- s_p_error_term$mean,
-                        obs_sigma_t2 = s_p_error_term$var,
-                        evol_sigma_t2 = 0.01*rep(1,nT),
-                        D = D,
-                        loc_obs)
+  s_mu = sampleBTF(data- s_p_error_term$mean,
+                   obs_sigma_t2 = s_p_error_term$var,
+                   evol_sigma_t2 = 0.01*rep(1,nT),
+                   D = D,
+                   loc_obs)
   s_omega = diff(s_mu,differences = D)
   s_mu0 = as.matrix(s_mu[1:D,])
-  s_evolParams0 = dsp::initEvol0(s_mu0)
-  s_evolParams = dsp::initEvolParams(s_omega,evol_error)
+  s_evolParams0 = initEvol0(s_mu0)
+  s_evolParams = initEvolParams(s_omega,evol_error)
   return(list(
     s_p_error_term = s_p_error_term,
     s_mu = s_mu,
@@ -243,7 +241,7 @@ fit_paramsASV <- function(data,sParams,evol_error,D){
   data = approxfun(t01, data, rule = 2)(t01)
   #s_p_error_term = sample_jfast(nT,data-sParams$s_mu)
   s_p_error_term = sample_j_wrap(nT,data-sParams$s_mu)
-  s_mu = dsp::sampleBTF(
+  s_mu = sampleBTF(
     data - s_p_error_term$mean,
     obs_sigma_t2 = s_p_error_term$var,
     evol_sigma_t2 = c(sParams$s_evolParams0$sigma_w0^2,
@@ -252,12 +250,12 @@ fit_paramsASV <- function(data,sParams,evol_error,D){
     loc_obs = sParams$loc_obs)
   s_omega = diff(s_mu, differences = D)
   s_mu0 = as.matrix(s_mu[1:D,])
-  s_evolParams0 = dsp::sampleEvol0(s_mu0, sParams$s_evolParams0)
-  s_evolParams = dsp::sampleEvolParams(omega = s_omega,
-                                       evolParams = sParams$s_evolParams,
-                                       sigma_e = sigma_e,
-                                       evol_error = evol_error,
-                                       loc = sParams$loc_error)
+  s_evolParams0 = sampleEvol0(s_mu0, sParams$s_evolParams0)
+  s_evolParams = sampleEvolParams(omega = s_omega,
+                                  evolParams = sParams$s_evolParams,
+                                  sigma_e = sigma_e,
+                                  evol_error = evol_error,
+                                  loc = sParams$loc_error)
   sParams$s_p_error_term = s_p_error_term
   sParams$s_mu = s_mu
   sParams$s_evolParams0 = s_evolParams0
@@ -299,22 +297,22 @@ init_paramsASV_n <- function(data,evol_error,D){
 
   s_p_error_term = sample_j_wrap(nT,NULL)
   # h*
-  s_mu = dsp::sampleBTF(data- s_p_error_term$mean,
-                        obs_sigma_t2 = s_p_error_term$var,
-                        evol_sigma_t2 = 0.01*rep(1,nT),
-                        D = 0)
-  s_upevolParams = dsp::initEvolParams(s_mu,evol_error = "NIG")
+  s_mu = sampleBTF(data- s_p_error_term$mean,
+                   obs_sigma_t2 = s_p_error_term$var,
+                   evol_sigma_t2 = 0.01*rep(1,nT),
+                   D = 0)
+  s_upevolParams = initEvolParams(s_mu,evol_error = "NIG")
   # h
-  s_mu_sm = dsp::sampleBTF(s_mu,
-                        obs_sigma_t2 = s_upevolParams$sigma_wt^2,
-                        evol_sigma_t2 = 0.01*rep(1,nT),
-                        D = D,
-                        loc_obs)
+  s_mu_sm = sampleBTF(s_mu,
+                      obs_sigma_t2 = s_upevolParams$sigma_wt^2,
+                      evol_sigma_t2 = 0.01*rep(1,nT),
+                      D = D,
+                      loc_obs)
 
   s_omega = diff(s_mu_sm,differences = D)
   s_mu_sm0 = as.matrix(s_mu_sm[1:D,])
-  s_evolParams0 = dsp::initEvol0(s_mu_sm0)
-  s_evolParams = dsp::initEvolParams(s_omega,evol_error)
+  s_evolParams0 = initEvol0(s_mu_sm0)
+  s_evolParams = initEvolParams(s_omega,evol_error)
 
 
   return(list(
@@ -362,32 +360,32 @@ fit_paramsASV_n <- function(data,sParams,evol_error,D){
 
   ####################################
   s_p_error_term = sample_j_wrap(nT,data - sParams$s_mu )
-  s_mu = dsp::sampleBTF(
+  s_mu = sampleBTF(
     y = data - s_p_error_term$mean,
     obs_sigma_t2 = s_p_error_term$var,
     evol_sigma_t2 = sParams$s_upevolParams$sigma_wt^2,
     prior_mean = sParams$s_mu_sm,
     D = 0)
 
-  s_mu_sm = dsp::sampleBTF(s_mu,
-                           obs_sigma_t2 = sParams$s_upevolParams$sigma_wt^2,
-                           evol_sigma_t2 = c(sParams$s_evolParams0$sigma_w0^2,
-                                             sParams$s_evolParams$sigma_wt^2),
-                           D = D,
-                           sParams$loc_obs)
+  s_mu_sm = sampleBTF(s_mu,
+                      obs_sigma_t2 = sParams$s_upevolParams$sigma_wt^2,
+                      evol_sigma_t2 = c(sParams$s_evolParams0$sigma_w0^2,
+                                        sParams$s_evolParams$sigma_wt^2),
+                      D = D,
+                      sParams$loc_obs)
 
   s_omega = diff(s_mu_sm,differences = D)
   s_mu_sm0 = as.matrix(s_mu_sm[1:D,])
-  s_evolParams0 = dsp::sampleEvol0(s_mu_sm0, sParams$s_evolParams0)
-  s_evolParams = dsp::sampleEvolParams(omega = s_omega,
-                                       evolParams = sParams$s_evolParams,
-                                       sigma_e = sigma_e,
-                                       evol_error = evol_error,
-                                       loc = sParams$loc_error)
+  s_evolParams0 = sampleEvol0(s_mu_sm0, sParams$s_evolParams0)
+  s_evolParams = sampleEvolParams(omega = s_omega,
+                                  evolParams = sParams$s_evolParams,
+                                  sigma_e = sigma_e,
+                                  evol_error = evol_error,
+                                  loc = sParams$loc_error)
 
-  s_upevolParams <- dsp::sampleEvolParams(s_mu - s_mu_sm,
-                                          sParams$s_upevolParams,
-                                          sigma_e = 1,evol_error = "NIG")
+  s_upevolParams <- sampleEvolParams(s_mu - s_mu_sm,
+                                     sParams$s_upevolParams,
+                                     sigma_e = 1,evol_error = "NIG")
 
   sParams$s_p_error_term = s_p_error_term
   sParams$s_mu = s_mu

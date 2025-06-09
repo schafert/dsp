@@ -2,7 +2,7 @@
 #'
 #' Prints basic information about the MCMC sampling settings for the fitted model
 #'
-#' @param object object of class dsp from [dsp_fit()]
+#' @param x object of class dsp from [dsp_fit()]
 #' @param ... currently not used
 #'
 #' @details
@@ -29,12 +29,12 @@
 #' @export
 #'
 
-print.dsp <- function(object, ...){
+print.dsp <- function(x, ...){
 
-  print(object$model_spec)
-  cat("\nTotal number of MCMC samples burned in:", object$mcpar["nburn"], "\n")
-  cat("Thinning interval use:", object$mcpar["nskip"], "\n")
-  cat("Total number of MCMC samples saved:", object$mcpar["nsave"])
+  print(x$model_spec)
+  cat("\nTotal number of MCMC samples burned in:", x$mcpar["nburn"], "\n")
+  cat("Thinning interval use:", x$mcpar["nskip"], "\n")
+  cat("Total number of MCMC samples saved:", x$mcpar["nsave"])
 
 
   invisible(NULL)
@@ -46,7 +46,7 @@ print.dsp <- function(object, ...){
 #'
 #' Prints basic information about the model specification
 #'
-#' @param object object of class dsp_spec from [dsp_spec()]
+#' @param x object of class dsp_spec from [dsp_spec()]
 #' @param ... currently not used
 #'
 #' @returns NULL
@@ -58,28 +58,28 @@ print.dsp <- function(object, ...){
 #'
 #' @method print dsp_spec
 #' @rdname print.dsp
-print.dsp_spec <- function(object, ...){
+print.dsp_spec <- function(x, ...){
 
-  if(object$family == "gaussian"){
+  if(x$family == "gaussian"){
 
     cat("Gaussian likelihood with ")
 
-    switch(object$model,
+    switch(x$model,
            changepoint = cat("changepoint and outlier detection, "),
            smoothing = cat("Bayesian trend smoothing, "),
            regression = cat("time-varying regression, "),
            bspline = cat("B-spline smoothing splines, "))
 
-    switch(object$arguments$obsSV,
+    switch(x$arguments$obsSV,
            const = cat("constant error variance, and "),
            SV = cat("stochastic volatility, and "),
            ASV = cat("adaptive stochastic volatility, and "))
 
-    cat(object$arguments$D, "degree of differencing.")
+    cat(x$arguments$D, "degree of differencing.")
   }
 
-  if(object$family == "negbinom"){
-    cat("Negative binomial likelihood with", object$arguments$D, "degree of differencing.")
+  if(x$family == "negbinom"){
+    cat("Negative binomial likelihood with", x$arguments$D, "degree of differencing.")
   }
 
   invisible(NULL)

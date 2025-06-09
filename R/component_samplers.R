@@ -138,8 +138,8 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol
 #' lines(mu, lwd=8, col='blue') # add the states to the plot
 #' }
 #'
-#' @import Matrix
 #' @importFrom spam rmvnorm.canonical as.spam.dgCMatrix
+#' @importFrom Matrix chol t solve
 #' @export
 sampleBTF_sparse = function(y,
                             obs_sigma_t2,
@@ -182,9 +182,9 @@ sampleBTF_sparse = function(y,
       # New sampler, based on spam package:
 
       # Sample the states:
-      mu = matrix(rmvnorm.canonical(n = 1,
+      mu = matrix(spam::rmvnorm.canonical(n = 1,
                                     b = linht,
-                                    Q = as.spam.dgCMatrix(as(QHt_Matrix, "dgCMatrix")),
+                                    Q = spam::as.spam.dgCMatrix(as(QHt_Matrix, "dgCMatrix")),
                                     Rstruct = chol0))
     } else {
       # Original sampler, based on Matrix package:
@@ -221,7 +221,6 @@ sampleBTF_sparse = function(y,
 #'
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 #'
-#' @import Matrix
 #' @importFrom spam rmvnorm.canonical as.spam.dgCMatrix
 #' @export
 sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = NULL){
@@ -246,7 +245,7 @@ sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = 
     Q_off = matrix(-t_evol_prec_lag_mat)[-(nT*p)]
 
     # Quadratic term:
-    Qevol = bandSparse(nT*p, k = c(0,p), diagonals = list(Q_diag, Q_off), symmetric = TRUE)
+    Qevol = Matrix::bandSparse(nT*p, k = c(0,p), diagonals = list(Q_diag, Q_off), symmetric = TRUE)
 
     # For checking via direct computation:
     # H1 = bandSparse(nT, k = c(0,-1), diag = list(rep(1, nT), rep(-1, nT)), symmetric = FALSE)
@@ -278,7 +277,7 @@ sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = 
       Q_off_2 = matrix(Q_off_2)
 
       # Quadratic term:
-      Qevol = bandSparse(nT*p, k = c(0, p, 2*p), diagonals= list(Q_diag, Q_off_1, Q_off_2), symmetric = TRUE)
+      Qevol = Matrix::bandSparse(nT*p, k = c(0, p, 2*p), diagonals= list(Q_diag, Q_off_1, Q_off_2), symmetric = TRUE)
 
       # For checking via direct computation:
       # H2 = bandSparse(nT, k = c(0,-1, -2), diag = list(rep(1, nT), c(0, rep(-2, nT-1)), rep(1, nT)), symmetric = FALSE)
@@ -300,10 +299,10 @@ sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = 
     # Use spam sampler (new version)
 
     # Convert to spam object:
-    QHt_Matrix = as.spam.dgCMatrix(as(Qpost, "dgCMatrix"))
+    QHt_Matrix = spam::as.spam.dgCMatrix(as(Qpost, "dgCMatrix"))
 
     # NOTE: reorder (opposite of log-vol!)
-    beta = matrix(rmvnorm.canonical(n = 1,
+    beta = matrix(spam::rmvnorm.canonical(n = 1,
                                     b = linht,
                                     Q = QHt_Matrix,
                                     Rstruct = chol0),
@@ -340,7 +339,6 @@ sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = 
 #'
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 #'
-#' @import Matrix
 #' @export
 sampleBTF_reg_backfit = function(y, X, beta, obs_sigma_t2, evol_sigma_t2, D = 1){
 
@@ -409,7 +407,6 @@ sampleBTF_reg_backfit = function(y, X, beta, obs_sigma_t2, evol_sigma_t2, D = 1)
 #'
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 #'
-#' @import Matrix
 #' @export
 sampleBTF_bspline = function(y, X, obs_sigma2, evol_sigma_t2, XtX_bands, Xty = NULL, D = 1){
 
@@ -428,7 +425,7 @@ sampleBTF_bspline = function(y, X, obs_sigma2, evol_sigma_t2, XtX_bands, Xty = N
   # Quadratic terms and solutions are computed differently, depending on D:
   if(D == 0){
     # Special case: no differencing
-    QHt_Matrix = bandSparse(p, k = c(0,1,2,3),
+    QHt_Matrix = Matrix::bandSparse(p, k = c(0,1,2,3),
                             diagonals= list(XtX_bands$XtX_0/obs_sigma2,
                                         XtX_bands$XtX_1/obs_sigma2,
                                         XtX_bands$XtX_2/obs_sigma2,
@@ -437,7 +434,7 @@ sampleBTF_bspline = function(y, X, obs_sigma2, evol_sigma_t2, XtX_bands, Xty = N
   } else {
     # Prior/evoluation quadratic term: can construct directly for D = 1 or D = 2
     if(D == 1){
-      QHt_Matrix = bandSparse(p, k = c(0,1,2,3),
+      QHt_Matrix = Matrix::bandSparse(p, k = c(0,1,2,3),
                               diagonals= list(XtX_bands$XtX_0/obs_sigma2 + 1/evol_sigma_t2 + c(1/evol_sigma_t2[-1], 0),
                                           XtX_bands$XtX_1/obs_sigma2 + -1/evol_sigma_t2[-1],
                                           XtX_bands$XtX_2/obs_sigma2,
@@ -445,7 +442,7 @@ sampleBTF_bspline = function(y, X, obs_sigma2, evol_sigma_t2, XtX_bands, Xty = N
                               symmetric = TRUE)
     } else {
       if(D == 2){
-        QHt_Matrix = bandSparse(p, k = c(0,1,2,3),
+        QHt_Matrix = Matrix::bandSparse(p, k = c(0,1,2,3),
                                 diagonals= list(XtX_bands$XtX_0/obs_sigma2 + 1/evol_sigma_t2 + c(0, 4/evol_sigma_t2[-(1:2)], 0) + c(1/evol_sigma_t2[-(1:2)], 0, 0),
                                             XtX_bands$XtX_1/obs_sigma2 + c(-2/evol_sigma_t2[3], -2*(1/evol_sigma_t2[-(1:2)] + c(1/evol_sigma_t2[-(1:3)],0))),
                                             XtX_bands$XtX_2/obs_sigma2 + 1/evol_sigma_t2[-(1:2)],
@@ -486,7 +483,7 @@ sampleBTF_bspline = function(y, X, obs_sigma2, evol_sigma_t2, XtX_bands, Xty = N
 #' @note For Bayesian trend filtering, \code{p = 1}. More generally, the sampler allows for
 #' \code{p > 1} but assumes (contemporaneous) independence across the log-vols for \code{j = 1,...,p}.
 #'
-#' @import Matrix
+
 sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, loc = NULL){
 
   # Compute dimensions:
@@ -554,7 +551,7 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0,
 
   if(is.null(loc)){
     # Quadratic term:
-    QHt_Matrix = bandSparse(n*p, k = c(0,1), diagonals = list(Q_diag, Q_off), symmetric = TRUE)
+    QHt_Matrix = Matrix::bandSparse(n*p, k = c(0,1), diagonals = list(Q_diag, Q_off), symmetric = TRUE)
 
      # Cholesky:
     chQht_Matrix = Matrix::chol(QHt_Matrix)
@@ -594,7 +591,6 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0,
 #' @note To avoid scaling by the observation standard deviation \code{sigma_e},
 #' simply use \code{sigma_e = 1} in the functional call.
 #'
-#' @import stochvol
 #' @importFrom mgcv rig
 #' @export
 sampleEvolParams = function(omega, evolParams,  sigma_e = 1, evol_error = "DHS", loc = NULL){
@@ -908,7 +904,6 @@ sampleAR1 = function(h_yc, h_phi, h_sigma_eta_t, prior_dhs_phi = NULL){
 #' \item the sampled precision(s) \code{dhs_mean_prec_j} from the Polya-Gamma parameter expansion
 #'}
 #'
-#' @import pgdraw
 #' @export
 sampleLogVolMu = function(h, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, h_log_scale = 0){
 
@@ -917,7 +912,7 @@ sampleLogVolMu = function(h, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, h_log_sc
 
   # Sample the precision term(s)
 
-  dhs_mean_prec_j = pgdraw(b = 1, c = c(h_mu - h_log_scale))
+  dhs_mean_prec_j = pgdraw::pgdraw(b = 1, c = c(h_mu - h_log_scale))
 
   # Now, form the "y" and "x" terms in the (auto)regression
   y_mu = (h[-1,] - tcrossprod(rep(1,n-1), h_phi)*h[-n,])/h_sigma_eta_t;
@@ -954,11 +949,10 @@ sampleLogVolMu = function(h, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, h_log_sc
 #' shrinkage effects, e.g. predictor- and time-dependent shrinkage, predictor-dependent shrinkage,
 #' and global shrinkage, with a natural hierarchical ordering.
 #'
-#' @import pgdraw
 #' @export
 sampleLogVolMu0 = function(h_mu, h_mu0, dhs_mean_prec_j, h_log_scale = 0){
 
-  dhs_mean_prec_0 = pgdraw(b = 1, c = c(h_mu0 - h_log_scale))
+  dhs_mean_prec_0 = pgdraw::pgdraw(b = 1, c = c(h_mu0 - h_log_scale))
 
   # Sample the common mean parameter:
   postSD = 1/sqrt(sum(dhs_mean_prec_j) + dhs_mean_prec_j)

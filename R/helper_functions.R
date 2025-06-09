@@ -488,7 +488,7 @@ initCholReg.spam = function(obs_sigma_t2, evol_sigma_t2, XtX, D = 1){
 #' @param D the degree of differencing (one or two)
 #' @return Banded \code{T x T} Matrix (object) \code{Q}
 #'
-#' @import Matrix
+#' @importFrom Matrix bandSparse
 #' @export
 build_Q = function(obs_sigma_t2, evol_sigma_t2, D = 1){
 
@@ -503,13 +503,13 @@ build_Q = function(obs_sigma_t2, evol_sigma_t2, D = 1){
   # Quadratic term: can construct directly for D = 1 or D = 2 using [diag(1/obs_sigma_t2, nT) + (t(HD)%*%diag(1/evol_sigma_t2, nT))%*%HD]
   if(D == 1){
     # D = 1 case:
-    Q = bandSparse(nT, k = c(0,1),
+    Q = Matrix::bandSparse(nT, k = c(0,1),
                    diagonals= list(1/obs_sigma_t2 + 1/evol_sigma_t2 + c(1/evol_sigma_t2[-1], 0),
                                -1/evol_sigma_t2[-1]),
                    symmetric = TRUE)
   } else {
     # D = 2 case:
-    Q = bandSparse(nT, k = c(0,1,2),
+    Q = Matrix::bandSparse(nT, k = c(0,1,2),
                    diagonals= list(1/obs_sigma_t2 + 1/evol_sigma_t2 + c(0, 4/evol_sigma_t2[-(1:2)], 0) + c(1/evol_sigma_t2[-(1:2)], 0, 0),
                                c(-2/evol_sigma_t2[3], -2*(1/evol_sigma_t2[-(1:2)] + c(1/evol_sigma_t2[-(1:3)],0))),
                                1/evol_sigma_t2[-(1:2)]),
