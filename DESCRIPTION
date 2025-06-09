@@ -61,7 +61,13 @@ Imports:
     stochvol,
     BayesLogit,
     truncdist,
-    mgcv
+    mgcv,
+    purrr,
+    rlang,
+    lifecycle,
+    cli,
+    glue,
+    withr
 Suggests: 
     ggplot2,
     testthat (>= 3.0.0)

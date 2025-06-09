@@ -135,7 +135,7 @@ simRegression = function(nT = 200, p = 20, p_0 = 15,
 #' @param RSNR root-signal-to-noise ratio
 #' @param p_0 number of true zero regression terms to include
 #' @param include_intercept logical; if TRUE, the first column of X is 1's
-#' @param scale_all logical; if TRUE, scale all regression coefficients to [0,1]
+#' @param scale_all logical; if TRUE, scale all regression coefficients to \[0,1\]
 #' @param include_plot logical; if TRUE, include a plot of the simulated data and the true curve
 #' @param ar1 the AR(1) coefficient for the predictors X; default is zero for iid N(0,1) predictors
 #'

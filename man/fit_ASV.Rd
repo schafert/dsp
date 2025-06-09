@@ -12,10 +12,10 @@ fit_ASV(
   nsave = 1000,
   nburn = 1000,
   nskip = 4,
-  mcmc_params = list("h", "logy2hat", "sigma2", "evol_sigma_t2"),
+  mcmc_params = list("h", "logy2hat", "sigma2", "evol_sigma_t2", "dhs_phi", "dhs_mean"),
+  nugget = FALSE,
   computeDIC = TRUE,
-  verbose = TRUE,
-  sigma_e = pi/sqrt(2)
+  verbose = TRUE
 )
 }
 \arguments{

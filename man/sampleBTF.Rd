@@ -4,7 +4,15 @@
 \alias{sampleBTF}
 \title{Sampler for first or second order random walk (RW) Gaussian dynamic linear model (DLM)}
 \usage{
-sampleBTF(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol0 = NULL)
+sampleBTF(
+  y,
+  obs_sigma_t2,
+  evol_sigma_t2,
+  D = 1,
+  loc_obs = NULL,
+  chol0 = NULL,
+  prior_mean = NULL
+)
 }
 \arguments{
 \item{y}{the \code{T x 1} vector of time series observations}
