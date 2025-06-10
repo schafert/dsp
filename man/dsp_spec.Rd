@@ -34,10 +34,10 @@ For \code{family} = "gaussian" and \code{model} = "regression", \code{X} is requ
 Other arguments are optional and default to predefined value.
 
 \tabular{lll}{
-\strong{Family}  \tab \strong{Model}       \tab \strong{Required Arguments}  \cr
+\strong{Family}    \tab  \strong{Model}       \tab    \strong{Required Arguments}  \cr
 "gaussian"    \tab "changepoint"     \tab \code{D}, \code{useAnom}, \code{obsSV} \cr
-"gaussian"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{zero_error}  \cr
-"gaussian"    \tab "regression"      \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{X}  \cr
+"gaussian"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{zero_error}, \code{D_asv}, \code{evol_error_asv}, \code{nugget_asv}\cr
+"gaussian"    \tab "regression"      \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{X}, \code{D_asv}, \code{evol_error_asv}, \code{nugget_asv} \cr
 "gaussian"    \tab "bspline"        \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{times}, \code{num_knots}  \cr
 "negbinom"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{r_init}, \code{r_sample}, \code{offset}  \cr
 }
@@ -45,17 +45,20 @@ Other arguments are optional and default to predefined value.
 \itemize{
 \item \strong{Shared Arguments}:
 \itemize{
-\item \code{"D"}: integer scalar indicating degree of differencing.
+\item \code{D}: integer scalar indicating degree of differencing.
 Implementation is available D = 0, 1, or 2 (default) for \code{family} = "gaussian",
 and D = 1 and 2 (default) for \code{family} = "negbinomial".
-\item \code{"obsSV"}:Options for modeling the error variance for \code{family} = "gaussian".
+\item \code{obsSV}:Options for modeling the error variance for \code{family} = "gaussian".
 It must be one of the following:
 \itemize{
 \item "const": Constant error variance for all time points (default);
 \item "SV": Stochastic Volatility model;
 \item "ASV": Adaptive Stochastic Volatility model;
 }
-\item \code{"evol_error"}: the evolution error distribution; .
+\item \code{D_asv}: integer; degree of differencing (0, 1 (default), or 2) for the ASV model. Only used when \code{obsSV = "ASV"}.
+\item \code{evol_error_asv}: character; "HS" by default. evolution error distribution for the ASV model. Must be one of the five options used in \code{evol_error}. Only used when \code{obsSV = "ASV"}
+\item \code{nugget_asv}: logical; if \code{TRUE} (default), fits the nugget variant of the ASV model. Only used when \code{obsSV = "ASV"}.
+\item \code{evol_error}: the evolution error distribution; .
 \itemize{
 \item the dynamic horseshoe prior ("DHS") (default);
 \item the static horseshoe prior ("HS");

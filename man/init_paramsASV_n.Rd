@@ -2,7 +2,7 @@
 % Please edit documentation in R/ASV.R
 \name{init_paramsASV_n}
 \alias{init_paramsASV_n}
-\title{Helper function for initializing parameters for ASV model  with a nugget effect}
+\title{Helper function for initializing parameters for ASV model with a nugget effect}
 \usage{
 init_paramsASV_n(data, evol_error, D)
 }
@@ -24,5 +24,5 @@ a list containing 4 sets of parameters
 }
 }
 \description{
-Helper function for initializing parameters for ASV model  with a nugget effect
+Helper function for initializing parameters for ASV model with a nugget effect
 }

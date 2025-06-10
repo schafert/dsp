@@ -14,9 +14,12 @@ btf_sparse(
   nburn = 1000,
   nskip = 4,
   mcmc_params = list("mu", "yhat", "evol_sigma_t2", "obs_sigma_t2", "zero_sigma_t2",
-    "dhs_phi", "dhs_mean", "dhs_phi_zero", "dhs_mean_zero"),
+    "dhs_phi", "dhs_mean", "dhs_phi_zero", "dhs_mean_zero", "h", "h_smooth"),
   computeDIC = TRUE,
-  verbose = TRUE
+  verbose = TRUE,
+  D_asv = 1,
+  evol_error_asv = "HS",
+  nugget_asv = TRUE
 )
 }
 \arguments{
@@ -56,12 +59,20 @@ must be one or more of:
 \item "dhs_mean" (DHS AR(1) unconditional mean for evolution error)
 \item "dhs_phi_zero" (DHS AR(1) coefficient for shrink-to-zero error)
 \item "dhs_mean_zero" (DHS AR(1) unconditional mean for shrink-to-zero error)
+\item "h" (log variances or log of \code{"obs_sigma_t2"}. Only used when \code{obsSV = "ASV"})
+\item "h_smooth" (smooth estimate of log variances. Only used when \code{obsSV = "ASV"} and \code{nugget_asv = TRUE})
 }}
 
 \item{computeDIC}{logical; if TRUE, compute the deviance information criterion \code{DIC}
 and the effective number of parameters \code{p_d}}
 
 \item{verbose}{logical; should R report extra information on progress?}
+
+\item{D_asv}{integer; degree of differencing (0, 1, or 2) for the ASV model. Only used when \code{obsSV = "ASV"}.}
+
+\item{evol_error_asv}{character; evolution error distribution for the ASV model. Must be one of the five options used in \code{evol_error}. Only used when \code{obsSV = "ASV"}.}
+
+\item{nugget_asv}{logical; if \code{TRUE}, fits the nugget variant of the ASV model. Only used when \code{obsSV = "ASV"}.}
 }
 \value{
 A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}

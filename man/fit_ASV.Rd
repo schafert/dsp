@@ -39,6 +39,7 @@ i.e., save every (nskip + 1)th draw}
 must be one or more of:
 \itemize{
 \item "h" (Log variance)
+\item "h_smooth" (smooth estimate of log variances. Only used when \code{nugget_asv = TRUE})
 \item "logy2hat" (posterior predictive distribution of log(y^2))
 \item "sigma2" (Variance, i.e. exp(h))
 \item "evol_sigma_t2" (evolution error variance)
@@ -46,12 +47,12 @@ must be one or more of:
 \item "dhs_mean" (DHS AR(1) unconditional mean)
 }}
 
+\item{nugget}{logical; if \code{TRUE}, fits the nugget variant of the ASV model}
+
 \item{computeDIC}{logical; if TRUE, compute the deviance information criterion \code{DIC}
 and the effective number of parameters \code{p_d}}
 
 \item{verbose}{logical; should R report extra information on progress?}
-
-\item{sigma_e}{}
 }
 \value{
 A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}

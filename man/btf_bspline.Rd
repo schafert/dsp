@@ -48,6 +48,7 @@ must be one or more of:
 \item "obs_sigma_t2" (observation error variance)
 \item "dhs_phi" (DHS AR(1) coefficient)
 \item "dhs_mean" (DHS AR(1) unconditional mean)
+
 }}
 
 \item{computeDIC}{logical; if TRUE, compute the deviance information criterion \code{DIC}

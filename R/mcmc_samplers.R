@@ -38,10 +38,15 @@
 #' \item "obs_sigma_t2" (observation error variance)
 #' \item "dhs_phi" (DHS AR(1) coefficient)
 #' \item "dhs_mean" (DHS AR(1) unconditional mean)
+#' \item "h" (log variances or log of \code{"obs_sigma_t2"}. Only used when \code{obsSV = "ASV"})
+#' \item "h_smooth" (smooth estimate of log variances. Only used when \code{obsSV = "ASV"} and \code{nugget_asv = TRUE})
 #' }
 #' @param computeDIC logical; if TRUE, compute the deviance information criterion \code{DIC}
 #' and the effective number of parameters \code{p_d}
 #' @param verbose logical; should R report extra information on progress?
+#' @param D_asv integer; degree of differencing (0, 1, or 2) for the ASV model. Only used when \code{obsSV = "ASV"}.
+#' @param evol_error_asv character; evolution error distribution for the ASV model. Must be one of the five options used in \code{evol_error}. Only used when \code{obsSV = "ASV"}.
+#' @param nugget_asv logical; if \code{TRUE}, fits the nugget variant of the ASV model. Only used when \code{obsSV = "ASV"}.
 #'
 #' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 #'
@@ -81,9 +86,12 @@
 
 btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
                nsave = 1000, nburn = 1000, nskip = 4,
-               mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
+               mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h","h_smooth"),
                computeDIC = TRUE,
-               verbose = TRUE){
+               verbose = TRUE,
+               D_asv = 1,
+               evol_error_asv = "HS",
+               nugget_asv = TRUE){
 
   # Convert to upper case:
   evol_error = toupper(evol_error)
@@ -94,7 +102,10 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
                 nsave = nsave, nburn = nburn, nskip = nskip,
                 mcmc_params = mcmc_params,
                 computeDIC = computeDIC,
-                verbose = verbose))
+                verbose = verbose,
+                D_asv = D_asv,
+                evol_error_asv = evol_error_asv,
+                nugget_asv = nugget_asv))
   }
 
   # Time points (in [0,1])
@@ -133,7 +144,14 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
 
   # SV parameters, if necessary:
   if(obsSV == "SV") {svParams = initSV(y - mu); sigma_et = svParams$sigma_wt}
-  else if(obsSV == "ASV"){sParams = init_paramsASV_n(y-mu, evol_error = "HS", D = 1); sigma_et = exp(sParams$s_mu/2)}
+  else if(obsSV == "ASV"){
+    if(nugget_asv){
+      sParams = init_paramsASV_n(y-mu, evol_error = evol_error_asv, D = D_asv)
+    }else{
+      sParams = init_paramsASV(y-mu, evol_error = evol_error_asv, D = D_asv)
+    }
+    sigma_et = exp(sParams$s_mu/2)
+  }
 
   # For HS MCMC comparisons:
   # evolParams$dhs_phi = 0
@@ -146,8 +164,8 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = numeric(nsave)
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean = numeric(nsave)
-  if(obsSV == "ASV") post_h = array(NA,c(nsave,nT))
-  if(obsSV == "ASV") post_h_smooth = array(NA,c(nsave,nT))
+  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h = array(NA,c(nsave,nT))
+  if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth = array(NA,c(nsave,nT))
   post_loglike = numeric(nsave)
 
   # Total number of MCMC simulations:
@@ -217,9 +235,12 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
       sigma_et = rep(sigma_e, nT)
     }else if(obsSV == "ASV"){
       evolParams = sampleEvolParams(omega, evolParams, 1/sqrt(nT), evol_error, loc)
-
       # Observation error variance + params:
-      sParams = fit_paramsASV_n(y-mu,sParams,evol_error = "HS", D = 1)
+      if(nugget_asv){
+        sParams = fit_paramsASV_n(y-mu,sParams,evol_error = evol_error_asv, D = D_asv)
+      }else{
+        sParams = fit_paramsASV(y-mu,sParams, evol_error = evol_error_asv, D = D_asv)
+      }
       sigma_et = exp(sParams$s_mu/2)
     }else{
       stop('obsSV has to be one of const, SV, or ASV')
@@ -243,8 +264,8 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
         if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi[isave] = evolParams$dhs_phi
         if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean[isave] = evolParams$dhs_mean
         post_loglike[isave] = sum(dnorm(y, mean = mu, sd = sigma_et, log = TRUE))
-        if(obsSV == "ASV") post_h[isave,] = sParams$s_mu
-        if(obsSV == "ASV") post_h_smooth[isave,] = sParams$s_mu_sm
+        if(!is.na(match('h', mcmc_params)) && obsSV == "ASV")  post_h[isave,] = sParams$s_mu
+        if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth[isave,] = sParams$s_mu_sm
         # And reset the skip counter:
         skipcount = 0
       }
@@ -257,8 +278,8 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
-  if(obsSV == "ASV") mcmc_output$h = post_h
-  if(obsSV == "ASV") mcmc_output$h_smooth = post_h_smooth
+  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") mcmc_output$h = post_h
+  if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) mcmc_output$h_smooth = post_h_smooth
   # Also include the log-likelihood:
   mcmc_output$loglike = post_loglike
 
@@ -318,10 +339,16 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
 #' \item "obs_sigma_t2" (observation error variance)
 #' \item "dhs_phi" (DHS AR(1) coefficient)
 #' \item "dhs_mean" (DHS AR(1) unconditional mean)
+#' \item "h" (log variances or log of \code{"obs_sigma_t2"}. Only used when \code{obsSV = "ASV"})
+#' \item "h_smooth" (smooth estimate of log variances. Only used when \code{obsSV = "ASV"} and \code{nugget_asv = TRUE})
 #' }
 #' @param computeDIC logical; if TRUE, compute the deviance information criterion \code{DIC}
 #' and the effective number of parameters \code{p_d}
 #' @param verbose logical; should R report extra information on progress?
+#'
+#' @param D_asv integer; degree of differencing (0, 1, or 2) for the ASV model. Only used when \code{obsSV = "ASV"}.
+#' @param evol_error_asv character; evolution error distribution for the ASV model. Must be one of the five options used in \code{evol_error}. Only used when \code{obsSV = "ASV"}.
+#' @param nugget_asv logical; if \code{TRUE}, fits the nugget variant of the ASV model. Only used when \code{obsSV = "ASV"}.
 #'
 #' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 #'
@@ -330,9 +357,12 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
 #' deviation is recommended to avoid numerical issues.
 btf0 = function(y, evol_error = 'DHS', obsSV = "const",
                 nsave = 1000, nburn = 1000, nskip = 4,
-                mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
+                mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h","h_smooth"),
                 computeDIC = TRUE,
-                verbose = TRUE){
+                verbose = TRUE,
+                D_asv = 1,
+                evol_error_asv = "HS",
+                nugget_asv = TRUE){
 
   # Time points (in [0,1])
   nT = length(y); t01 = seq(0, 1, length.out=nT);
@@ -355,8 +385,14 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 
   # SV parameters, if necessary:
   if(obsSV == "SV") {svParams = initSV(y - mu); sigma_et = svParams$sigma_wt}
-  else if(obsSV == "ASV"){sParams = init_paramsASV(y-mu, evol_error = "HS", D = 2); sigma_et = exp(sParams$s_mu/2)}
-
+  else if(obsSV == "ASV"){
+    if(nugget_asv){
+      sParams = init_paramsASV_n(y-mu, evol_error = evol_error_asv, D = D_asv)
+    }else{
+      sParams = init_paramsASV(y-mu, evol_error = evol_error_asv, D = D_asv)
+    }
+    sigma_et = exp(sParams$s_mu/2)
+  }
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
   if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu = array(NA, c(nsave, nT))
@@ -365,6 +401,8 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = numeric(nsave)
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean = numeric(nsave)
+  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h = array(NA,c(nsave,nT))
+  if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth = array(NA,c(nsave,nT))
   post_loglike = numeric(nsave)
 
   # Total number of MCMC simulations:
@@ -427,9 +465,12 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
       sigma_et = rep(sigma_e, nT)
     }else if(obsSV == "ASV"){
       evolParams = sampleEvolParams(mu, evolParams, 1/sqrt(nT), evol_error, loc)
-
       # Observation error variance + params:
-      sParams = fit_paramsASV(y-mu,sParams,evol_error = "HS", D = 2)
+      if(nugget_asv){
+        sParams = fit_paramsASV_n(y-mu,sParams,evol_error = evol_error_asv, D = D_asv)
+      }else{
+        sParams = fit_paramsASV(y-mu,sParams, evol_error = evol_error_asv, D = D_asv)
+      }
       sigma_et = exp(sParams$s_mu/2)
     }else{
       stop('obsSV has to be one of const, SV, or ASV')
@@ -453,7 +494,8 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
         if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi[isave] = evolParams$dhs_phi
         if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean[isave] = evolParams$dhs_mean
         post_loglike[isave] = sum(dnorm(y, mean = mu, sd = sigma_et, log = TRUE))
-
+        if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h[isave,] = sParams$s_mu
+        if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth[isave,] = sParams$s_mu_sm
         # And reset the skip counter:
         skipcount = 0
       }
@@ -466,6 +508,8 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
+  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") mcmc_output$h = post_h
+  if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) mcmc_output$h_smooth = post_h_smooth
 
   # Also include the log-likelihood:
   mcmc_output$loglike = post_loglike
@@ -536,10 +580,15 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' \item "dhs_mean" (DHS AR(1) unconditional mean for evolution error)
 #' \item "dhs_phi_zero" (DHS AR(1) coefficient for shrink-to-zero error)
 #' \item "dhs_mean_zero" (DHS AR(1) unconditional mean for shrink-to-zero error)
+#' \item "h" (log variances or log of \code{"obs_sigma_t2"}. Only used when \code{obsSV = "ASV"})
+#' \item "h_smooth" (smooth estimate of log variances. Only used when \code{obsSV = "ASV"} and \code{nugget_asv = TRUE})
 #' }
 #' @param computeDIC logical; if TRUE, compute the deviance information criterion \code{DIC}
 #' and the effective number of parameters \code{p_d}
 #' @param verbose logical; should R report extra information on progress?
+#' @param D_asv integer; degree of differencing (0, 1, or 2) for the ASV model. Only used when \code{obsSV = "ASV"}.
+#' @param evol_error_asv character; evolution error distribution for the ASV model. Must be one of the five options used in \code{evol_error}. Only used when \code{obsSV = "ASV"}.
+#' @param nugget_asv logical; if \code{TRUE}, fits the nugget variant of the ASV model. Only used when \code{obsSV = "ASV"}.
 #'
 #' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 #'
@@ -576,9 +625,12 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' @export
 btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = "const",
                       nsave = 1000, nburn = 1000, nskip = 4,
-                      mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2", "zero_sigma_t2", "dhs_phi", "dhs_mean","dhs_phi_zero", "dhs_mean_zero"),
+                      mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2", "zero_sigma_t2", "dhs_phi", "dhs_mean","dhs_phi_zero", "dhs_mean_zero","h","h_smooth"),
                       computeDIC = TRUE,
-                      verbose = TRUE){
+                      verbose = TRUE,
+                      D_asv = 1,
+                      evol_error_asv = "HS",
+                      nugget_asv = TRUE){
 
   # Check differencing:
   if((D != 1) && (D != 2)) stop('btf_sparse() requires D = 1 or D = 2')
@@ -623,8 +675,14 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
   # For HS MCMC comparisons:
   # evolParams$dhs_phi = 0
   if(obsSV == "SV") {svParams = initSV(y - mu); sigma_et = svParams$sigma_wt}
-  else if(obsSV == "ASV"){sParams = init_paramsASV(y-mu, evol_error = "HS", D = 2); sigma_et = exp(sParams$s_mu/2)}
-
+  else if(obsSV == "ASV"){
+    if(nugget_asv){
+      sParams = init_paramsASV_n(y-mu, evol_error = evol_error_asv, D = D_asv)
+    }	else{
+      sParams = init_paramsASV(y-mu, evol_error = evol_error_asv, D = D_asv)
+    }
+    sigma_et = exp(sParams$s_mu/2)
+  }
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
   if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu = array(NA, c(nsave, nT))
@@ -636,6 +694,8 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean = numeric(nsave)
   if(!is.na(match('dhs_phi_zero', mcmc_params)) && zero_error == "DHS") post_dhs_phi_zero = numeric(nsave)
   if(!is.na(match('dhs_mean_zero', mcmc_params)) && zero_error == "DHS") post_dhs_mean_zero = numeric(nsave)
+  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h = array(NA,c(nsave,nT))
+  if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth = array(NA,c(nsave,nT))
   post_loglike = numeric(nsave)
 
   # Total number of MCMC simulations:
@@ -675,7 +735,11 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
       sigma_et = rep(sigma_e, nT) # For coding convenience
     }else if(obsSV == "ASV"){
       # Observation error variance + params:
-      sParams = fit_paramsASV(y-mu,sParams,evol_error = "HS", D = 2)
+      if(nugget_asv){
+        sParams = fit_paramsASV_n(y-mu,sParams,evol_error = evol_error_asv, D = D_asv)
+      }else{
+        sParams = fit_paramsASV(y-mu,sParams, evol_error = evol_error_asv, D = D_asv)
+      }
       sigma_et = exp(sParams$s_mu/2)
     }else{
       stop('obsSV has to be one of const, SV, or ASV')
@@ -723,6 +787,8 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
         if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean[isave] = evolParams$dhs_mean
         if(!is.na(match('dhs_phi_zero', mcmc_params)) && zero_error == "DHS") post_dhs_phi_zero[isave] = zeroParams$dhs_phi
         if(!is.na(match('dhs_mean_zero', mcmc_params)) && zero_error == "DHS") post_dhs_mean_zero[isave] = zeroParams$dhs_mean
+        if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h[isave,] = sParams$s_mu
+        if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth[isave,] = sParams$s_mu_sm
         post_loglike[isave] = sum(dnorm(y, mean = mu, sd = sigma_et, log = TRUE))
 
         # And reset the skip counter:
@@ -740,7 +806,8 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
   if(!is.na(match('dhs_phi_zero', mcmc_params)) && zero_error == "DHS") mcmc_output$dhs_phi_zero = post_dhs_phi_zero
   if(!is.na(match('dhs_mean_zero', mcmc_params)) && zero_error == "DHS") mcmc_output$dhs_mean_zero = post_dhs_mean_zero
-
+  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") mcmc_output$h = post_h
+  if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) mcmc_output$h_smooth = post_h_smooth
   # Also include the log-likelihood:
   mcmc_output$loglike = post_loglike
 
@@ -805,12 +872,17 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 #' \item "obs_sigma_t2" (observation error variance)
 #' \item "dhs_phi" (DHS AR(1) coefficient)
 #' \item "dhs_mean" (DHS AR(1) unconditional mean)
+#' \item "h" (log variances or log of \code{"obs_sigma_t2"}. Only used when \code{obsSV = "ASV"})
+#' \item "h_smooth" (smooth estimate of log variances. Only used when \code{obsSV = "ASV"} and \code{nugget_asv = TRUE})
 #' }
 #' @param use_backfitting logical; if TRUE, use backfitting to sample the predictors j=1,...,p
 #' (faster, but usually less MCMC efficient)
 #' @param computeDIC logical; if TRUE, compute the deviance information criterion \code{DIC}
 #' and the effective number of parameters \code{p_d}
 #' @param verbose logical; should R report extra information on progress?
+#' @param D_asv integer; degree of differencing (0, 1, or 2) for the ASV model. Only used when \code{obsSV = "ASV"}.
+#' @param evol_error_asv character; evolution error distribution for the ASV model. Must be one of the five options used in \code{evol_error}. Only used when \code{obsSV = "ASV"}.
+#' @param nugget_asv logical; if \code{TRUE}, fits the nugget variant of the ASV model. Only used when \code{obsSV = "ASV"}.
 #'
 #' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 #'
@@ -846,10 +918,13 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 #' @export
 btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
                    nsave = 1000, nburn = 1000, nskip = 4,
-                   mcmc_params = list("mu", "yhat","beta","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
+                   mcmc_params = list("mu", "yhat","beta","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h","h_smooth"),
                    use_backfitting = FALSE,
                    computeDIC = TRUE,
-                   verbose = TRUE){
+                   verbose = TRUE,
+                   D_asv = 1,
+                   evol_error_asv = "HS",
+                   nugget_asv = TRUE){
 
   # Convert to upper case:
   evol_error = toupper(evol_error)
@@ -904,7 +979,14 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 
   # SV parameters, if necessary:
   if(obsSV == "SV") {svParams = initSV(y - mu); sigma_et = svParams$sigma_wt}
-  else if(obsSV == "ASV"){sParams = init_paramsASV(y-mu, evol_error = "HS", D = 2); sigma_et = exp(sParams$s_mu/2)}
+  else if(obsSV == "ASV"){
+    if(nugget_asv){
+      sParams = init_paramsASV_n(y-mu, evol_error = evol_error_asv, D = D_asv)
+    }	else{
+      sParams = init_paramsASV(y-mu, evol_error = evol_error_asv, D = D_asv)
+    }
+    sigma_et = exp(sParams$s_mu/2)
+  }
 
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
@@ -915,6 +997,8 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, nT, p))
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = array(NA, c(nsave, p))
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean = array(NA, c(nsave, p))
+  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h = array(NA,c(nsave,nT))
+  if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth = array(NA,c(nsave,nT))
   post_loglike = numeric(nsave)
 
   # Total number of MCMC simulations:
@@ -991,7 +1075,11 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
       evolParams = sampleEvolParams(omega, evolParams, 1/sqrt(nT*p), evol_error)
 
       # Observation error variance + params:
-      sParams = fit_paramsASV(y-mu,sParams,evol_error = "HS", D = 2)
+      if(nugget_asv){
+        sParams = fit_paramsASV_n(y-mu,sParams,evol_error = evol_error_asv, D = D_asv)
+      }else{
+        sParams = fit_paramsASV(y-mu,sParams, evol_error = evol_error_asv, D = D_asv)
+      }
       sigma_et = exp(sParams$s_mu/2)
     }else{
       stop('obsSV has to be one of const, SV, or ASV')
@@ -1019,6 +1107,8 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
         }
         if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi[isave,] = evolParams$dhs_phi
         if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean[isave,] = evolParams$dhs_mean
+        if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h[isave,] = sParams$s_mu
+        if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth[isave,] = sParams$s_mu_sm
         post_loglike[isave] = sum(dnorm(y, mean = mu, sd = sigma_et, log = TRUE))
 
         # And reset the skip counter:
@@ -1034,6 +1124,8 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
+  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") mcmc_output$h = post_h
+  if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) mcmc_output$h_smooth = post_h_smooth
 
   # Also include the log-likelihood:
   mcmc_output$loglike = post_loglike
@@ -1094,6 +1186,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 #' \item "obs_sigma_t2" (observation error variance)
 #' \item "dhs_phi" (DHS AR(1) coefficient)
 #' \item "dhs_mean" (DHS AR(1) unconditional mean)
+#'
 #' }
 #' @param computeDIC logical; if TRUE, compute the deviance information criterion \code{DIC}
 #' and the effective number of parameters \code{p_d}

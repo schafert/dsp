@@ -15,8 +15,6 @@ fit_paramsASV(data, sParams, evol_error, D)
 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)}
 
 \item{D}{degree of differencing (D = 1, or D = 2)}
-
-\item{sigma_e}{}
 }
 \value{
 a list containing 4 sets of parameters

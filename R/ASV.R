@@ -24,16 +24,17 @@
 #' must be one or more of:
 #' \itemize{
 #' \item "h" (Log variance)
+#' \item "h_smooth" (smooth estimate of log variances. Only used when \code{nugget_asv = TRUE})
 #' \item "logy2hat" (posterior predictive distribution of log(y^2))
 #' \item "sigma2" (Variance, i.e. exp(h))
 #' \item "evol_sigma_t2" (evolution error variance)
 #' \item "dhs_phi" (DHS AR(1) coefficient)
 #' \item "dhs_mean" (DHS AR(1) unconditional mean)
 #' }
+#' @param nugget logical; if \code{TRUE}, fits the nugget variant of the ASV model
 #' @param computeDIC logical; if TRUE, compute the deviance information criterion \code{DIC}
 #' and the effective number of parameters \code{p_d}
 #' @param verbose logical; should R report extra information on progress?
-#' @param sigma_e
 #'
 #' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 #'
@@ -215,7 +216,6 @@ init_paramsASV <- function(data,evol_error,D){
 #' @param evol_error the evolution error distribution; must be one of
 #' 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), 'BL' (Bayesian lasso), or 'NIG' (normal-inverse-gamma prior)
 #' @param D degree of differencing (D = 1, or D = 2)
-#' @param sigma_e
 #'
 #' @return a list containing 4 sets of parameters
 #' \itemize{
@@ -228,8 +228,8 @@ fit_paramsASV <- function(data,sParams,evol_error,D){
   yoffset = any(data^2 < 10^-16)*mad(data)/10^10
   data = log(data^2 + yoffset)
   #sigma_e = pi/sqrt(2)
-  sigma_e = sd(diff(data,differences = D))
-  #sigma_e = 1
+  #sigma_e = sd(diff(data,differences = D))
+  sigma_e = 1
   #sigma_e = max(1,sqrt(var(diff(data,differences = D)) - pi^2))
   nT = length(data);
   t01 = seq(0, 1, length.out=nT);
@@ -267,7 +267,7 @@ fit_paramsASV <- function(data,sParams,evol_error,D){
   #      s_evolParams0 = s_evolParams0,
   #      s_evolParams = s_evolParams)
 }
-#' Helper function for initializing parameters for ASV model  with a nugget effect
+#' Helper function for initializing parameters for ASV model with a nugget effect
 #'
 #' @param data the \code{T x 1} vector of time series observations.
 #' @param evol_error the evolution error distribution; must be one of

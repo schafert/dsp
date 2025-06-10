@@ -27,10 +27,10 @@
 #' Other arguments are optional and default to predefined value.
 #'
 #' \tabular{lll}{
-#'  **Family**  \tab **Model**       \tab **Required Arguments**  \cr
+#'  **Family**    \tab  **Model**       \tab    **Required Arguments**  \cr
 #'  "gaussian"    \tab "changepoint"     \tab \code{D}, \code{useAnom}, \code{obsSV} \cr
-#'  "gaussian"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{zero_error}  \cr
-#'  "gaussian"    \tab "regression"      \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{X}  \cr
+#'  "gaussian"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{zero_error}, \code{D_asv}, \code{evol_error_asv}, \code{nugget_asv}\cr
+#'  "gaussian"    \tab "regression"      \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{X}, \code{D_asv}, \code{evol_error_asv}, \code{nugget_asv} \cr
 #'  "gaussian"    \tab "bspline"        \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{times}, \code{num_knots}  \cr
 #'  "negbinom"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{r_init}, \code{r_sample}, \code{offset}  \cr
 #' }
@@ -38,17 +38,20 @@
 #'   \itemize{
 #'     \item **Shared Arguments**:
 #'       \itemize{
-#'         \item \code{"D"}: integer scalar indicating degree of differencing.
+#'         \item \code{D}: integer scalar indicating degree of differencing.
 #'         Implementation is available D = 0, 1, or 2 (default) for \code{family} = "gaussian",
 #'         and D = 1 and 2 (default) for \code{family} = "negbinomial".
-#'         \item \code{"obsSV"}:Options for modeling the error variance for \code{family} = "gaussian".
+#'         \item \code{obsSV}:Options for modeling the error variance for \code{family} = "gaussian".
 #'         It must be one of the following:
 #'            \itemize{
 #'              \item "const": Constant error variance for all time points (default);
 #'              \item "SV": Stochastic Volatility model;
 #'              \item "ASV": Adaptive Stochastic Volatility model;
 #'            }
-#'         \item \code{"evol_error"}: the evolution error distribution; .
+#'         \item \code{D_asv}: integer; degree of differencing (0, 1 (default), or 2) for the ASV model. Only used when \code{obsSV = "ASV"}.
+#'         \item \code{evol_error_asv}: character; "HS" by default. evolution error distribution for the ASV model. Must be one of the five options used in \code{evol_error}. Only used when \code{obsSV = "ASV"}
+#'         \item \code{nugget_asv}: logical; if \code{TRUE} (default), fits the nugget variant of the ASV model. Only used when \code{obsSV = "ASV"}.
+#'         \item \code{evol_error}: the evolution error distribution; .
 #'            \itemize{
 #'              \item the dynamic horseshoe prior ("DHS") (default);
 #'              \item the static horseshoe prior ("HS");
@@ -112,17 +115,25 @@ dsp_spec <- function(family,
       stop('model must be "smoothing" for negative binomial family')
     }
   }
+  # Extract obsSV if provided
+  obsSV <- input_args$obsSV
+  if (is.null(obsSV)) obsSV <- "NONE"  # default fallback if needed
+
   #inputted arguments
   required_args <- function(family,model){
     if(family == "gaussian"){
       if(model == "changepoint"){
         return(c("D", "useAnom", "obsSV"))
-      }else if(model == "smoothing"){
+      }else if(model == "smoothing" && obsSV == "ASV"){
+        return(c("evol_error","D","obsSV","zero_error","D_asv","evol_error_asv","nugget_asv"))
+      }else if(model == "smoothing" && obsSV != "ASV"){
         return(c("evol_error","D","obsSV","zero_error"))
-      }else if(model == "regression"){
+      }else if(model == "regression" && obsSV == "ASV"){
+        return(c("X", "evol_error", "D","obsSV","D_asv","evol_error_asv","nugget_asv"))
+      }else if(model == "regression" && obsSV == "ASV"){
         return(c("X", "evol_error", "D","obsSV"))
       }else{
-        return(c("evol_error", "D","times","num_knots","obsSV"))
+        return(c("evol_error", "D","times","num_knots"))
       }
     }else{
       # negative binomial smoothing
@@ -150,6 +161,17 @@ dsp_spec <- function(family,
           if (!x %in% c(1, 2)) stop("D must be 1 or 2 for negative binomial models")
         }
       },
+    D_asv = function(family,x) {
+      if (!x %in% c(0, 1, 2)) stop("D must be 0, 1 or 2 for gaussian models.")
+    },
+    nugget_asv = function(family,x) {
+      if (is.na(x)|| !is.logical(x)) stop("useAnom must be TRUE or FALSE.")
+    },
+    evol_error_asv = function(family,x) {
+      if (!x %in% c("HS", "DHS", "NIG", "SV", "BL")) {
+        stop("evol_error_asv must be one of 'HS', 'DHS', 'NIG', 'SV', 'BL' for gaussian models")
+      }
+    },
     evol_error = function(family,x) {
       if(family == "gaussian"){
         if (!x %in% c("HS", "DHS", "NIG", "SV", "BL")) {
@@ -179,11 +201,11 @@ dsp_spec <- function(family,
       )
     }
   }
-
   # If any of the required arguments are missing give them default values
   default_args <- list(D =2, useAnom = FALSE, obsSV = "const",
                        evol_error = "DHS", zero_error = NULL, num_knots = 20,
-                       r_init = 5, r_sample = FALSE, offset = 0)
+                       r_init = 5, r_sample = FALSE, offset = 0,
+                       D_asv = 1,evol_error_asv = "HS",nugget_asv = TRUE)
   requiredArgs = setdiff(required_args(family,model), names(input_args))
   # X is required to run regression
   if("X" %in% requiredArgs) stop("To run regression, the design matrix 'X' needs to be specified.")
