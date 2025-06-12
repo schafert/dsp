@@ -65,9 +65,7 @@ Imports:
     purrr,
     rlang,
     lifecycle,
-    cli,
-    glue,
-    withr
+    glue
 Suggests: 
     ggplot2,
     testthat (>= 3.0.0)
