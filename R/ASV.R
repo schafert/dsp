@@ -176,6 +176,7 @@ generate_ly2hat <- function(h,p_error_term){
 #' \item s_evolParams0: a list containing posterior samples of parameters associated with the variance of first D observation of the log variance term, h.
 #' \item s_evolParams: a list containing posterior samples parameters associated with the variance of D to the last observations of the log variance temr , h.
 #' }
+#' @export
 init_paramsASV <- function(data,evol_error,D){
   yoffset = any(data^2 < 10^-16,na.rm = TRUE)*mad(data,na.rm = TRUE)/10^10
   data = log(data^2 + yoffset)
@@ -224,6 +225,7 @@ init_paramsASV <- function(data,evol_error,D){
 #' \item s_evolParams0: a list containing posterior samples of parameters associated with the variance of first D observation of the log variance term, h.
 #' \item s_evolParams: a list containing posterior samples parameters associated with the variance of D to the last observations of the log variance temr , h.
 #' }
+#' @export
 fit_paramsASV <- function(data,sParams,evol_error,D){
   yoffset = any(data^2 < 10^-16)*mad(data)/10^10
   data = log(data^2 + yoffset)
@@ -281,6 +283,7 @@ fit_paramsASV <- function(data,sParams,evol_error,D){
 #' \item s_evolParams0: a list containing posterior samples of parameters associated with the variance of first D observation of the log variance term, h.
 #' \item s_evolParams: a list containing posterior samples parameters associated with the variance of D to the last observations of the log variance temr , h.
 #' }
+#' @export
 init_paramsASV_n <- function(data,evol_error,D){
   yoffset = any(data^2 < 10^-16,na.rm = TRUE)*mad(data,na.rm = TRUE)/10^10
   data = log(data^2 + yoffset)
@@ -341,6 +344,7 @@ init_paramsASV_n <- function(data,evol_error,D){
 #' \item s_evolParams0: a list containing posterior samples of parameters associated with the variance of first D observation of the log variance term, h.
 #' \item s_evolParams: a list containing posterior samples parameters associated with the variance of D to the last observations of the log variance temr , h.
 #' }
+#' @export
 fit_paramsASV_n <- function(data,sParams,evol_error,D){
   yoffset = any(data^2 < 10^-16)*mad(data)/10^10
   data = log(data^2 + yoffset)
