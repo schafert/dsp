@@ -96,3 +96,4 @@ make_signal <- function(name, n=1024, snr=Inf)
 
   z
 }
+

@@ -271,6 +271,7 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
     # Store the DIC and the effective number of parameters (p_d)
     mcmc_output$DIC = DIC; mcmc_output$p_d = p_d
   }
+
   return(mcmc_output);
 }
 

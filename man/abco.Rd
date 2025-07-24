@@ -12,8 +12,12 @@ abco(
   nsave = 1000,
   nburn = 1000,
   nskip = 4,
-  mcmc_params = list("mu", "omega", "r"),
-  verbose = TRUE
+  mcmc_params = list("mu", "omega", "yhat", "evol_sigma_t2", "r", "zeta", "obs_sigma_t2",
+    "zeta_sigma_t2", "dhs_phi", "dhs_mean", "h", "h_smooth"),
+  verbose = TRUE,
+  D_asv = 1,
+  evol_error_asv = "HS",
+  nugget_asv = TRUE
 )
 }
 \arguments{
@@ -41,15 +45,24 @@ i.e., save every (nskip + 1)th draw}
 must be one or more of:
 \itemize{
 \item "mu" (conditional mean)
+\item "omega" (Dth difference of mu)
 \item "yhat" (posterior predictive distribution)
 \item "evol_sigma_t2" (evolution error variance)
 \item "obs_sigma_t2" (observation error variance)
 \item "zeta_sigma_t2" (outlier error variance)
 \item "dhs_phi" (DHS AR(1) coefficient)
 \item "dhs_mean" (DHS AR(1) unconditional mean)
+\item "h" (log variances or log of \code{"obs_sigma_t2"}. Only used when \code{obsSV = "ASV"})
+\item "h_smooth" (smooth estimate of log variances. Only used when \code{obsSV = "ASV"} and \code{nugget_asv = TRUE})
 }}
 
 \item{verbose}{logical; should R report extra information on progress?}
+
+\item{D_asv}{integer; degree of differencing (0, 1, or 2) for the ASV model. Only used when \code{obsSV = "ASV"}.}
+
+\item{evol_error_asv}{character; evolution error distribution for the ASV model. Must be one of the five options used in \code{evol_error}. Only used when \code{obsSV = "ASV"}.}
+
+\item{nugget_asv}{logical; if \code{TRUE}, fits the nugget variant of the ASV model. Only used when \code{obsSV = "ASV"}.}
 }
 \value{
 A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
@@ -60,4 +73,19 @@ first (D = 1), or second (D = 2) differences of the conditional expectation.
 The penalty utilizes the dynamic horseshoe prior on the evolution errors.
 Sampling is accomplished with a (parameter-expanded) Gibbs sampler,
 mostly relying on a dynamic linear model representation.
+}
+\examples{
+\dontrun{
+beta <- make_signal(name = "ramp", n = 300)
+y <- rnorm(n = 300, mean = beta,sd = 0.15)
+# Need to typically run sampler for longer than specified below
+fit <- abco(
+  y = y,
+  D = 2,
+  obsSV = "const",
+  nsave = 1000,
+  nburn = 1000
+)
+}
+
 }

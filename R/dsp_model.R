@@ -28,8 +28,8 @@
 #'
 #' \tabular{lll}{
 #'  **Family**    \tab  **Model**       \tab    **Required Arguments**  \cr
-#'  "gaussian"    \tab "changepoint"     \tab \code{D}, \code{useAnom}, \code{obsSV} \cr
-#'  "gaussian"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{zero_error}, \code{D_asv}, \code{evol_error_asv}, \code{nugget_asv}\cr
+#'  "gaussian"    \tab "changepoint"     \tab \code{D}, \code{useAnom}, \code{obsSV} \code{D_asv}, \code{evol_error_asv}, \code{nugget_asv} \cr
+#'  "gaussian"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{D_asv}, \code{evol_error_asv}, \code{nugget_asv}\cr
 #'  "gaussian"    \tab "regression"      \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{X}, \code{D_asv}, \code{evol_error_asv}, \code{nugget_asv} \cr
 #'  "gaussian"    \tab "bspline"        \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{times}, \code{num_knots}  \cr
 #'  "negbinom"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{r_init}, \code{r_sample}, \code{offset}  \cr
@@ -67,11 +67,6 @@
 #'            \item \code{useAnom}: logical; Defaults to FALSE. if TRUE, include an anomaly component
 #'            in the observation equation.
 #'          }
-#'        \item \code{family} = "gaussian", \code{model} = "smoothing":
-#'        \itemize{
-#'          \item \code{zero_error}: one of the 5 distributions listed in \code{"evol_error"};
-#'          Additional penalty distribution for the conditional expectation i.e., shrinkage to zero (optional).
-#'        }
 #'        \item \code{family} = "gaussian", \code{model} = "regression":
 #'        \itemize{
 #'          \item \code{X}: matrix or data frame; T x p matrix of time series predictors
@@ -122,17 +117,19 @@ dsp_spec <- function(family,
   #inputted arguments
   required_args <- function(family,model){
     if(family == "gaussian"){
-      if(model == "changepoint"){
+      if(model == "changepoint" && obsSV != "ASV"){
         return(c("D", "useAnom", "obsSV"))
+      }else if(model == "changepoint" && obsSV == "ASV"){
+        return(c("D", "useAnom", "obsSV","D_asv","evol_error_asv","nugget_asv"))
       }else if(model == "smoothing" && obsSV == "ASV"){
-        return(c("evol_error","D","obsSV","zero_error","D_asv","evol_error_asv","nugget_asv"))
+        return(c("evol_error","D","obsSV","D_asv","evol_error_asv","nugget_asv"))
       }else if(model == "smoothing" && obsSV != "ASV"){
-        return(c("evol_error","D","obsSV","zero_error"))
+        return(c("evol_error","D","obsSV"))
       }else if(model == "regression" && obsSV == "ASV"){
         return(c("X", "evol_error", "D","obsSV","D_asv","evol_error_asv","nugget_asv"))
-      }else if(model == "regression" && obsSV == "ASV"){
+      }else if(model == "regression" && obsSV != "ASV"){
         return(c("X", "evol_error", "D","obsSV"))
-      }else{
+      }else if(model == "bspline"){
         return(c("evol_error", "D","times","num_knots"))
       }
     }else{
@@ -140,6 +137,7 @@ dsp_spec <- function(family,
       return(c("evol_error","D","r_init","r_sample","offset"))
     }
   }
+
   # Handling unnecessary arguments supplied as inputs
   extraArgs = setdiff(names(input_args),required_args(family,model))
   if(length(extraArgs) > 0){
@@ -185,13 +183,13 @@ dsp_spec <- function(family,
     },
     useAnom = function(family,x) { if (is.na(x)|| !is.logical(x)) stop("useAnom must be TRUE or FALSE.") },
     obsSV = function(family,x) { if (!x %in% c("const", "SV", "ASV")) stop("obsSV must be one of 'const', 'SV', 'ASV'.") },
-    zero_error = function(family,x) { if (!x %in% c("HS", "DHS", "NIG", "SV", "BL")) stop("zero_error must be one of 'HS', 'DHS', 'NIG', 'SV', 'BL'.")},
-    times = function(family,x) { if (any(is.na(x)) || !is.numeric(x) || any(x < 0 || x != as.integer(x))) stop("must be a vector of positive integer or NULL") },
+    times = function(family,x) { if (any(is.na(x)) || !is.numeric(x) || any(x < 0 | x != as.integer(x))) stop("must be a vector of positive integer or NULL") },
     num_knots = function(family,x) { if (is.na(x) || !is.numeric(x) || x<0 || x != as.integer(x))  stop("num_knots must be a positive integer.") },
     r_init = function(family,x){ if (!is.numeric(x) || x < 0) stop("r_init nust be a positive number.")},
     r_sample = function(family,x) { if (is.na(x) || !is.logical(x)) stop("r_sample must be TRUE or FALSE.")},
     offset = function(family,x){ if (any(is.na(x)) || !is.numeric(x)) stop("offset must be a vector") }
   )
+
   if(length(input_args) >0){
     for(arg in names(input_args)){
       tryCatch(
@@ -202,17 +200,20 @@ dsp_spec <- function(family,
     }
   }
   # If any of the required arguments are missing give them default values
-  default_args <- list(D =2, useAnom = FALSE, obsSV = "const",
-                       evol_error = "DHS", zero_error = NULL, num_knots = 20,
+  default_args <- list(D =2, useAnom = FALSE, obsSV = "const",times = NULL,
+                       evol_error = "DHS", num_knots = 20,
                        r_init = 5, r_sample = FALSE, offset = 0,
-                       D_asv = 1,evol_error_asv = "HS",nugget_asv = TRUE)
+                       D_asv = 1,evol_error_asv = "HS",nugget_asv = FALSE)
   requiredArgs = setdiff(required_args(family,model), names(input_args))
   # X is required to run regression
   if("X" %in% requiredArgs) stop("To run regression, the design matrix 'X' needs to be specified.")
   if(length(requiredArgs)>0){
     for(arg in requiredArgs){
-      input_args[[arg]] = default_args[[arg]]
-      message(sprintf("Argument '%s' is missing. Using default value: %s", arg, default_args[[arg]]))
+      dvalue = default_args[[arg]]
+      input_args[[arg]] = dvalue
+      message(sprintf("Argument '%s' is missing. Using default value: %s", arg,
+                      if (is.null(dvalue)) "NULL" else dvalue)
+              )
     }
   }
   ret = structure(list(
@@ -260,20 +261,21 @@ dsp_spec <- function(family,
 #' deviation is recommended to avoid numerical issues when family is "gaussian".
 #'
 #' @examples
-#' \dontrun{
-#' beta <- make_signal(name = "bumps", n = 300)
-#' y <- rnbinom(n = length(beta), size = 5, mu = beta)
-#' # Creating a `model_spec` object
-#' model_spec <- dsp_spec(
-#'   family = "negbinomial",
-#'   model = "smoothing")
-#'
-#' fit <- dsp_fit(
-#'   y = y,
-#'   model_spec = model_spec,
-#'   nburn = 5000,
-#'   nsave = 5000)
-#'}
+#' set.seed(200)
+#' mu <- make_signal(name = "quadratic", n = 300)        # Underlying trend with a ramp structure
+#' var  <- make_signal(name = "bumps", n = 300)/2       # Time-varying standard deviation with bumps
+#' y <- rnorm(n = 300, mean = mu, sd = sqrt(var))    # Observed data based on above.
+#' # Specify DSP model with ASV observation noise and Horseshoe prior on evolution error
+#' spec <- dsp_spec(family = "gaussian",
+#'                  model = "smoothing",
+#'                  obsSV = "ASV",
+#'                  D_asv = 2)
+#' # Fit the model (Note: longer MCMC runs may be required for stable inference)
+#' fit <- dsp_fit(y, spec, nsave = 1000, nburn = 1000)
+#' # Estimated posterior mean vs ground truth
+#' plot(fit,type = "mu",true_values = mu)
+#  # Estimated log-variance vs ground truth
+#' plot(fit,type = "h",true_values = log(var)) # true values are included for illustration only.
 #'
 #' @export
 dsp_fit = function(y, model_spec,
@@ -287,15 +289,14 @@ dsp_fit = function(y, model_spec,
 
   family = model_spec$family
   model = model_spec$model
-  if(!is.null(model_spec$arguments$zero_error)){
-    model = "smoothing_sparse"
-  }
+  # if(!is.null(model_spec$arguments$zero_error)){
+  #   model = "smoothing_sparse"
+  # }
   fitter_list <- list(
     gaussian = list(
       changepoint = abco, #changepoint model,
       regression = btf_reg, #Bayesian Trend Filter with Regression,
       smoothing = btf, #Bayesian Trend Filter,
-      smoothing_sparse = btf_sparse, #Bayesian Trend Filter (more shrinkage),
       bspline = btf_bspline #Bayesian Trend Filter with Bspline
     ),
     negbinomial = list(
@@ -326,7 +327,3 @@ dsp_fit = function(y, model_spec,
             class = c(c("dsp"), mcmc_output$class))
 
 }
-
-
-
-

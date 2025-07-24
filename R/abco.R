@@ -33,23 +33,48 @@ NULL
 #' must be one or more of:
 #' \itemize{
 #' \item "mu" (conditional mean)
+#' \item "omega" (Dth difference of mu)
 #' \item "yhat" (posterior predictive distribution)
 #' \item "evol_sigma_t2" (evolution error variance)
 #' \item "obs_sigma_t2" (observation error variance)
 #' \item "zeta_sigma_t2" (outlier error variance)
 #' \item "dhs_phi" (DHS AR(1) coefficient)
 #' \item "dhs_mean" (DHS AR(1) unconditional mean)
+#' \item "h" (log variances or log of \code{"obs_sigma_t2"}. Only used when \code{obsSV = "ASV"})
+#' \item "h_smooth" (smooth estimate of log variances. Only used when \code{obsSV = "ASV"} and \code{nugget_asv = TRUE})
 #' }
 #' @param verbose logical; should R report extra information on progress?
+#' @param D_asv integer; degree of differencing (0, 1, or 2) for the ASV model. Only used when \code{obsSV = "ASV"}.
+#' @param evol_error_asv character; evolution error distribution for the ASV model. Must be one of the five options used in \code{evol_error}. Only used when \code{obsSV = "ASV"}.
+#' @param nugget_asv logical; if \code{TRUE}, fits the nugget variant of the ASV model. Only used when \code{obsSV = "ASV"}.
 #'
 #' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 #'
 #' @importFrom progress progress_bar
-#' @export
+#'
+#' @examples
+#' \dontrun{
+#' beta <- make_signal(name = "ramp", n = 300)
+#' y <- rnorm(n = 300, mean = beta,sd = 0.15)
+#' # Need to typically run sampler for longer than specified below
+#' fit <- abco(
+#'   y = y,
+#'   D = 2,
+#'   obsSV = "const",
+#'   nsave = 1000,
+#'   nburn = 1000
+#' )
+#' }
+#'
 abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
                 nsave = 1000, nburn = 1000, nskip = 4,
-                mcmc_params = list('mu', "omega", "r"),
-                verbose = TRUE){
+                mcmc_params = list('mu', "omega", "yhat", "evol_sigma_t2","r","zeta",
+                                   "obs_sigma_t2","zeta_sigma_t2","dhs_phi","dhs_mean",
+                                   "h","h_smooth"),
+                verbose = TRUE,
+                D_asv = 1,
+                evol_error_asv = "HS",
+                nugget_asv = TRUE){
   # Time points (in [0,1])
   nT = length(y); t01 = seq(0, 1, length.out=nT)
   evol_error = 'DHS'
@@ -82,12 +107,18 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
   lower_b = evolParams$lower_b
   upper_b = evolParams$upper_b
 
+
+
   if (useAnom) {
     if(obsSV == "SV"){
       svParams = t_initSV(y-mu-c(rep(0,D),zeta))
       sigma_e = svParams$sigma_wt
     }else if(obsSV == "ASV"){
-      sParams = init_paramsASV(y-mu - c(rep(0,D),zeta), evol_error = "HS", D = 2)
+      if(nugget_asv){
+        sParams = init_paramsASV_n(y - mu - c(rep(0,D),zeta), evol_error = evol_error_asv, D = D_asv)
+      }else{
+        sParams = init_paramsASV(y - mu - c(rep(0,D),zeta), evol_error = evol_error_asv, D = D_asv)
+      }
       sigma_e = exp(sParams$s_mu/2)
     }
   }else{
@@ -95,7 +126,11 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
       svParams = t_initSV(y-mu)
       sigma_e = svParams$sigma_wt
     }else if(obsSV == "ASV"){
-      sParams = init_paramsASV(y-mu, evol_error = "HS", D = 2)
+      if(nugget_asv){
+        sParams = init_paramsASV_n(y-mu, evol_error = evol_error_asv, D = D_asv)
+      }else{
+        sParams = init_paramsASV(y-mu, evol_error = evol_error_asv, D = D_asv)
+      }
       sigma_e = exp(sParams$s_mu/2)
     }
   }
@@ -107,7 +142,7 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
   if(!is.na(match('mu', mcmc_params))) post_mu = array(NA, c(nsave, nT))
   if(!is.na(match('zeta', mcmc_params))) post_zeta = array(NA, c(nsave, nT-D))
   if(!is.na(match('yhat', mcmc_params))) post_yhat = array(NA, c(nsave, nT))
-  if(!is.na(match('h', mcmc_params))) post_h = array(NA, c(nsave, nT-D))
+  if(!is.na(match('log_evol', mcmc_params))) post_log_evol = array(NA, c(nsave, nT-D))
   if(!is.na(match('r', mcmc_params)) && evol_error == "DHS") post_r = numeric(nsave)
   if(!is.na(match('omega', mcmc_params))) post_omega = array(NA, c(nsave, nT-D))
   if(!is.na(match('zeta_sigma_t2', mcmc_params))) post_zeta_sigma_t2 = array(NA, c(nsave, nT-D))
@@ -115,6 +150,8 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = numeric(nsave)
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean = numeric(nsave)
+  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h = array(NA,c(nsave,nT))
+  if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth = array(NA,c(nsave,nT))
 
   nstot = nburn+(nskip+1)*(nsave)
   skipcount = 0; isave = 0 # For counting
@@ -161,9 +198,14 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
         }, lower = 0, upper = Inf)[1]
         sigma_e = rep(sigma_et, nT)
       } else if(obsSV == "ASV"){
-        sParams = fit_paramsASV(y-mu - c(rep(0, D), zeta),sParams,evol_error = "HS", D = 2)
+        # Observation error variance + params:
+        if(nugget_asv){
+          sParams = fit_paramsASV_n(y - mu - c(rep(0, D), zeta), sParams,evol_error = evol_error_asv, D = D_asv)
+        }else{
+          sParams = fit_paramsASV(y - mu - c(rep(0, D), zeta), sParams, evol_error = evol_error_asv, D = D_asv)
+        }
         sigma_e = exp(sParams$s_mu/2)
-      } else{
+      } else {
         stop('obsSV has to be one of const, SV, or ASV')
       }
     }else{
@@ -176,12 +218,19 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
         }, lower = 0, upper = Inf)[1]
         sigma_e = rep(sigma_et, nT)
       }else if(obsSV == "ASV"){
-        sParams = fit_paramsASV(y-mu,sParams,evol_error = "HS", D = 2)
+        # Observation error variance + params:
+        if(nugget_asv){
+          sParams = fit_paramsASV_n(y-mu,sParams,evol_error = evol_error_asv, D = D_asv)
+        }else{
+          sParams = fit_paramsASV(y-mu,sParams, evol_error = evol_error_asv, D = D_asv)
+        }
         sigma_e = exp(sParams$s_mu/2)
       }else{
         stop('obsSV has to be one of const, SV, or ASV')
       }
     }
+
+
 
     if(nsi > nburn){
       # Increment the skip counter:
@@ -197,14 +246,15 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
           if(!is.na(match('zeta', mcmc_params))) post_zeta[isave,] = zeta
           if(!is.na(match('zeta_sigma_t2', mcmc_params))) post_zeta_sigma_t2[isave,] = zeta_params$sigma_wt^2
         }
-        if(!is.na(match('h', mcmc_params))) post_h[isave,] = evolParams$ht
+        if(!is.na(match('log_evol', mcmc_params))) post_log_evol[isave,] = evolParams$ht
         if(!is.na(match('omega', mcmc_params))) post_omega[isave,] = omega
         if(!is.na(match('r', mcmc_params)) && evol_error == "DHS") post_r[isave] = evolParams$r
         if(!is.na(match('obs_sigma_t2', mcmc_params))) post_obs_sigma_t2[isave,] = sigma_e^2
         if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2[isave,] = c(evolParams0$sigma_w0^2, evolParams$sigma_wt^2)
         if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi[isave] = evolParams$dhs_phi
         if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean[isave] = evolParams$dhs_mean
-
+        if(!is.na(match('h', mcmc_params)) && obsSV == "ASV")  post_h[isave,] = sParams$s_mu
+        if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth[isave,] = sParams$s_mu_sm
         skipcount = 0
       }
     }
@@ -213,14 +263,17 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
   if(!is.na(match('yhat', mcmc_params))) mcmc_output$yhat = post_yhat
   if(!is.na(match('r', mcmc_params)) && evol_error == "DHS") mcmc_output$r = post_r
-  if(!is.na(match('h', mcmc_params))) mcmc_output$h = post_h
+  if(!is.na(match('log_evol', mcmc_params))) mcmc_output$log_evol = post_log_evol
   if(!is.na(match('omega', mcmc_params))) mcmc_output$omega = post_omega
   if(!is.na(match('zeta_sigma_t2', mcmc_params))) mcmc_output$zeta_sigma_t2 = post_zeta_sigma_t2
   if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = post_obs_sigma_t2
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
+  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") mcmc_output$h = post_h
+  if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) mcmc_output$h_smooth = post_h_smooth
 
+  mcmc_output = mcmc_output[!sapply(mcmc_output, is.null)]
   return (mcmc_output)
 }
 #----------------------------------------------------------------------------
@@ -234,7 +287,6 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
 #' and additional parameters for inverse gamma priors (shape and scale).
 #'
 #' @importFrom MCMCpack rinvgamma
-#' @export
 t_initEvolZeta_ps = function(zeta){
   zeta = as.matrix(zeta)
   n = nrow(zeta)
@@ -264,7 +316,6 @@ t_initEvolZeta_ps = function(zeta){
 #' the \code{T} vector of standard deviations, and additional parameters for inverse gamma priors (shape and scale).
 #'
 #' @importFrom MCMCpack rinvgamma
-#' @export
 t_sampleEvolZeta_ps = function(omega, evolParams){
   #omega = as.matrix(omega)
   n = length(omega)
@@ -303,7 +354,6 @@ t_sampleEvolZeta_ps = function(omega, evolParams){
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 #'
 #' @importFrom RcppZiggurat zrnorm
-#' @export
 t_sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs){
 
   # Some quick checks:
@@ -445,7 +495,6 @@ t_sampleEvolParams = function(omega, evolParams, D = 1, sigma_e = 1, lower_b, up
 #' @note For Bayesian trend filtering, \code{p = 1}. More generally, the sampler allows for
 #' \code{p > 1} but assumes (contemporaneous) independence across the log-vols for \code{j = 1,...,p}.
 #'
-
 t_sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_sigma_eta_0, h_st, loc){
 
   # Compute dimensions:
@@ -518,7 +567,6 @@ t_sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_si
 #'
 #' @return \code{2} vector of sampled TAR(1) coefficient(s)
 #'
-#' @export
 t_sampleAR1 = function(h_yc, h_phi, h_phi2, h_sigma_eta_t, h_st, prior_dhs_phi = NULL){
 
   # Compute dimensions:
@@ -570,7 +618,6 @@ t_sampleAR1 = function(h_yc, h_phi, h_phi2, h_sigma_eta_t, h_st, prior_dhs_phi =
 #' @return the sampled mean(s) \code{dhs_mean}
 #'
 #' @importFrom pgdraw pgdraw
-#' @export
 t_sampleLogVolMu = function(h, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_sigma_eta_0, h_st, h_log_scale = 0){
 
   # Compute "local" dimensions:
@@ -654,7 +701,6 @@ t_sampleR_mh = function(h_yc, h_phi, h_phi2, h_sigma_eta_t, h_sigma_eta_0, h_st,
 #' and additional parameters associated with the DHS priors.
 #'
 #' @importFrom msm rtnorm
-#' @export
 t_initEvolParams_no = function(y, D, omega){
 
   # "Local" number of time points
@@ -767,7 +813,6 @@ t_sampleSVparams = function(omega, svParams){
 #' \item the column indices \code{c}
 #' }
 #'
-#' @export
 t_create_loc <- function(len, D){
   if (D == 0 || D == 1){
     row_ind = c()

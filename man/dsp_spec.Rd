@@ -35,8 +35,8 @@ Other arguments are optional and default to predefined value.
 
 \tabular{lll}{
 \strong{Family}    \tab  \strong{Model}       \tab    \strong{Required Arguments}  \cr
-"gaussian"    \tab "changepoint"     \tab \code{D}, \code{useAnom}, \code{obsSV} \cr
-"gaussian"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{zero_error}, \code{D_asv}, \code{evol_error_asv}, \code{nugget_asv}\cr
+"gaussian"    \tab "changepoint"     \tab \code{D}, \code{useAnom}, \code{obsSV} \code{D_asv}, \code{evol_error_asv}, \code{nugget_asv} \cr
+"gaussian"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{D_asv}, \code{evol_error_asv}, \code{nugget_asv}\cr
 "gaussian"    \tab "regression"      \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{X}, \code{D_asv}, \code{evol_error_asv}, \code{nugget_asv} \cr
 "gaussian"    \tab "bspline"        \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{times}, \code{num_knots}  \cr
 "negbinom"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{r_init}, \code{r_sample}, \code{offset}  \cr
@@ -73,11 +73,6 @@ It must be one of the following:
 \itemize{
 \item \code{useAnom}: logical; Defaults to FALSE. if TRUE, include an anomaly component
 in the observation equation.
-}
-\item \code{family} = "gaussian", \code{model} = "smoothing":
-\itemize{
-\item \code{zero_error}: one of the 5 distributions listed in \code{"evol_error"};
-Additional penalty distribution for the conditional expectation i.e., shrinkage to zero (optional).
 }
 \item \code{family} = "gaussian", \code{model} = "regression":
 \itemize{

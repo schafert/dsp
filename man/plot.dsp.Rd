@@ -4,43 +4,49 @@
 \alias{plot.dsp}
 \title{Plot the Bayesian trend filtering fitted values}
 \usage{
-\method{plot}{dsp}(x, y, mu_true = NULL, t01 = NULL, include_joint_bands = FALSE, ...)
+\method{plot}{dsp}(x, type, true_values = NULL, t01 = NULL, include_joint_bands = FALSE, ...)
 }
 \arguments{
-\item{x}{an object of class 'dsp' from \code{\link[=dsp_fit]{dsp_fit()}} with parameter name 'mu'}
+\item{x}{an object of class 'dsp' from \code{\link[=dsp_fit]{dsp_fit()}}}
 
-\item{y}{the \code{T x 1} vector of time series observations}
+\item{type}{parameter name; must be included in x$mcmc_output}
 
-\item{mu_true}{(defaults to NULL) the \code{T x 1} vector of the true conditional mean}
+\item{true_values}{(defaults to NULL) the \code{T x 1} vector of the true parameter}
 
 \item{t01}{the observation points; if NULL, assume \code{T} equally spaced points from 0 to 1}
 
-\item{include_joint_bands}{logical; if TRUE, compute simultaneous credible bands}
+\item{include_joint_bands}{logical; if TRUE, compute simultaneous credible bands (only for \code{zeta},\code{omega},\code{yhat},\code{mu})}
 
-\item{...}{currently not used}
+\item{...}{currently not being used}
 }
 \description{
 Plot the BTF posterior mean of the conditional expectation with posterior credible intervals (pointwise and joint),
 the observed data, and true curves (if known)
 }
 \details{
-The credible intervals plotted depends on whether \code{x} contains predictions
-of the data, i.e., it contains the name 'yhat'. If it does, then a plot is created with
-credible intervals for the posterior prediction of y, else credible intervals are calculated
-for the conditional expectation contained in the named slot 'mu'.
+The plotting behavior depends on the dimension of the posterior samples stored in \code{x$mcmc_output[[type]]}:
+\itemize{
+\item \strong{1D (scalar parameter):} A density plot is generated using a histogram with overlaid kernel density estimate. The posterior mean and 95\% credible interval are annotated, along with the true value if provided.
+\item \strong{2D (vector-valued parameter over time):} A time-series plot is created, showing the posterior mean and 95\% pointwise credible intervals. If \code{include_joint_bands = TRUE} and the parameter is among \code{"omega"}, \code{"mu"}, \code{"yhat"}, or \code{"zeta"}, simultaneous credible bands are also drawn. Optionally, ground truth values (if supplied via \code{true_values}) are overlaid as orange dots.
+\item \strong{3D (parameter array):} A sequence of time-series plots is drawn, one for each slice of the third dimension (e.g., different components of a multivariate function). Posterior mean, pointwise intervals, joint bands (when applicable), and ground truth are visualized in the same style as the 2D case. The function pauses after each plot, allowing the user to interactively inspect each one.
+The x-axis values are given by \code{t01}. If not provided, they default to evenly spaced points in \eqn{[0, 1]}. For parameters with temporal differencing (e.g., \code{"evol_sigma_t2"}), initial time points used for prior initialization are automatically excluded.
+If the model includes change point detection (\code{model = "changepoint"}), and both \code{omega} and \code{r} are present in the MCMC output, vertical lines are drawn at the estimated change point locations for plots of \code{"mu"}, \code{"yhat"}, or \code{"omega"}.
+}
 }
 \examples{
-signal = c(rep(0, 50), rep(10, 50))
-noise = rep(1, 100)
-noise_var = rep(1, 100)
-for (k in 2:100){
-  noise_var[k] = exp(0.9*log(noise_var[k-1]) + rnorm(1, 0, 0.5))
-  noise[k] = rnorm(1, 0, sqrt(noise_var[k])) }
-
-y = signal + noise
-model_spec = dsp_spec(family = "gaussian", model = "changepoint",
-                      mcmc_params = list('yhat', 'mu', "omega", "r"))
-mcmc_output = dsp_fit(y, model_spec = model_spec)
-plot(mcmc_output, y, mu_true = signal) # plots prediction intervals
+set.seed(200)
+mu <- make_signal(name = "quadratic", n = 300)        # Underlying trend with a ramp structure
+var  <- make_signal(name = "bumps", n = 300)/2       # Time-varying standard deviation with bumps
+y <- rnorm(n = 300, mean = mu, sd = sqrt(var))    # Observed data based on above.
+# Specify DSP model with ASV observation noise and Horseshoe prior on evolution error
+spec <- dsp_spec(family = "gaussian",
+                 model = "smoothing",
+                 obsSV = "ASV",
+                 D_asv = 2)
+# Fit the model (Note: longer MCMC runs may be required for stable inference)
+fit <- dsp_fit(y, spec, nsave = 1000, nburn = 1000)
+# Estimated posterior mean vs ground truth
+plot(fit,type = "mu",true_values = mu)
+plot(fit,type = "h",true_values = log(var)) # true values are included for illustration only.
 
 }

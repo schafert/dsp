@@ -83,7 +83,6 @@
 #' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
 #' }
 #'
-
 btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
                nsave = 1000, nburn = 1000, nskip = 4,
                mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h","h_smooth"),
@@ -299,6 +298,8 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
     # Store the DIC and the effective number of parameters (p_d)
     mcmc_output$DIC = DIC; mcmc_output$p_d = p_d
   }
+
+  mcmc_output = mcmc_output[!sapply(mcmc_output, is.null)]
 
   return (mcmc_output);
 }
@@ -531,9 +532,10 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
     mcmc_output$DIC = DIC; mcmc_output$p_d = p_d
   }
 
+  mcmc_output = mcmc_output[!sapply(mcmc_output, is.null)]
+
   return (mcmc_output);
 }
-
 #' Run the MCMC for sparse Bayesian trend filtering
 #'
 #' Sparse Bayesian trend filtering has two penalties:
@@ -622,10 +624,11 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
 #' }
 #'
-#' @export
 btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = "const",
                       nsave = 1000, nburn = 1000, nskip = 4,
-                      mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2", "zero_sigma_t2", "dhs_phi", "dhs_mean","dhs_phi_zero", "dhs_mean_zero","h","h_smooth"),
+                      mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2",
+                                         "zero_sigma_t2", "dhs_phi", "dhs_mean","dhs_phi_zero",
+                                         "dhs_mean_zero","h","h_smooth"),
                       computeDIC = TRUE,
                       verbose = TRUE,
                       D_asv = 1,
@@ -915,7 +918,6 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 #' #              y_true = simdata$beta_true[,j])
 #' }
 #'
-#' @export
 btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
                    nsave = 1000, nburn = 1000, nskip = 4,
                    mcmc_params = list("mu", "yhat","beta","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h","h_smooth"),
@@ -1146,6 +1148,8 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
     mcmc_output$DIC = DIC; mcmc_output$p_d = p_d
   }
 
+  mcmc_output = mcmc_output[!sapply(mcmc_output, is.null)]
+
   return (mcmc_output);
 }
 
@@ -1224,7 +1228,6 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 #' # plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
 #' }
 #'
-#' @export
 btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D = 2,
                        nsave = 1000, nburn = 1000, nskip = 4,
                        mcmc_params = list("mu", "yhat", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
@@ -1412,6 +1415,8 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
     # Store the DIC and the effective number of parameters (p_d)
     mcmc_output$DIC = DIC; mcmc_output$p_d = p_d
   }
+
+  mcmc_output = mcmc_output[!sapply(mcmc_output, is.null)]
 
   return (mcmc_output);
 }
@@ -1629,6 +1634,8 @@ btf_bspline0 = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS',
     # Store the DIC and the effective number of parameters (p_d)
     mcmc_output$DIC = DIC; mcmc_output$p_d = p_d
   }
+
+  mcmc_output = mcmc_output[!sapply(mcmc_output, is.null)]
 
   return (mcmc_output);
 }

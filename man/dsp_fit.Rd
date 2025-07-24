@@ -59,19 +59,19 @@ via an additional Gibbs sampling step. In general, rescaling \code{y} to have un
 deviation is recommended to avoid numerical issues when family is "gaussian".
 }
 \examples{
-\dontrun{
-beta <- make_signal(name = "bumps", n = 300)
-y <- rnbinom(n = length(beta), size = 5, mu = beta)
-# Creating a `model_spec` object
-model_spec <- dsp_spec(
-  family = "negbinomial",
-  model = "smoothing")
-
-fit <- dsp_fit(
-  y = y,
-  model_spec = model_spec,
-  nburn = 5000,
-  nsave = 5000)
-}
+set.seed(200)
+mu <- make_signal(name = "quadratic", n = 300)        # Underlying trend with a ramp structure
+var  <- make_signal(name = "bumps", n = 300)/2       # Time-varying standard deviation with bumps
+y <- rnorm(n = 300, mean = mu, sd = sqrt(var))    # Observed data based on above.
+# Specify DSP model with ASV observation noise and Horseshoe prior on evolution error
+spec <- dsp_spec(family = "gaussian",
+                 model = "smoothing",
+                 obsSV = "ASV",
+                 D_asv = 2)
+# Fit the model (Note: longer MCMC runs may be required for stable inference)
+fit <- dsp_fit(y, spec, nsave = 1000, nburn = 1000)
+# Estimated posterior mean vs ground truth
+plot(fit,type = "mu",true_values = mu)
+plot(fit,type = "h",true_values = log(var)) # true values are included for illustration only.
 
 }

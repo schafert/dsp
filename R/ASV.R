@@ -42,7 +42,6 @@
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
 #' deviation is recommended to avoid numerical issues.
 #'
-#' @export
 fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
                    nsave = 1000, nburn = 1000, nskip = 4,
                    mcmc_params = list("h", "logy2hat","sigma2","evol_sigma_t2",
@@ -176,7 +175,6 @@ generate_ly2hat <- function(h,p_error_term){
 #' \item s_evolParams0: a list containing posterior samples of parameters associated with the variance of first D observation of the log variance term, h.
 #' \item s_evolParams: a list containing posterior samples parameters associated with the variance of D to the last observations of the log variance temr , h.
 #' }
-#' @export
 init_paramsASV <- function(data,evol_error,D){
   yoffset = any(data^2 < 10^-16,na.rm = TRUE)*mad(data,na.rm = TRUE)/10^10
   data = log(data^2 + yoffset)
@@ -225,7 +223,6 @@ init_paramsASV <- function(data,evol_error,D){
 #' \item s_evolParams0: a list containing posterior samples of parameters associated with the variance of first D observation of the log variance term, h.
 #' \item s_evolParams: a list containing posterior samples parameters associated with the variance of D to the last observations of the log variance temr , h.
 #' }
-#' @export
 fit_paramsASV <- function(data,sParams,evol_error,D){
   yoffset = any(data^2 < 10^-16)*mad(data)/10^10
   data = log(data^2 + yoffset)
@@ -283,7 +280,6 @@ fit_paramsASV <- function(data,sParams,evol_error,D){
 #' \item s_evolParams0: a list containing posterior samples of parameters associated with the variance of first D observation of the log variance term, h.
 #' \item s_evolParams: a list containing posterior samples parameters associated with the variance of D to the last observations of the log variance temr , h.
 #' }
-#' @export
 init_paramsASV_n <- function(data,evol_error,D){
   yoffset = any(data^2 < 10^-16,na.rm = TRUE)*mad(data,na.rm = TRUE)/10^10
   data = log(data^2 + yoffset)
@@ -344,7 +340,6 @@ init_paramsASV_n <- function(data,evol_error,D){
 #' \item s_evolParams0: a list containing posterior samples of parameters associated with the variance of first D observation of the log variance term, h.
 #' \item s_evolParams: a list containing posterior samples parameters associated with the variance of D to the last observations of the log variance temr , h.
 #' }
-#' @export
 fit_paramsASV_n <- function(data,sParams,evol_error,D){
   yoffset = any(data^2 < 10^-16)*mad(data)/10^10
   data = log(data^2 + yoffset)
