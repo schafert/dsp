@@ -275,36 +275,3 @@ plot.dsp = function(x, type ,true_values = NULL, t01 = NULL, include_joint_bands
     stop("Currently cannot visualize this parameter")
   }
 }
-#----------------------------------------------------------------------------
-#' Plot the series with change points
-#'
-#' Plot the time series with distinct segments identified by color.
-#'
-#' @param mu the \code{T x 1} vector of time series observations (or fitted values)
-#' @param cp_inds the \code{n_cp x 1} vector of indices at which a changepoint is identified
-#' @export
-plot_cp = function(mu, cp_inds){
-
-  dev.new(); par(mfrow=c(1,1), mai = c(1,1,1,1))
-
-  # If no CP's, just plot mu:
-  if(length(cp_inds) == 0) return(plot(mu, lwd=8, col =1, type='o'))
-
-  # Assume the CP starts at 1
-  if(cp_inds[1]!=1) cp_inds = c(1, cp_inds)
-
-  # Number of changepoints:
-  n_cp = length(cp_inds)
-
-  plot(mu, type='n')
-
-  for(j in 1:n_cp) {
-    # Indices of CP:
-    if(j < n_cp){
-      j_ind = cp_inds[j]:(cp_inds[j+1] - 1)
-    } else j_ind = cp_inds[length(cp_inds)]:length(mu)
-
-    # Plot in the same color:
-    lines(j_ind, mu[j_ind], lwd=8, col =j, type='o')
-  }
-}

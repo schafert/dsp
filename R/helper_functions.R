@@ -582,7 +582,6 @@ build_Q = function(obs_sigma_t2, evol_sigma_t2, D = 1){
 #'          cp_inds = nz[nz[,2]==j,1])
 #' }
 #'
-#' @export
 getNonZeros = function(post_evol_sigma_t2, post_obs_sigma_t2 = NULL){
 
   # Posterior distribution of shrinkage parameters in (0,1)
