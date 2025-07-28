@@ -17,10 +17,11 @@
 #' @examples
 #'
 #' nms <- c("blocks", "linchirp", "mishmash1", "bumps")
-#' z <- lapply(nms, make_signal)
+#' z <- lapply(nms, simUnivariate)
 #'
 #' @export
-make_signal <- function(name, n=1024, snr=Inf)
+
+simUnivariate <- function(name, n=1024, snr=Inf)
 {
 
   .wave.demo.signals <- c("dirac", "kronecker", "heavisine", "bumps", "blocks",

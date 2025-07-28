@@ -16,7 +16,7 @@ simRegression0(
 )
 }
 \arguments{
-\item{signalNames}{vector of strings matching the "name" argument in the \code{make_signal()} function,
+\item{signalNames}{vector of strings matching the "name" argument in the \code{simUnivariate()} function,
 e.g. "bumps" or "doppler"}
 
 \item{nT}{number of points}
@@ -46,7 +46,7 @@ a list containing
 \description{
 Simulates data from a time series regression with dynamic regression coefficients.
 The dynamic regression coefficients are selected using the options from the
-\code{make_signal()} function in the \code{wmtsa} package.
+\code{simUnivariate()} function in the \code{wmtsa} package.
 }
 \note{
 The number of predictors is \code{p = length(signalNames) + p_0}.

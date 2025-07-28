@@ -14,16 +14,17 @@
 #'
 #' @examples
 #' set.seed(200)
-#' mu <- make_signal(name = "quadratic", n = 300)        # Underlying trend with a ramp structure
-#' var  <- make_signal(name = "bumps", n = 300)/2       # Time-varying standard deviation with bumps
-#' y <- rnorm(n = 300, mean = mu, sd = sqrt(var))    # Observed data based on above.
+#' n <- 150
+#' mu <- simUnivariate(name = "quadratic", n = n)        # Underlying trend with a ramp structure
+#' var  <- simUnivariate(name = "bumps", n = n)/2       # Time-varying standard deviation with bumps
+#' y <- rnorm(n = n, mean = mu, sd = sqrt(var))    # Observed data based on above.
 #' # Specify DSP model with ASV observation noise and Horseshoe prior on evolution error
 #' spec <- dsp_spec(family = "gaussian",
 #'                  model = "smoothing",
 #'                  obsSV = "ASV",
 #'                  D_asv = 2)
 #' # Fit the model (Note: longer MCMC runs may be required for stable inference)
-#' fit <- dsp_fit(y, spec, nsave = 1000, nburn = 1000)
+#' fit <- dsp_fit(y, spec, nsave = 500, nburn = 1000)
 #' summary_fit <- summary(fit)
 #' summary_fit$mu[,"mean"]  # contains estimated posterior mean
 #' summary_fit$h[,"mean"] # conrtains log volatility
@@ -32,6 +33,7 @@
 #'
 #' @method summary dsp
 #' @export
+
 summary.dsp <- function(object, pars, probs = c(0.025, 0.25, 0.50, 0.75, 0.975), ... ){
 
   # supplied or default pars?

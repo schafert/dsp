@@ -602,13 +602,13 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' \dontrun{
 #' # TODO: add dsp class or change to use dsp_fit (don't export)
 #' # Example 1: Bumps Data
-#' y = make_signal(name = "bumps", n = 128, snr = 7)
+#' y = simUnivariate(name = "bumps", n = 128, snr = 7)
 #'
 #' out = btf_sparse(y)
 #' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
 #'
 #' # Example 2: Doppler Data; longer series, more noise
-#' y = make_signal(name = "doppler", n = 500, snr = 7)
+#' y = simUnivariate(name = "doppler", n = 500, snr = 7)
 #'
 #' out = btf_sparse(y)
 #' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
@@ -618,7 +618,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' plot(as.ts(out$dhs_mean)) # Unconditional mean
 #'
 #' # Example 3: Blocks data (locally constant)
-#' y = make_signal(name = "blocks", n = 1000, snr = 3)
+#' y = simUnivariate(name = "blocks", n = 1000, snr = 3)
 #'
 #' out = btf_sparse(y, D = 1) # try D = 1 to approximate the locally constant behavior
 #' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)

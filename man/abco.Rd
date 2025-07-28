@@ -76,7 +76,7 @@ mostly relying on a dynamic linear model representation.
 }
 \examples{
 \dontrun{
-beta <- make_signal(name = "ramp", n = 300)
+beta <- simUnivariate(name = "ramp", n = 300)
 y <- rnorm(n = 300, mean = beta,sd = 0.15)
 # Need to typically run sampler for longer than specified below
 fit <- abco(

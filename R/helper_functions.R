@@ -1,49 +1,4 @@
 #----------------------------------------------------------------------------
-#' Simulate noisy observations from a function
-#'
-#' Builds upon the \code{make_signal()} function in the \code{wmtsa} package
-#' to include Gaussian noise with a user-specificied root-signal-to-noise ratio.
-#'
-#' @param signalName string matching the "name" argument in the \code{make_signal()} function,
-#' e.g. "bumps" or "doppler"
-#' @param nT number of points
-#' @param RSNR root-signal-to-noise ratio
-#' @param include_plot logical; if TRUE, include a plot of the simulated data and the true curve
-#'
-#' @return a list containing
-#' \itemize{
-#' \item the simulated data \code{y}
-#' \item the true conditional mean \code{mu_true}
-#' \item the true observation standard deviation \code{sigma_true}
-#' }
-#'
-#' @note The root-signal-to-noise ratio is defined as RSNR = (sd of true function)/(sd of noise).
-#'
-#' @examples
-#'
-#' sims = simUnivariate() # default simulations
-#' names(sims) # variables included in the list
-#'
-#'
-#' @export
-simUnivariate = function(signalName = "bumps", nT = 200, RSNR = 10, include_plot = TRUE){
-
-  # The true function:
-  mu_true = make_signal(signalName, n=nT)
-
-  # Noise SD, based on RSNR (also put in a check for constant/zero functions)
-  sigma_true = sd(mu_true)/RSNR; if(sigma_true==0) sigma_true = sqrt(sum(mu_true^2)/nT)/RSNR + 10^-3
-
-  # Simulate the data:
-  y = mu_true + sigma_true*rnorm(nT)
-
-  # Plot?
-  if(include_plot) {t = seq(0, 1, length.out=nT); plot(t, y, main = 'Simulated Data and True Curve'); lines(t, mu_true, lwd=8, col='black') }
-
-  # Return the raw data and the true values:
-  list(y = y, mu_true = mu_true, sigma_true = sigma_true)
-}
-#----------------------------------------------------------------------------
 #' Simulate noisy observations from a dynamic regression model
 #'
 #' Simulates data from a time series regression with dynamic regression coefficients.
@@ -80,6 +35,7 @@ simUnivariate = function(signalName = "bumps", nT = 200, RSNR = 10, include_plot
 #'
 #' @importFrom stats arima.sim
 #' @export
+
 simRegression = function(nT = 200, p = 20, p_0 = 15,
                          sparsity = 0.05, RSNR = 5, ar1 = 0,
                          include_plot = FALSE){
@@ -127,9 +83,9 @@ simRegression = function(nT = 200, p = 20, p_0 = 15,
 #'
 #' Simulates data from a time series regression with dynamic regression coefficients.
 #' The dynamic regression coefficients are selected using the options from the
-#' \code{make_signal()} function in the \code{wmtsa} package.
+#' \code{simUnivariate()} function in the \code{wmtsa} package.
 #'
-#' @param signalNames vector of strings matching the "name" argument in the \code{make_signal()} function,
+#' @param signalNames vector of strings matching the "name" argument in the \code{simUnivariate()} function,
 #' e.g. "bumps" or "doppler"
 #' @param nT number of points
 #' @param RSNR root-signal-to-noise ratio
@@ -163,7 +119,7 @@ simRegression0 = function(signalNames = c("bumps", "blocks"), nT = 200, RSNR = 1
 
   # Simulate the true regression signals
   beta_true = matrix(0, nrow = nT, ncol = p)
-  for(j in 1:p_true) beta_true[,j] = make_signal(signalNames[j], n=nT);
+  for(j in 1:p_true) beta_true[,j] = simUnivariate(signalNames[j], n=nT);
   if(scale_all) beta_true[,1:p_true] = apply(as.matrix(beta_true[,1:p_true]), 2, function(x) (x - min(x))/(max(x) - min(x)))
 
   # Simulate the predictors: autocorrelated or independent? Either way, use N(0,1) innovations
@@ -202,7 +158,7 @@ simRegression0 = function(signalNames = c("bumps", "blocks"), nT = 200, RSNR = 1
 #' 'DHS' (dynamic horseshoe prior), 'HS' (horseshoe prior), or 'NIG' (normal-inverse-gamma prior)
 #' @return List of relevant components: \code{sigma_wt}, the \code{T x p} matrix of evolution standard deviations,
 #' and additional parameters associated with the DHS and HS priors.
-#' @export
+
 initEvolParams = function(omega, evol_error = "DHS"){
 
   # Check:
@@ -240,7 +196,7 @@ initEvolParams = function(omega, evol_error = "DHS"){
 #' the \code{p x 1} initial log-vol SD \code{sigma_eta_0},
 #' and the mean of log-vol means \code{dhs_mean0} (relevant when \code{p > 1})
 #' @importFrom methods is
-#' @export
+
 initDHS = function(omega){
 
   # "Local" number of time points
@@ -280,7 +236,7 @@ initDHS = function(omega){
 #' @param omega \code{T x p} matrix of errors
 #' @return List of relevant components: \code{sigma_wt}, the \code{T x p} matrix of standard deviations,
 #' and additional parameters (unconditional mean, AR(1) coefficient, and standard deviation).
-#' @export
+
 initSV = function(omega){
 
   # Make sure omega is (n x p) matrix
@@ -316,7 +272,7 @@ initSV = function(omega){
 #' the \code{p x 1} parameter-expanded RV's \code{px_sigma_w0},
 #' and the corresponding global scale parameters
 #' \code{sigma_00} and \code{px_sigma_00} (ignore if commonSD)
-#' @export
+
 initEvol0 = function(mu0, commonSD = TRUE){
 
   p = length(mu0)
@@ -343,7 +299,7 @@ initEvol0 = function(mu0, commonSD = TRUE){
 #' @note X'X is a one-time computing cost. Special cases may have more efficient computing options,
 #' but the Matrix representation is important for efficient computations within the sampler.
 #'
-#' @export
+
 build_XtX = function(X){
 
   # Store the dimensions:
@@ -360,6 +316,7 @@ build_XtX = function(X){
   }
   XtX
 }
+
 #----------------------------------------------------------------------------
 #' Compute initial Cholesky decomposition for Bayesian Trend Filtering
 #'
@@ -369,7 +326,6 @@ build_XtX = function(X){
 #'
 #' @param nT number of time points
 #' @param D degree of differencing (D = 1 or D = 2)
-#' @export
 
 initChol_spam = function(nT, D = 1){
 
@@ -395,7 +351,7 @@ initChol_spam = function(nT, D = 1){
 #' @param XtX the \code{Tp x Tp} matrix of X'X (one-time cost; see ?build_XtX)
 #' @param D the degree of differencing (one or two)
 #'
-#' @export
+#'
 initCholReg_spam = function(obs_sigma_t2, evol_sigma_t2, XtX, D = 1){
 
   # Some quick checks:
@@ -484,7 +440,7 @@ initCholReg_spam = function(obs_sigma_t2, evol_sigma_t2, XtX, D = 1){
 #' @return Banded \code{T x T} Matrix (object) \code{Q}
 #'
 #' @importFrom Matrix bandSparse
-#' @export
+
 build_Q = function(obs_sigma_t2, evol_sigma_t2, D = 1){
 
   if(!(D == 1 || D == 2)) stop('build_Q requires D = 1 or D = 2')
@@ -632,7 +588,7 @@ ncind = function(y,mu,sig,q){
 #' for vectors. The resulting credible intervals will provide joint coverage at the (1-alpha)%
 #' level across all components of the vector.
 #'
-#' @export
+
 credBands = function(sampFuns, alpha = .05){
 
   N = nrow(sampFuns); m = ncol(sampFuns)
@@ -672,7 +628,7 @@ credBands = function(sampFuns, alpha = .05){
 #' over the domain \code{t} is the Global Bayesian P-Value (GBPV) for testing
 #' whether the function is zero everywhere.
 #'
-#' @export
+
 simBaS = function(sampFuns){
 
   N = nrow(sampFuns); m = ncol(sampFuns)
@@ -716,7 +672,7 @@ simBaS = function(sampFuns){
 #' }
 #'
 #' @importFrom coda effectiveSize as.mcmc
-#' @export
+
 getEffSize = function(postX) {
   if(is.null(dim(postX))) return(effectiveSize(postX))
   summary(coda::effectiveSize(coda::as.mcmc(array(postX, c(dim(postX)[1], prod(dim(postX)[-1]))))))
@@ -737,8 +693,9 @@ getEffSize = function(postX) {
 #' abline(h=5)
 #' }
 #'
-#' @export
+
 ergMean = function(x) {cumsum(x)/(1:length(x))}
+
 #----------------------------------------------------------------------------
 #' Compute the log-odds
 #' @param x scalar or vector in (0,1) for which to compute the (componentwise) log-odds
@@ -749,11 +706,11 @@ ergMean = function(x) {cumsum(x)/(1:length(x))}
 #' plot(x, logit(x))
 #' }
 #'
-#' @export
 logit = function(x) {
   if(any(abs(x) > 1)) stop('x must be in (0,1)')
   log(x/(1-x))
 }
+
 #----------------------------------------------------------------------------
 #' Compute the inverse log-odds
 #' @param x scalar or vector for which to compute the (componentwise) inverse log-odds
@@ -764,7 +721,7 @@ logit = function(x) {
 #' plot(x, invlogit(x))
 #' }
 #'
-#' @export
+
 invlogit = function(x) exp(x - log(1+exp(x))) # exp(x)/(1+exp(x))
 
 #----------------------------------------------------------------------------
@@ -787,7 +744,7 @@ invlogit = function(x) exp(x - log(1+exp(x))) # exp(x)/(1+exp(x))
 #' of the distribution.  If a lower and/or upper bound is specified for the
 #' support, the log density function will not be called outside such limits.
 #'
-#' @export
+
 uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL)
 {
   # Check the validity of the arguments.
@@ -929,7 +886,7 @@ uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL)
 #' spec[which.max(spec[,2]),1]
 #' }
 #'
-#' @export
+
 spec_dsp = function(ar_coefs, sigma_e, n.freq = 500){
 
   p = length(ar_coefs)
@@ -977,7 +934,7 @@ getARpXmat = function(y, p = 1, include_intercept = FALSE){
 #' @param rd \code{T-D} vector of standard normal noise samples
 #' @param D the degree of differencing for changepoint
 #'
-#' @export
+
 sample_mat_c = function(row_ind, col_ind, mat_val, mat_l, num_inp, linht, rd, D){
   if ((length(row_ind) != num_inp) || (length(col_ind) != num_inp) || (length(mat_val) != num_inp)) stop('Length of inputs do not match')
   if ((length(linht) != mat_l) || (length(rd) != mat_l)) stop('length of vectors do not match')
