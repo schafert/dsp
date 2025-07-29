@@ -32,7 +32,7 @@ Description: This package provides a full, efficient MCMC sampling algorithm for
     for dynamic shrinkage processes applied to (1) dynamic regression with time-varying
     coefficients and (2) B-spline models for curve-fitting. In the dynamic regression 
     model, we regress a dynamic (scalar) response on a vector of dynamic predictors
-    for which the corresponding regression coefficients are time-varying. The 1st/2nd 
+    for which the corresponding regression coefficients are time-varying. The first or second 
     differences of the regression coefficients are penalized using DSPs (with options for 
     HS and NIG priors), allowing for highly adaptive regression functions. In the B-spline
     setting, we penalize 1st/2nd differences of the B-spline basis coefficients, similar
@@ -43,6 +43,7 @@ Description: This package provides a full, efficient MCMC sampling algorithm for
     heteroscedastic measurement error, and jointly identifies both local
     outliers and change points.
 License: GPL (>= 3) + file LICENSE
+Depends: R (>= 4.1.0)
 Imports: 
     coda,
     fda,

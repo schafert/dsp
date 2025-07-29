@@ -262,7 +262,7 @@ dsp_spec <- function(family,
 #'
 #' @examples
 #' set.seed(200)
-#' n <- 150
+#' n <- 100
 #' mu <- simUnivariate(name = "quadratic", n = n)        # Underlying trend with a ramp structure
 #' var  <- simUnivariate(name = "bumps", n = n)/2       # Time-varying standard deviation with bumps
 #' y <- rnorm(n = n, mean = mu, sd = sqrt(var))    # Observed data based on above.
