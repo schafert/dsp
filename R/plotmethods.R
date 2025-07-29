@@ -32,7 +32,7 @@
 #'                  obsSV = "ASV",
 #'                  D_asv = 2)
 #' # Fit the model (Note: longer MCMC runs may be required for stable inference)
-#' fit <- dsp_fit(y, spec, nsave = 500, nburn = 1000)
+#' fit <- dsp_fit(y, spec, nsave = 500, nburn = 500)
 #' # Estimated posterior mean vs ground truth
 #' plot(fit,type = "mu",true_values = mu)
 #  # Estimated log-variance vs ground truth

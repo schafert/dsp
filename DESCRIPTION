@@ -42,10 +42,10 @@ Description: A full, efficient MCMC sampling algorithm for dynamic
     estimated using a threshold parameter.  The model can deal with
     heteroscedastic measurement error, and jointly identifies both local
     outliers and change points.
-    Methods in this pacakge are described in Kowal et al. (2019) <doi:10.1111/rssb.12325>, 
+    Methods in this package are described in Kowal et al. (2019) <doi:10.1111/rssb.12325>, 
     Wu et al. (2024) <doi:10.1080/07350015.2024.2362269>, Schafer and Matteson (2024)
-    <doi:10.1080/00401706.2024.2407316>, and Cho and Matteson (2024) <arXiv:2408.11315>.
-License: GPL (>= 3) + file LICENSE
+    <doi:10.1080/00401706.2024.2407316>, and Cho and Matteson (2024) <doi:10.48550/arXiv.2408.11315>.
+License: GPL (>= 3) 
 Depends: R (>= 4.1.0)
 Imports: 
     coda,

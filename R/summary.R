@@ -24,7 +24,7 @@
 #'                  obsSV = "ASV",
 #'                  D_asv = 2)
 #' # Fit the model (Note: longer MCMC runs may be required for stable inference)
-#' fit <- dsp_fit(y, spec, nsave = 500, nburn = 1000)
+#' fit <- dsp_fit(y, spec, nsave = 500, nburn = 500)
 #' summary_fit <- summary(fit)
 #' summary_fit$mu[,"mean"]  # contains estimated posterior mean
 #' summary_fit$h[,"mean"] # conrtains log volatility
