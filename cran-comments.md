@@ -1,3 +1,10 @@
+## Resubmission
+This is a resubmission. In this version I have:
+
+* Removed the LICENSE file
+
+* Shortened run time of examples
+  
 ## R CMD check results
 
 0 errors | 0 warnings | 1 note

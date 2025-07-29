@@ -262,21 +262,17 @@ dsp_spec <- function(family,
 #'
 #' @examples
 #' set.seed(200)
-#' n <- 100
-#' mu <- simUnivariate(name = "quadratic", n = n)        # Underlying trend with a ramp structure
-#' var  <- simUnivariate(name = "bumps", n = n)/2       # Time-varying standard deviation with bumps
-#' y <- rnorm(n = n, mean = mu, sd = sqrt(var))    # Observed data based on above.
-#' # Specify DSP model with ASV observation noise and Horseshoe prior on evolution error
-#' spec <- dsp_spec(family = "gaussian",
-#'                  model = "smoothing",
-#'                  obsSV = "ASV",
-#'                  D_asv = 2)
-#' # Fit the model (Note: longer MCMC runs may be required for stable inference)
-#' fit <- dsp_fit(y, spec, nsave = 500, nburn = 500)
-#' # Estimated posterior mean vs ground truth
-#' plot(fit,type = "mu",true_values = mu)
-#  # Estimated log-variance vs ground truth
-#' plot(fit,type = "h",true_values = log(var)) # true values are included for illustration only.
+#' signal = c(rep(0, 50), rep(10, 50))
+#' noise = rep(1, 100)
+#' noise_var = rep(1, 100)
+#' for (k in 2:100){
+#'   noise_var[k] = exp(0.9*log(noise_var[k-1]) + rnorm(1, 0, 0.5))
+#'   noise[k] = rnorm(1, 0, sqrt(noise_var[k])) }
+#'
+#' y = signal + noise
+#' model_spec = dsp_spec(family = "gaussian", model = "changepoint",
+#'                       D = 1, useAnom = TRUE, obsSV = "SV")
+#' mcmc_output = dsp_fit(y, model_spec = model_spec)
 #'
 #' @export
 dsp_fit = function(y, model_spec,

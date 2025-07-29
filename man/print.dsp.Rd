@@ -24,7 +24,7 @@ A brief summary of the settings used to fit the model including number of iterat
 burn in, and thinning rates.
 }
 \examples{
-
+set.seed(200)
 signal = c(rep(0, 50), rep(10, 50))
 noise = rep(1, 100)
 noise_var = rep(1, 100)
@@ -33,10 +33,10 @@ for (k in 2:100){
   noise[k] = rnorm(1, 0, sqrt(noise_var[k])) }
 
 y = signal + noise
-model_spec = dsp_spec(family = "gaussian", model = "changepoint")
+model_spec = dsp_spec(family = "gaussian", model = "changepoint",
+                      D = 1, useAnom = TRUE)
 mcmc_output = dsp_fit(y, model_spec = model_spec)
 print(mcmc_output)
-
 
 model_spec = dsp_spec(family = "gaussian", model = "changepoint")
 print(model_spec)
