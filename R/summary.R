@@ -24,7 +24,7 @@
 #' y = signal + noise
 #' model_spec = dsp_spec(family = "gaussian", model = "changepoint",
 #'                       D = 1, useAnom = TRUE, obsSV = "SV")
-#' mcmc_output = dsp_fit(y, model_spec = model_spec)
+#' mcmc_output = dsp_fit(y, model_spec = model_spec, nsave = 500, nburn = 500)
 #'
 #' summary_fit <- summary(mcmc_output)
 #' summary_fit$mu[,"mean"]

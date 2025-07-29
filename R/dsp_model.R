@@ -272,7 +272,7 @@ dsp_spec <- function(family,
 #' y = signal + noise
 #' model_spec = dsp_spec(family = "gaussian", model = "changepoint",
 #'                       D = 1, useAnom = TRUE, obsSV = "SV")
-#' mcmc_output = dsp_fit(y, model_spec = model_spec)
+#' mcmc_output = dsp_fit(y, model_spec = model_spec, nsave = 500, nburn = 500)
 #'
 #' @export
 dsp_fit = function(y, model_spec,
