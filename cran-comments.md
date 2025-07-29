@@ -1,7 +1,7 @@
 ## Resubmission
 This is a resubmission. In this version I have:
 
-* Removed the LICENSE file
+* Added the LICENSE file to .Rbuildignore
 
 * Shortened run time of examples
   
