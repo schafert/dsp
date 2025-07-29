@@ -1,7 +1,7 @@
 Type: Package
 Package: dsp
 Title: Dynamic Shrinkage Process and Change Point Detection
-Version: 1.0.0
+Version: 1.1.0
 Authors@R: c(
     person("Daniel R.", "Kowal", , "daniel.kowal@rice.edu", role = c("aut", "cph")),
     person("Haoxuan", "Wu", , "hw399@cornell.edu", role = c("aut")),
