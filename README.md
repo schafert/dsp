@@ -33,3 +33,20 @@ Besides curve-fitting via BTF, we include full, efficient MCMC sampling algorith
     to P-splines, using DSPs (with options for HS and NIG priors). The resulting 
     curve-fitting model is highly adaptive, like the BTF model above, but easily
     incorporates unequally-spaced observation points. 
+
+# Installation
+
+```r
+install.packages("dsp")
+```
+
+Alternatively, install the development version
+
+```r
+install.packages("devtools")
+devtools::install_github("schafert/dsp")
+```
+
+```r
+library("dsp")
+```
