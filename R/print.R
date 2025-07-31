@@ -1,6 +1,6 @@
 #' Print a summary of a model specification or fitted dsp object
 #'
-#' Prints basic information about the MCMC sampling settings for the fitted model
+#' Method for printing basic information about the MCMC sampling settings for the fitted model
 #'
 #' @param x object of class dsp from [dsp_fit()]
 #' @param ... currently not used
@@ -10,22 +10,12 @@
 #' burn in, and thinning rates.
 #'
 #' @returns NULL
-#' @examples
-#' set.seed(200)
-#' signal = c(rep(0, 50), rep(10, 50))
-#' noise = rep(1, 100)
-#' noise_var = rep(1, 100)
-#' for (k in 2:100){
-#'   noise_var[k] = exp(0.9*log(noise_var[k-1]) + rnorm(1, 0, 0.5))
-#'   noise[k] = rnorm(1, 0, sqrt(noise_var[k])) }
 #'
-#' y = signal + noise
-#' model_spec = dsp_spec(family = "gaussian", model = "changepoint",
-#'                       D = 1, useAnom = TRUE)
-#' mcmc_output = dsp_fit(y, model_spec = model_spec, nsave = 500, nburn = 500)
+#' @examples
 #' print(mcmc_output)
 #'
 #' @method print dsp
+#' @rdname dsp_fit
 #' @export
 #'
 
@@ -44,20 +34,20 @@ print.dsp <- function(x, ...){
 
 #' Print a summary of a model specification or fitted dsp object
 #'
-#' Prints basic information about the model specification
+#' Method for printing basic information about the model specification
 #'
 #' @param x object of class dsp_spec from [dsp_spec()]
 #' @param ... currently not used
 #'
 #' @returns NULL
+#'
 #' @export
 #'
 #' @examples
-#' model_spec = dsp_spec(family = "gaussian", model = "changepoint")
 #' print(model_spec)
 #'
 #' @method print dsp_spec
-#' @rdname print.dsp
+#' @rdname dsp_spec
 print.dsp_spec <- function(x, ...){
 
   if(x$family == "gaussian"){

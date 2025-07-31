@@ -12,7 +12,6 @@
 #' @param ... currently not being used
 #'
 #' @details
-#'
 #' The plotting behavior depends on the dimension of the posterior samples stored in `x$mcmc_output[[type]]`:
 #' - **1D (scalar parameter):** A density plot is generated using a histogram with overlaid kernel density estimate. The posterior mean and 95% credible interval are annotated, along with the true value if provided.
 #' - **2D (vector-valued parameter over time):** A time-series plot is created, showing the posterior mean and 95% pointwise credible intervals. If `include_joint_bands = TRUE` and the parameter is among \code{"omega"}, \code{"mu"}, \code{"yhat"}, or \code{"zeta"}, simultaneous credible bands are also drawn. Optionally, ground truth values (if supplied via `true_values`) are overlaid as orange dots.
@@ -20,6 +19,7 @@
 #' The x-axis values are given by `t01`. If not provided, they default to evenly spaced points in \eqn{[0, 1]}. For parameters with temporal differencing (e.g., `"evol_sigma_t2"`), initial time points used for prior initialization are automatically excluded.
 #' If the model includes change point detection (`model = "changepoint"`), and both `omega` and `r` are present in the MCMC output, vertical lines are drawn at the estimated change point locations for plots of `"mu"`, `"yhat"`, or `"omega"`.
 #'
+#' @returns No return value, called for side effects
 #' @examples
 #' set.seed(200)
 #' signal = c(rep(0, 50), rep(10, 50))
