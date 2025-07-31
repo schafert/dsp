@@ -1,9 +1,9 @@
 ## Resubmission
 This is a resubmission. In this version I have:
 
-* Added the LICENSE file to .Rbuildignore
+* deleted all examples from unexported functions which removed all instances of `\dontrun{}`
 
-* Shortened run time of examples
+* added suggestion for reseting par on exit for plot method
   
 ## R CMD check results
 
