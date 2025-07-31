@@ -52,6 +52,10 @@ plot.dsp = function(x, type ,true_values = NULL, t01 = NULL, include_joint_bands
     stop("Must be one of the parameters in x$mcmc_output")
   }
   dimension = dim(samples)
+
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar))
+
   if(length(dimension) == 2){
     # two dimension -> scatter plot
     # initializing Legend items
