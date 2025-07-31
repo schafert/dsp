@@ -51,21 +51,7 @@ NULL
 #' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 #'
 #' @importFrom progress progress_bar
-#'
-#' @examples
-#' \dontrun{
-#' beta <- simUnivariate(name = "ramp", n = 300)
-#' y <- rnorm(n = 300, mean = beta,sd = 0.15)
-#' # Need to typically run sampler for longer than specified below
-#' fit <- abco(
-#'   y = y,
-#'   D = 2,
-#'   obsSV = "const",
-#'   nsave = 1000,
-#'   nburn = 1000
-#' )
-#' }
-#'
+
 abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
                 nsave = 1000, nburn = 1000, nskip = 4,
                 mcmc_params = list('mu', "omega", "yhat", "evol_sigma_t2","r","zeta",

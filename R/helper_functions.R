@@ -26,13 +26,6 @@
 #'
 #'
 #' @note The root-signal-to-noise ratio is defined as RSNR = (sd of true function)/(sd of noise).
-#'
-#' @examples
-#' \dontrun{
-#' sims = simRegression() # default simulations
-#' names(sims) # variables included in the list
-#' }
-#'
 #' @importFrom stats arima.sim
 #' @export
 
@@ -496,48 +489,7 @@ build_Q = function(obs_sigma_t2, evol_sigma_t2, D = 1){
 #'
 #' @return A vector (or matrix) of indices identifying the signals according to the
 #' horsehoe-type thresholding rule.
-#'
-#' @examples
-#' \dontrun{
-#' # Simulate a function with many changes:
-#' simdata = simUnivariate(signalName = "blocks", nT = 128, RSNR = 7, include_plot = TRUE)
-#' y = simdata$y
-#'
-#' # Run the MCMC:
-#' out = btf(y, D = 1, evol_error = "HS",
-#'                  mcmc_params = list('mu','evol_sigma_t2', 'obs_sigma_t2'))
-#' # Compute the CPs:
-#' nz = getNonZeros(post_evol_sigma_t2 = out$evol_sigma_t2,
-#'                 post_obs_sigma_t2 = out$obs_sigma_t2)
-#' # True CPs:
-#' cp_true = 1 + which(abs(diff(simdata$mu_true)) > 0)
-#'
-#' # Plot the results:
-#' plot_cp(y, nz)
-#' plot_cp(colMeans(out$mu), nz)
-#' # abline(v = cp_true)
-#'
-#' # Regression example:
-#' simdata = simRegression(nT = 200, p = 5, p_0 = 2)
-#' y = simdata$y; X = simdata$X
-#' # Run the MCMC:
-#' out = btf_reg(y, X, D = 1, evol_error = 'DHS',
-#'                      mcmc_params = list('mu', 'beta', 'yhat',
-#'                                         'evol_sigma_t2', 'obs_sigma_t2'))
-#' for(j in 1:ncol(X))
-#'  plot_fitted(rep(0, length(y)),
-#'              mu = colMeans(out$beta[,,j]),
-#'              postY = out$beta[,,j],
-#'              mu_true = simdata$beta_true[,j])
-#'
-#' # Compute the CPs
-#' nz = getNonZeros(post_evol_sigma_t2 = out$evol_sigma_t2,
-#'                 post_obs_sigma_t2 = out$obs_sigma_t2)
-#' for(j in 1:ncol(X))
-#'  plot_cp(mu = colMeans(out$beta[,,j]),
-#'          cp_inds = nz[nz[,2]==j,1])
-#' }
-#'
+
 getNonZeros = function(post_evol_sigma_t2, post_obs_sigma_t2 = NULL){
 
   # Posterior distribution of shrinkage parameters in (0,1)
@@ -659,18 +611,6 @@ simBaS = function(sampFuns){
 #'
 #' @param postX An array of arbitrary dimension \code{(nsims x ... x ...)}, where \code{nsims} is the number of posterior samples
 #' @return Table of summary statistics using the function \code{summary()}.
-#'
-#' @examples
-#' \dontrun{
-#' # ESS for iid simulations:
-#' rand_iid = rnorm(n = 10^4)
-#' getEffSize(rand_iid)
-#'
-#' # ESS for several AR(1) simulations with coefficients 0.1, 0.2,...,0.9:
-#' rand_ar1 = sapply(seq(0.1, 0.9, by = 0.1), function(x) arima.sim(n = 10^4, list(ar = x)))
-#' getEffSize(rand_ar1)
-#' }
-#'
 #' @importFrom coda effectiveSize as.mcmc
 
 getEffSize = function(postX) {
@@ -681,18 +621,6 @@ getEffSize = function(postX) {
 #' Compute the ergodic (running) mean.
 #' @param x vector for which to compute the running mean
 #' @return A vector \code{y} with each element defined by \code{y[i] = mean(x[1:i])}
-#' @examples
-#' \dontrun{
-#' # Compare:
-#' ergMean(1:10)
-#' mean(1:10)
-#'
-#'# Running mean for iid N(5, 1) samples:
-#' x = rnorm(n = 10^4, mean = 5, sd = 1)
-#' plot(ergMean(x))
-#' abline(h=5)
-#' }
-#'
 
 ergMean = function(x) {cumsum(x)/(1:length(x))}
 
@@ -700,12 +628,7 @@ ergMean = function(x) {cumsum(x)/(1:length(x))}
 #' Compute the log-odds
 #' @param x scalar or vector in (0,1) for which to compute the (componentwise) log-odds
 #' @return A scalar or vector of log-odds
-#' @examples
-#' \dontrun{
-#' x = seq(0, 1, length.out = 10^3)
-#' plot(x, logit(x))
-#' }
-#'
+
 logit = function(x) {
   if(any(abs(x) > 1)) stop('x must be in (0,1)')
   log(x/(1-x))
@@ -715,12 +638,6 @@ logit = function(x) {
 #' Compute the inverse log-odds
 #' @param x scalar or vector for which to compute the (componentwise) inverse log-odds
 #' @return A scalar or vector of values in (0,1)
-#' @examples
-#' \dontrun{
-#' x = seq(-5, 5, length.out = 10^3)
-#' plot(x, invlogit(x))
-#' }
-#'
 
 invlogit = function(x) exp(x - log(1+exp(x))) # exp(x)/(1+exp(x))
 
@@ -867,25 +784,6 @@ uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL)
 #'
 #' @return A (n.freq x 2) matrix where the first column is the frequencies
 #' and the second column is the spectrum evaluated at that frequency
-#'
-#' @examples
-#' \dontrun{
-#' # Example 1: periodic function
-#' t01 = seq(0, 1, length.out = 100);
-#' y = sin(2*pi*t01) + 0.1*rnorm(length(t01))
-#' ar_mod = ar(y)
-#' spec = spec_dsp(ar_mod$ar, sigma_e = sqrt(ar_mod$var.pred))
-#' # Dominant frequency:
-#' spec[which.max(spec[,2]),1]
-#'
-#' # Example 2: white noise
-#' y = rnorm(length(t01))
-#' ar_mod = ar(y)
-#' spec = spec_dsp(ar_mod$ar, sigma_e = sqrt(ar_mod$var.pred))
-#' # Dominant frequency:
-#' spec[which.max(spec[,2]),1]
-#' }
-#'
 
 spec_dsp = function(ar_coefs, sigma_e, n.freq = 500){
 

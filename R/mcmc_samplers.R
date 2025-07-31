@@ -53,36 +53,7 @@
 #' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
 #' deviation is recommended to avoid numerical issues.
-#'
-#' @examples
-#' \dontrun{
-#' # TODO: add dsp class to btf? or maybe don't export and force use of dsp_fit
-#' # Example 1: Bumps Data
-#' simdata = simUnivariate(signalName = "bumps", nT = 128, RSNR = 7, include_plot = TRUE)
-#' y = simdata$y
-#'
-#' out = btf(y, D=1)
-#' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
-#'
-#' # Example 2: Doppler Data; longer series, more noise
-#' simdata = simUnivariate(signalName = "doppler", nT = 500, RSNR = 5, include_plot = TRUE)
-#' y = simdata$y
-#'
-#' out = btf(y)
-#' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
-#'
-#' # And examine the AR(1) parameters for the log-volatility w/ traceplots:
-#' plot(as.ts(out$dhs_phi)) # AR(1) coefficient
-#' plot(as.ts(out$dhs_mean)) # Unconditional mean
-#'
-#'# Example 3: Blocks data (locally constant)
-#' simdata = simUnivariate(signalName = "blocks", nT = 1000, RSNR = 3, include_plot = TRUE)
-#' y = simdata$y
-#'
-#' out = btf(y, D = 1) # try D = 1 to approximate the locally constant behavior
-#' plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
-#' }
-#'
+
 btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
                nsave = 1000, nburn = 1000, nskip = 4,
                mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h","h_smooth"),
@@ -597,33 +568,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
 #' deviation is recommended to avoid numerical issues.
-#'
-#' @examples
-#' \dontrun{
-#' # TODO: add dsp class or change to use dsp_fit (don't export)
-#' # Example 1: Bumps Data
-#' y = simUnivariate(name = "bumps", n = 128, snr = 7)
-#'
-#' out = btf_sparse(y)
-#' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
-#'
-#' # Example 2: Doppler Data; longer series, more noise
-#' y = simUnivariate(name = "doppler", n = 500, snr = 7)
-#'
-#' out = btf_sparse(y)
-#' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
-#'
-#' # And examine the AR(1) parameters for the log-volatility w/ traceplots:
-#' plot(as.ts(out$dhs_phi)) # AR(1) coefficient
-#' plot(as.ts(out$dhs_mean)) # Unconditional mean
-#'
-#' # Example 3: Blocks data (locally constant)
-#' y = simUnivariate(name = "blocks", n = 1000, snr = 3)
-#'
-#' out = btf_sparse(y, D = 1) # try D = 1 to approximate the locally constant behavior
-#' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
-#' }
-#'
+
 btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = "const",
                       nsave = 1000, nburn = 1000, nskip = 4,
                       mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2",
@@ -892,32 +837,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 #' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
 #' deviation is recommended to avoid numerical issues.
-#'
-#' @examples
-#' \dontrun{
-#' # TODO: add dsp class or change to use dsp_fit (don't export)
-#' # Example 1: all signals
-#' simdata = simRegression(nT = 200, p = 5, p_0 = 0)
-#' y = simdata$y; X = simdata$X
-#' out = btf_reg(y, X)
-#' #for(j in 1:ncol(X))
-#' # plot_fitted(rep(0, length(y)),
-#' #             mu = colMeans(out$beta[,,j]),
-#' #             postY = out$beta[,,j],
-#' #             y_true = simdata$beta_true[,j])
-#'
-#'
-#' # Example 2: some noise, longer series
-#' simdata = simRegression(nT = 500, p = 10, p_0 = 5)
-#' y = simdata$y; X = simdata$X
-#' out = btf_reg(y, X, nsave = 1000, nskip = 0) # Short MCMC run for a quick example
-#' #for(j in 1:ncol(X))
-#' #  plot_fitted(rep(0, length(y)),
-#' #              mu = colMeans(out$beta[,,j]),
-#' #              postY = out$beta[,,j],
-#' #              y_true = simdata$beta_true[,j])
-#' }
-#'
+
 btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
                    nsave = 1000, nburn = 1000, nskip = 4,
                    mcmc_params = list("mu", "yhat","beta","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h","h_smooth"),
@@ -1208,26 +1128,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 #' \item Computations are linear in the number of basis coefficients, which may be
 #' substantially fewer than the number of time points.
 #' }
-#'
-#' @examples
-#' \dontrun{
-#' # TODO: add dsp class or change to use dsp_fit (don't export)
-#' # Example 1: Blocks data
-#' simdata <- simUnivariate(signalName = "blocks", nT = 1000, RSNR = 3, include_plot = FALSE)
-#' y <- simdata$y
-#' out <- btf_bspline(y, D = 1)
-#' #plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, y_true = simdata$y_true)
-#'
-#'
-#' # Example 2: motorcycle data (unequally-spaced points)
-#' data("mcycle", package = "MASS")
-#' y <- scale(mcycle$accel) # Center and Scale for numerical stability
-#' x <- mcycle$times
-#' plot(x, y, xlab = 'Time (ms)', ylab='Acceleration (g)', main = 'Motorcycle Crash Data')
-#' out <- btf_bspline(y = y, x = x)
-#' # plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat, t01 = x)
-#' }
-#'
+
 btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D = 2,
                        nsave = 1000, nburn = 1000, nskip = 4,
                        mcmc_params = list("mu", "yhat", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),

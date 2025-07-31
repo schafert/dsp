@@ -17,24 +17,9 @@
 #' @return \code{T x 1} vector of simulated states
 #'
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
-#'
-#' @examples
-#' \dontrun{
-#' # Simulate some data:
-#' nT = 1000
-#' y = seq(0, 10, length.out = nT) + rnorm(nT)
-#' plot(y) # plot the data
-#'
-#' obs_sigma_t2 = rep(1, nT)  # These could be static or dynamic
-#' evol_sigma_t2 = rep(0.001, nT)
-#'
-#' # Simulate one draw of the states:
-#' mu = sampleBTF(y = y, obs_sigma_t2, evol_sigma_t2, D = 1)
-#' lines(mu, lwd=8, col='blue') # add the states to the plot
-#' }
-#'
 #' @import Matrix
 #' @importFrom spam rmvnorm.canonical as.spam.dgCMatrix
+
 sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol0 = NULL, prior_mean = NULL){
 
   # Some quick checks:
@@ -120,25 +105,9 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol
 #' @return \code{T x 1} vector of simulated states
 #'
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
-#'
-#' @examples
-#' \dontrun{
-#' # Simulate some data:
-#' nT = 1000
-#' y = seq(0, 10, length.out = nT) + rnorm(nT)
-#' plot(y) # plot the data
-#'
-#' obs_sigma_t2 = rep(1, nT)  # These could be static or dynamic
-#' evol_sigma_t2 = rep(0.001, nT)
-#' zero_sigma_t2 = rep(1, nT)
-#'
-#' # Simulate one draw of the states:
-#' mu = sampleBTF_sparse(y = y, obs_sigma_t2, evol_sigma_t2, zero_sigma_t2, D = 1)
-#' lines(mu, lwd=8, col='blue') # add the states to the plot
-#' }
-#'
 #' @importFrom spam rmvnorm.canonical as.spam.dgCMatrix
 #' @importFrom Matrix chol t solve
+
 sampleBTF_sparse = function(y,
                             obs_sigma_t2,
                             evol_sigma_t2,

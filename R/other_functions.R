@@ -15,7 +15,6 @@
 #' @returns A numeric vector the same length as `n`.
 #'
 #' @examples
-#'
 #' nms <- c("blocks", "linchirp", "mishmash1", "bumps")
 #' z <- lapply(nms, simUnivariate)
 #'
