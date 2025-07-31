@@ -25,7 +25,6 @@ A numeric vector the same length as \code{n}.
 Using code from the archived \code{wmtsa} package
 }
 \examples{
-
 nms <- c("blocks", "linchirp", "mishmash1", "bumps")
 z <- lapply(nms, simUnivariate)
 

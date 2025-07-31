@@ -98,29 +98,3 @@ The data \code{y} may contain NAs, which will be treated with a simple imputatio
 via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
 deviation is recommended to avoid numerical issues.
 }
-\examples{
-\dontrun{
-# TODO: add dsp class or change to use dsp_fit (don't export)
-# Example 1: all signals
-simdata = simRegression(nT = 200, p = 5, p_0 = 0)
-y = simdata$y; X = simdata$X
-out = btf_reg(y, X)
-#for(j in 1:ncol(X))
-# plot_fitted(rep(0, length(y)),
-#             mu = colMeans(out$beta[,,j]),
-#             postY = out$beta[,,j],
-#             y_true = simdata$beta_true[,j])
-
-
-# Example 2: some noise, longer series
-simdata = simRegression(nT = 500, p = 10, p_0 = 5)
-y = simdata$y; X = simdata$X
-out = btf_reg(y, X, nsave = 1000, nskip = 0) # Short MCMC run for a quick example
-#for(j in 1:ncol(X))
-#  plot_fitted(rep(0, length(y)),
-#              mu = colMeans(out$beta[,,j]),
-#              postY = out$beta[,,j],
-#              y_true = simdata$beta_true[,j])
-}
-
-}

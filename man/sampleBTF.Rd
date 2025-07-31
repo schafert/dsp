@@ -41,19 +41,3 @@ This model is equivalent to the Bayesian trend filtering (BTF) model, assuming a
 \note{
 Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 }
-\examples{
-\dontrun{
-# Simulate some data:
-nT = 1000
-y = seq(0, 10, length.out = nT) + rnorm(nT)
-plot(y) # plot the data
-
-obs_sigma_t2 = rep(1, nT)  # These could be static or dynamic
-evol_sigma_t2 = rep(0.001, nT)
-
-# Simulate one draw of the states:
-mu = sampleBTF(y = y, obs_sigma_t2, evol_sigma_t2, D = 1)
-lines(mu, lwd=8, col='blue') # add the states to the plot
-}
-
-}

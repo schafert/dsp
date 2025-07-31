@@ -103,22 +103,4 @@ In each case, the evolution error is a scale mixture of Gaussians.
 Sampling is accomplished with a (parameter-expanded) Gibbs sampler,
 mostly relying on a dynamic linear model representation.
 }
-\examples{
-\dontrun{
-beta <- simUnivariate(name = "bumps", n = 300)
-y <- rnbinom(n = length(beta), size = 5, mu = beta)
-
-# Need to typically run sampler for longer than specified below
-fit <- btf_nb(
-  y = y,
-  D = 2,
-  nburn = 5000,
-  evol0_sample = FALSE,
-  verbose = FALSE,
-  sigma_e = 1,
-  chol0 = TRUE
-)
-}
-
-}
 \keyword{internal}

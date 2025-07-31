@@ -74,18 +74,3 @@ The penalty utilizes the dynamic horseshoe prior on the evolution errors.
 Sampling is accomplished with a (parameter-expanded) Gibbs sampler,
 mostly relying on a dynamic linear model representation.
 }
-\examples{
-\dontrun{
-beta <- simUnivariate(name = "ramp", n = 300)
-y <- rnorm(n = 300, mean = beta,sd = 0.15)
-# Need to typically run sampler for longer than specified below
-fit <- abco(
-  y = y,
-  D = 2,
-  obsSV = "const",
-  nsave = 1000,
-  nburn = 1000
-)
-}
-
-}

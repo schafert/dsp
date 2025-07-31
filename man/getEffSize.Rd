@@ -16,15 +16,3 @@ Table of summary statistics using the function \code{summary()}.
 Compute the summary statistics for the effective sample size (ESS) across
 posterior samples for possibly many variables
 }
-\examples{
-\dontrun{
-# ESS for iid simulations:
-rand_iid = rnorm(n = 10^4)
-getEffSize(rand_iid)
-
-# ESS for several AR(1) simulations with coefficients 0.1, 0.2,...,0.9:
-rand_ar1 = sapply(seq(0.1, 0.9, by = 0.1), function(x) arima.sim(n = 10^4, list(ar = x)))
-getEffSize(rand_ar1)
-}
-
-}

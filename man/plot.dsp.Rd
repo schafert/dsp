@@ -19,6 +19,9 @@
 
 \item{...}{currently not being used}
 }
+\value{
+No return value, called for side effects
+}
 \description{
 Plot the BTF posterior mean of the conditional expectation with posterior credible intervals (pointwise and joint),
 the observed data, and true curves (if known)

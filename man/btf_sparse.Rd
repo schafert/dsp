@@ -100,30 +100,3 @@ The data \code{y} may contain NAs, which will be treated with a simple imputatio
 via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
 deviation is recommended to avoid numerical issues.
 }
-\examples{
-\dontrun{
-# TODO: add dsp class or change to use dsp_fit (don't export)
-# Example 1: Bumps Data
-y = simUnivariate(name = "bumps", n = 128, snr = 7)
-
-out = btf_sparse(y)
-#plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
-
-# Example 2: Doppler Data; longer series, more noise
-y = simUnivariate(name = "doppler", n = 500, snr = 7)
-
-out = btf_sparse(y)
-#plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
-
-# And examine the AR(1) parameters for the log-volatility w/ traceplots:
-plot(as.ts(out$dhs_phi)) # AR(1) coefficient
-plot(as.ts(out$dhs_mean)) # Unconditional mean
-
-# Example 3: Blocks data (locally constant)
-y = simUnivariate(name = "blocks", n = 1000, snr = 3)
-
-out = btf_sparse(y, D = 1) # try D = 1 to approximate the locally constant behavior
-#plot_fitted(y, mu = colMeans(out$mu), postY = out$yhat)
-}
-
-}

@@ -15,10 +15,3 @@ A scalar or vector of values in (0,1)
 \description{
 Compute the inverse log-odds
 }
-\examples{
-\dontrun{
-x = seq(-5, 5, length.out = 10^3)
-plot(x, invlogit(x))
-}
-
-}

@@ -49,10 +49,3 @@ The coefficients are initialized by a N(0,1) simulation.
 \note{
 The root-signal-to-noise ratio is defined as RSNR = (sd of true function)/(sd of noise).
 }
-\examples{
-\dontrun{
-sims = simRegression() # default simulations
-names(sims) # variables included in the list
-}
-
-}

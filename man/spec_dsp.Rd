@@ -20,22 +20,3 @@ and the second column is the spectrum evaluated at that frequency
 \description{
 Compute the spectrum of an AR(p) model
 }
-\examples{
-\dontrun{
-# Example 1: periodic function
-t01 = seq(0, 1, length.out = 100);
-y = sin(2*pi*t01) + 0.1*rnorm(length(t01))
-ar_mod = ar(y)
-spec = spec_dsp(ar_mod$ar, sigma_e = sqrt(ar_mod$var.pred))
-# Dominant frequency:
-spec[which.max(spec[,2]),1]
-
-# Example 2: white noise
-y = rnorm(length(t01))
-ar_mod = ar(y)
-spec = spec_dsp(ar_mod$ar, sigma_e = sqrt(ar_mod$var.pred))
-# Dominant frequency:
-spec[which.max(spec[,2]),1]
-}
-
-}
