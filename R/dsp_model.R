@@ -74,7 +74,7 @@
 #'        \item \code{model} = "bspline":
 #'        \itemize{
 #'          \item \code{times}: length \code{T} vector; observation indices; if NULL (Default), assume equally spaced.
-#'          \item \code{num_knots}: numeric; the number of knots to be used for bspline. defaults to 20.
+#'          \item \code{num_knots}: numeric; the number of knots to be used for bspline. defaults to 20. Has to be at least 4. 
 #'        }
 #'        \item \code{family} = "negbinomial", \code{model} = "smoothing":
 #'        \itemize{
@@ -153,38 +153,56 @@ dsp_spec <- function(family,
   validation_rules <- list(
     X = function(family,x) { if (any(is.na(x)) || !(is.matrix(x) || is.data.frame(x))) stop("X must be a dataframe or a matrix")},
     D = function(family,x) {
-        if(family == "gaussian"){
-          if (!x %in% c(0, 1, 2)) stop("D must be 0, 1 or 2 for gaussian models.")
-        }else{
-          if (!x %in% c(1, 2)) stop("D must be 1 or 2 for negative binomial models")
-        }
-      },
+      if (length(x) != 1 || is.na(x) || !is.numeric(x) || x != as.integer(x)) {
+        stop("D must be a single integer.")
+      }
+      if (family == "gaussian" && !x %in% c(0,1,2)) stop("D must be 0, 1 or 2 for gaussian models.")
+      if (family != "gaussian" && !x %in% c(1,2)) stop("D must be 1 or 2 for negative binomial models.")
+    },
     D_asv = function(family,x) {
-      if (!x %in% c(0, 1, 2)) stop("D must be 0, 1 or 2 for gaussian models.")
+      if (length(x) != 1 || is.na(x) || !is.numeric(x) || x != as.integer(x)) {
+        stop("D_asv must be a single integer.")
+      }
+      if (!x %in% c(0, 1, 2)) stop("D_asv must be 0, 1 or 2 for ASV.")
     },
     nugget_asv = function(family,x) {
       if (is.na(x)|| !is.logical(x)) stop("useAnom must be TRUE or FALSE.")
     },
     evol_error_asv = function(family,x) {
+      if (length(x) != 1 || is.na(x)) stop("evol_error_asv must be a single character value.")
       if (!x %in% c("HS", "DHS", "NIG", "SV", "BL")) {
         stop("evol_error_asv must be one of 'HS', 'DHS', 'NIG', 'SV', 'BL' for gaussian models")
       }
     },
-    evol_error = function(family,x) {
-      if(family == "gaussian"){
+    evol_error = function(family, x) {
+      if (length(x) != 1 || is.na(x)) stop("evol_error must be a single character value.")
+      if (family == "gaussian") {
         if (!x %in% c("HS", "DHS", "NIG", "SV", "BL")) {
           stop("evol_error must be one of 'HS', 'DHS', 'NIG', 'SV', 'BL' for gaussian models")
-        }else{
-          if (!x %in% c("HS", "DHS", "NIG", "SV", "BL")) {
-            stop("evol_error must be one of 'HS', 'DHS' for negative binomial models" )
-          }
+        }
+      } else {
+        if (!x %in% c("HS", "DHS")) {
+          stop("evol_error must be one of 'HS', 'DHS' for negative binomial models")
         }
       }
     },
     useAnom = function(family,x) { if (is.na(x)|| !is.logical(x)) stop("useAnom must be TRUE or FALSE.") },
     obsSV = function(family,x) { if (!x %in% c("const", "SV", "ASV")) stop("obsSV must be one of 'const', 'SV', 'ASV'.") },
-    times = function(family,x) { if (any(is.na(x)) || !is.numeric(x) || any(x < 0 | x != as.integer(x))) stop("must be a vector of positive integer or NULL") },
-    num_knots = function(family,x) { if (is.na(x) || !is.numeric(x) || x<0 || x != as.integer(x))  stop("num_knots must be a positive integer.") },
+    times = function(family, x) {
+        if (is.null(x)) return(invisible(TRUE))
+        if (!is.numeric(x) || anyNA(x) || any(!is.finite(x))) {
+          stop("times must be a numeric vector with no missing/non-finite values, or NULL")
+        }
+        if (length(x) < 2) stop("times must have length >= 2")
+        if (diff(range(x)) <= 0) stop("times must contain at least two distinct values")
+    },
+    num_knots = function(family, x) {
+      if (is.null(x)) return(invisible(TRUE))  # keep if you want NULL to use default
+      if (length(x) != 1 || is.na(x) || !is.numeric(x) || !is.finite(x) ||
+          x != as.integer(x) || x < 4) {
+        stop("num_knots must be an integer >= 4, or NULL.")
+      }
+    },
     r_init = function(family,x){ if (!is.numeric(x) || x < 0) stop("r_init nust be a positive number.")},
     r_sample = function(family,x) { if (is.na(x) || !is.logical(x)) stop("r_sample must be TRUE or FALSE.")},
     offset = function(family,x){ if (any(is.na(x)) || !is.numeric(x)) stop("offset must be a vector") }
@@ -256,6 +274,39 @@ dsp_spec <- function(family,
 #'    \item{mcpar}{named vector of supplied nsave, nburn, and nskip}
 #'    \item{model_spec}{the object supplied for model_spec argument}
 #'
+#' @section MCMC Output Parameters:
+#' Shared parameters across wrappers include:
+#' \itemize{
+#'   \item \code{mu}: Conditional mean.
+#'   \item \code{yhat}: Posterior predictive \eqn{\hat{y}_t}.
+#'   \item \code{evol_sigma_t2}: Variance of the state variable.
+#'   \item \code{obs_sigma_t2}: Observation variance \eqn{\sigma^2_{\epsilon}} (\code{family = "gaussian"}).
+#'   \item \code{dhs_phi}, \code{dhs_mean}: DHS hyperparameter draws (\code{evol_error = "DHS"}).
+#'   \item \code{h}: Time-varying log-volatility component, \code{log(obs_sigma_t2)} (\code{obsSV = "ASV"}).
+#' }
+#'
+#' Model-specific parameters include:
+#' \itemize{
+#'   \item \code{changepoint} (Gaussian):
+#'   \itemize{
+#'     \item \code{omega}: \eqn{D}-th differenced posterior mean draws, \eqn{\mu_t}.
+#'     \item \code{zeta}: anomaly component (when \code{useAnom = TRUE}).
+#'     \item \code{zeta_sigma_t2}: anomaly variance (when \code{useAnom = TRUE}).
+#'     \item \code{r}: threshold parameter in the thresholded DHS log-volatility dynamics.
+#'   }
+#'   \item \code{regression} (Gaussian):
+#'   \itemize{
+#'     \item \code{beta}: time-varying regression coefficient draws.
+#'   }
+#'   \item \code{bspline} (Gaussian):
+#'   \itemize{
+#'     \item \code{beta}: B-spline basis coefficient draws.
+#'   }
+#'   \item \code{smoothing} (Negative Binomial):
+#'   \itemize{
+#'     \item \code{r}: overdispersion parameter draws.
+#'   }
+#' }
 #' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
 #' deviation is recommended to avoid numerical issues when family is "gaussian".

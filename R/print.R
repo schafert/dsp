@@ -60,11 +60,15 @@ print.dsp_spec <- function(x, ...){
            regression = cat("time-varying regression, "),
            bspline = cat("B-spline smoothing splines, "))
 
-    switch(x$arguments$obsSV,
-           const = cat("constant error variance, and "),
-           SV = cat("stochastic volatility, and "),
-           ASV = cat("adaptive stochastic volatility, and "))
-
+    if (x$model %in% c("changepoint", "smoothing", "regression")) {
+      switch(x$arguments$obsSV,
+        const = cat("constant error variance, and "),
+        SV    = cat("stochastic volatility, and "),
+        ASV   = cat("adaptive stochastic volatility, and "),
+        cat("unspecified error variance model, and ")
+      )
+    }
+    
     cat(x$arguments$D, "degree of differencing.")
   }
 
