@@ -7,8 +7,9 @@
 #' @param x an object of class `dsp` from [dsp_fit()].
 #' @param type character string giving the parameter name to visualize; must be one of the entries in `x$mcmc_output`.
 #' @param true_values optional ground-truth values to overlay on the plot. For scalar parameters, this should be a length-1 numeric value; for time-varying parameters, a `T x 1` vector; and for multi-parameter time-varying quantities, a `T x p` matrix matching the plotted parameter dimensions.
+#' @param y_obs optional vector of observed data point of length T. Only for `2`-dimensional parameters.
 #' @param t01 optional vector of observation points. If `NULL`, the function assumes `T` equally spaced points on `[0,1]`.
-#' @param include_joint_bands logical; if `TRUE`, include simultaneous credible bands in addition to pointwise credible intervals for supported parameters.
+#' @param include_joint_bands logical; if `TRUE`, include simultaneous credible bands in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: `zeta`, `omega`, `yhat`, and `mu` for 2D outputs, and `zeta`, `omega`, `yhat`, `mu`, and `beta` for 3D outputs. 
 #' @param alpha numeric credibility level used to construct posterior intervals and bands. Defaults to `0.05`, corresponding to 95\% intervals/bands.
 #' @param xlab optional x-axis label. If `NULL`, defaults to `"t"`.
 #' @param ylab optional y-axis label. If `NULL`, defaults to `type`.
@@ -66,10 +67,17 @@
 #' @importFrom grDevices dev.off devAskNewPage
 #' @importFrom stats density predict
 #'
+#' @references
+#' Krivobokova, T., Kneib, T., and Claeskens, G. (2010).
+#' Simultaneous confidence bands for penalized spline estimators.
+#' \emph{Journal of the American Statistical Association}, \strong{105}(490), 852--863.
+#' \doi{10.1198/jasa.2010.tm09165}
+#' 
 #' @method plot dsp
 #' @export
 plot.dsp <- function(
-  x, type, true_values = NULL, t01 = NULL, include_joint_bands = FALSE, alpha = 0.05,
+  x, type, true_values = NULL, t01 = NULL, y_obs = NULL, 
+  include_joint_bands = FALSE, alpha = 0.05,
   xlab = NULL, ylab = NULL, main = NULL,
   xlim = NULL, ylim = NULL,
   mar = NULL,
@@ -83,6 +91,7 @@ plot.dsp <- function(
   ...
 ){
   # Time series:
+  mean_color = "dodgerblue3"
   samples = x$mcmc_output[[type]]
   if(is.null(samples)){
     stop("Must be one of the parameters in x$mcmc_output")
@@ -138,7 +147,7 @@ plot.dsp <- function(
     legend_pch <- c(NA, 15)
     legend_lty <- c(1, NA)
     legend_lwd <- c(3, NA)
-    legend_col <- c("steelblue", "gray60")
+    legend_col <- c(mean_color, "gray75")
 
     # changepoint block
     draw_cp <- x$model_spec$model == "changepoint" && all(c("omega", "r") %in% names(x$mcmc_output)) && type %in% c("mu", "yhat", "omega")
@@ -165,22 +174,22 @@ plot.dsp <- function(
       polygon(
         c(t01, rev(t01)),
         c(dcib[, 2], rev(dcib[, 1])),
-        col = "gray80", border = NA
+        col = "gray85", border = NA
       )
       legend_labels <- c(legend_labels, "Joint CI")
       legend_pch <- c(legend_pch, 15)
       legend_lty <- c(legend_lty, NA)
       legend_lwd <- c(legend_lwd, NA)
-      legend_col <- c(legend_col, "gray80")
+      legend_col <- c(legend_col, "gray85")
     }
 
     polygon(
       c(t01, rev(t01)),
       c(dcip[, 2], rev(dcip[, 1])),
-      col = "gray60", border = NA
+      col = "gray75", border = NA
     )
     if(draw_cp){abline(v = cp_loc, lty = 2, lwd = legend_lwd, col = "firebrick")}
-    lines(t01, posterior_mean, lwd = 3, col = "steelblue")
+    lines(t01, posterior_mean, lwd = 3, col = mean_color)
     if (!is.null(true_values)) {
       points(t01, true_values, pch = 20, col = "darkorange",cex = legend_pt_cex)
       legend_labels <- c(legend_labels, "Ground Truth")
@@ -188,6 +197,13 @@ plot.dsp <- function(
       legend_lty <- c(legend_lty, NA)
       legend_lwd <- c(legend_lwd, NA)
       legend_col <- c(legend_col, "darkorange")
+    }
+
+    if (!is.null(y_obs)) {
+      if (length(y_obs) != length(t01)) {
+        stop("Length of y_obs must match the plotted time dimension.")
+      }
+      points(t01, y_obs, pch = 16, col = "black", cex = 0.7)
     }
     
     if (legend) {
@@ -206,14 +222,14 @@ plot.dsp <- function(
         bty = "n"
       )
     }
-  }else if(is.null(dimension)) {
+  }else if(is.null(dimension) || length(dimension) == 1) {
     # default legend setting
     legend_labels = c("Density",
                      "Posterior Mean",
                      "Pointwise CI")
     legend_lty    = c(1,1,2)
     legend_lwd    = c(4,4,2)
-    legend_col    = c("black","steelblue","steelblue")
+    legend_col    = c("black",mean_color,mean_color)
 
     # one dimension -> density plot
     h = hist(samples,plot = FALSE)
@@ -226,8 +242,8 @@ plot.dsp <- function(
       list(
         x = samples,
         probability = TRUE,
-        col = "gray80",
-        border = "gray80",
+        col = "gray85",
+        border = "gray85",
         main = main_use,
         xlab = xlab_use,
         ylab = ylab_use,
@@ -238,8 +254,8 @@ plot.dsp <- function(
     )
     do.call(hist, base_hist_args)
     lines(d, col = "black", lwd = 4)
-    abline(v = quantile(samples, c(alpha/2, 1 - alpha/2)), col = "steelblue", lty = 2, lwd = 2)
-    abline(v = posterior_mean, col = "steelblue", lwd = 4)
+    abline(v = quantile(samples, c(alpha/2, 1 - alpha/2)), col = mean_color, lty = 2, lwd = 2)
+    abline(v = posterior_mean, col = mean_color, lwd = 4)
 
     if (!is.null(true_values)) {
       if (length(true_values) != 1) {
@@ -289,14 +305,14 @@ plot.dsp <- function(
     legend_pch <- c(NA, 15)
     legend_lty <- c(1, NA)
     legend_lwd <- c(3, NA)
-    legend_col <- c("steelblue", "gray60")
+    legend_col <- c(mean_color, "gray75")
 
     if(include_joint_bands && type %in% c("omega", "yhat", "mu", "beta", "zeta")){
       legend_labels <- c(legend_labels, "Joint CI")
       legend_pch <- c(legend_pch, 15)
       legend_lty <- c(legend_lty, NA)
       legend_lwd <- c(legend_lwd, NA)
-      legend_col <- c(legend_col, "gray80")
+      legend_col <- c(legend_col, "gray85")
     }
 
     if(!is.null(true_values)){
@@ -361,21 +377,21 @@ plot.dsp <- function(
         polygon(
           c(t01, rev(t01)),
           c(dcib[, 2], rev(dcib[, 1])),
-          col = "gray80", border = NA
+          col = "gray85", border = NA
         )
       }
 
       polygon(
         c(t01, rev(t01)),
         c(dcip[, 2], rev(dcip[, 1])),
-        col = "gray60", border = NA
+        col = "gray75", border = NA
       )
 
       if(!is.null(true_values)){
         points(t01, true_values[, i], pch = 20, col = "darkorange",cex = legend_pt_cex)
       }
 
-      lines(t01, posterior_mean, lwd = 3, col = "steelblue")
+      lines(t01, posterior_mean, lwd = 3, col = mean_color)
 
       if (legend) {
         usr <- par("usr")
