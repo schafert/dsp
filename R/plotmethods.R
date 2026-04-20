@@ -9,7 +9,7 @@
 #' @param true_values optional ground-truth values to overlay on the plot. For scalar parameters, this should be a length-1 numeric value; for time-varying parameters, a `T x 1` vector; and for multi-parameter time-varying quantities, a `T x p` matrix matching the plotted parameter dimensions.
 #' @param y_obs optional vector of observed data point of length T. Only for `2`-dimensional parameters.
 #' @param t01 optional vector of observation points. If `NULL`, the function assumes `T` equally spaced points on `[0,1]`.
-#' @param include_joint_bands logical; if `TRUE`, include simultaneous credible bands in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: `zeta`, `omega`, `yhat`, and `mu` for 2D outputs, and `zeta`, `omega`, `yhat`, `mu`, and `beta` for 3D outputs. 
+#' @param include_joint_bands logical; if `TRUE`, include simultaneous credible bands in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: `zeta`, `omega`, `yhat`, and `mu` for 2D outputs, and `zeta`, `omega`, `yhat`, `mu`, and `beta` for 3D outputs.
 #' @param alpha numeric credibility level used to construct posterior intervals and bands. Defaults to `0.05`, corresponding to 95\% intervals/bands.
 #' @param xlab optional x-axis label. If `NULL`, defaults to `"t"`.
 #' @param ylab optional y-axis label. If `NULL`, defaults to `type`.
@@ -23,7 +23,7 @@
 #' @param legend_pt_cex numeric scaling factor for legend symbol size.
 #' @param nr optional number of rows in the plotting layout for multi-panel (`3`-dimensional) parameters.
 #' @param nc optional number of columns in the plotting layout for multi-panel (`3`-dimensional) parameters.
-#' @param cp_thres (default 0.5) cutoff proportion for percentage of posterior samples exceeding the threshold needed to label a changepoint 
+#' @param cp_thres (default 0.5) cutoff proportion for percentage of posterior samples exceeding the threshold needed to label a changepoint
 #' @param ... additional graphical arguments passed to the main plotting call, such as [graphics::plot()] or [graphics::hist()] depending on the parameter dimension.
 #'
 #' @details
@@ -44,6 +44,7 @@
 #' For fitted changepoint models, changepoint annotations may be added when supported by the plotted parameter and the corresponding latent components are present in the MCMC output.#'
 #'
 #' @returns No return value, called for side effects
+#'
 #' @examples
 #' set.seed(200)
 #' signal = c(rep(0, 50), rep(10, 50))
@@ -72,11 +73,12 @@
 #' Simultaneous confidence bands for penalized spline estimators.
 #' \emph{Journal of the American Statistical Association}, \strong{105}(490), 852--863.
 #' \doi{10.1198/jasa.2010.tm09165}
-#' 
+#'
 #' @method plot dsp
 #' @export
+
 plot.dsp <- function(
-  x, type, true_values = NULL, t01 = NULL, y_obs = NULL, 
+  x, type, true_values = NULL, t01 = NULL, y_obs = NULL,
   include_joint_bands = FALSE, alpha = 0.05,
   xlab = NULL, ylab = NULL, main = NULL,
   xlim = NULL, ylim = NULL,
@@ -85,7 +87,7 @@ plot.dsp <- function(
   legend = TRUE,
   legend_cex = 1,
   legend_pt_cex = 2,
-  nr = NULL, 
+  nr = NULL,
   nc = NULL,
   cp_thres = 0.5,
   ...
@@ -113,7 +115,7 @@ plot.dsp <- function(
   xlab_use <- if (is.null(xlab)) default_xlab else xlab
   ylab_use <- if (is.null(ylab)) default_ylab else ylab
   main_use <- if (is.null(main)) "" else main
-  
+
   # example: 2D branch
   if(length(dimension) == 2){
     # two dimension -> scatter plot
@@ -140,9 +142,9 @@ plot.dsp <- function(
       }
     } else {
       ylim
-    }   
+    }
     xlim_use <- if (is.null(xlim)) range(t01, na.rm = TRUE) else xlim
-    
+
     legend_labels <- c("Posterior Mean", "Pointwise CI")
     legend_pch <- c(NA, 15)
     legend_lty <- c(1, NA)
@@ -205,7 +207,7 @@ plot.dsp <- function(
       }
       points(t01, y_obs, pch = 16, col = "black", cex = 0.7)
     }
-    
+
     if (legend) {
       usr <- par("usr")
       par(xpd = TRUE)

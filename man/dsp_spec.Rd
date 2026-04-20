@@ -13,7 +13,7 @@ dsp_spec(family, model, ...)
 \item{family}{A character string specifying the model family. Must be one of:
 \itemize{
 \item "gaussian": Gaussian family.
-\item "negbinom": Negative binomial family.
+\item "negbinomial": Negative binomial family.
 }}
 
 \item{model}{A character string specifying the model type:
@@ -26,7 +26,7 @@ Adaptive Bayesian Changepoint analysis and local Outlier (ABCO),
 \item "regression": Time-varying regression,
 \item "bspline": Bayesian smoothing with B-spline for irregularly spaced or functional time-series.
 }
-\item \code{family} = "negbinom":
+\item \code{family} = "negbinomial":
 \itemize{
 \item "smoothing": Bayesian smoothing.
 }
