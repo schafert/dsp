@@ -10,7 +10,7 @@
 #' @param y_obs optional vector of observed data point of length T. Only for `2`-dimensional parameters.
 #' @param t01 optional vector of observation points. If `NULL`, the function assumes `T` equally spaced points on `[0,1]`.
 #' @param include_joint_bands logical; if `TRUE`, include simultaneous credible bands in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: `zeta`, `omega`, `yhat`, and `mu` for 2D outputs, and `zeta`, `omega`, `yhat`, `mu`, and `beta` for 3D outputs.
-#' @param alpha numeric credibility level used to construct posterior intervals and bands. Defaults to `0.05`, corresponding to 95\% intervals/bands.
+#' @param alpha numeric credibility level used to construct posterior intervals and bands. Defaults to `0.05`, corresponding to 95% intervals/bands.
 #' @param xlab optional x-axis label. If `NULL`, defaults to `"t"`.
 #' @param ylab optional y-axis label. If `NULL`, defaults to `type`.
 #' @param main optional plot title. For multi-panel plots, this may be either a single title or a vector of titles of length equal to the number of panels.
@@ -41,7 +41,7 @@
 #'
 #' The x-axis values are taken from `t01`. If `t01` is not supplied, evenly spaced points on \eqn{[0,1]} are used. For differenced variance parameters such as `"evol_sigma_t2"` and `"zeta_sigma_t2"`, the initial time points associated with prior initialization are automatically removed before plotting.
 #'
-#' For fitted changepoint models, changepoint annotations may be added when supported by the plotted parameter and the corresponding latent components are present in the MCMC output.#'
+#' For fitted changepoint models, changepoint annotations may be added when supported by the plotted parameter and the corresponding latent components are present in the MCMC output.
 #'
 #' @returns No return value, called for side effects
 #'

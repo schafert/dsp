@@ -41,7 +41,7 @@
 
 \item{include_joint_bands}{logical; if \code{TRUE}, include simultaneous credible bands in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: \code{zeta}, \code{omega}, \code{yhat}, and \code{mu} for 2D outputs, and \code{zeta}, \code{omega}, \code{yhat}, \code{mu}, and \code{beta} for 3D outputs.}
 
-\item{alpha}{numeric credibility level used to construct posterior intervals and bands. Defaults to \code{0.05}, corresponding to 95\\% intervals/bands.}
+\item{alpha}{numeric credibility level used to construct posterior intervals and bands. Defaults to \code{0.05}, corresponding to 95\% intervals/bands.}
 
 \item{xlab}{optional x-axis label. If \code{NULL}, defaults to \code{"t"}.}
 
@@ -93,7 +93,7 @@ Axis labels, titles, plotting limits, margins, legend display, and additional gr
 
 The x-axis values are taken from \code{t01}. If \code{t01} is not supplied, evenly spaced points on \eqn{[0,1]} are used. For differenced variance parameters such as \code{"evol_sigma_t2"} and \code{"zeta_sigma_t2"}, the initial time points associated with prior initialization are automatically removed before plotting.
 
-For fitted changepoint models, changepoint annotations may be added when supported by the plotted parameter and the corresponding latent components are present in the MCMC output.#'
+For fitted changepoint models, changepoint annotations may be added when supported by the plotted parameter and the corresponding latent components are present in the MCMC output.
 }
 \examples{
 set.seed(200)
