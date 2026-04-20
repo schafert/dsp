@@ -69,6 +69,42 @@ The data \code{y} may contain NAs, which will be treated with a simple imputatio
 via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
 deviation is recommended to avoid numerical issues when family is "gaussian".
 }
+\section{MCMC Output Parameters}{
+
+Shared parameters across wrappers include:
+\itemize{
+\item \code{mu}: Conditional mean.
+\item \code{yhat}: Posterior predictive \eqn{\hat{y}_t}.
+\item \code{evol_sigma_t2}: Variance of the state variable.
+\item \code{obs_sigma_t2}: Observation variance \eqn{\sigma^2_{\epsilon}} (\code{family = "gaussian"}).
+\item \code{dhs_phi}, \code{dhs_mean}: DHS hyperparameter draws (\code{evol_error = "DHS"}).
+\item \code{h}: Time-varying log-volatility component, \code{log(obs_sigma_t2)} (\code{obsSV = "ASV"}).
+}
+
+Model-specific parameters include:
+\itemize{
+\item \code{changepoint} (Gaussian):
+\itemize{
+\item \code{omega}: \eqn{D}-th differenced posterior mean draws, \eqn{\mu_t}.
+\item \code{zeta}: anomaly component (when \code{useAnom = TRUE}).
+\item \code{zeta_sigma_t2}: anomaly variance (when \code{useAnom = TRUE}).
+\item \code{r}: threshold parameter in the thresholded DHS log-volatility dynamics.
+}
+\item \code{regression} (Gaussian):
+\itemize{
+\item \code{beta}: time-varying regression coefficient draws.
+}
+\item \code{bspline} (Gaussian):
+\itemize{
+\item \code{beta}: B-spline basis coefficient draws.
+}
+\item \code{smoothing} (Negative Binomial):
+\itemize{
+\item \code{r}: overdispersion parameter draws.
+}
+}
+}
+
 \examples{
 set.seed(200)
 signal = c(rep(0, 50), rep(10, 50))
