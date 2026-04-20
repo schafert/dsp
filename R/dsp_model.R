@@ -5,7 +5,7 @@
 #' @param family A character string specifying the model family. Must be one of:
 #'   \itemize{
 #'     \item "gaussian": Gaussian family.
-#'     \item "negbinom": Negative binomial family.
+#'     \item "negbinomial": Negative binomial family.
 #'   }
 #' @param model A character string specifying the model type:
 #'   \itemize{
@@ -17,7 +17,7 @@
 #'         \item "regression": Time-varying regression,
 #'         \item "bspline": Bayesian smoothing with B-spline for irregularly spaced or functional time-series.
 #'       }
-#'     \item \code{family} = "negbinom":
+#'     \item \code{family} = "negbinomial":
 #'       \itemize{
 #'         \item "smoothing": Bayesian smoothing.
 #'       }
@@ -32,7 +32,7 @@
 #'  "gaussian"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{D_asv}, \code{evol_error_asv}, \code{nugget_asv}\cr
 #'  "gaussian"    \tab "regression"      \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{X}, \code{D_asv}, \code{evol_error_asv}, \code{nugget_asv} \cr
 #'  "gaussian"    \tab "bspline"        \tab \code{D}, \code{evol_error}, \code{obsSV}, \code{times}, \code{num_knots}  \cr
-#'  "negbinom"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{r_init}, \code{r_sample}, \code{offset}  \cr
+#'  "negbinomial"    \tab "smoothing"       \tab \code{D}, \code{evol_error}, \code{r_init}, \code{r_sample}, \code{offset}  \cr
 #' }
 #'
 #'   \itemize{
@@ -74,7 +74,7 @@
 #'        \item \code{model} = "bspline":
 #'        \itemize{
 #'          \item \code{times}: length \code{T} vector; observation indices; if NULL (Default), assume equally spaced.
-#'          \item \code{num_knots}: numeric; the number of knots to be used for bspline. defaults to 20. Has to be at least 4. 
+#'          \item \code{num_knots}: numeric; the number of knots to be used for bspline. defaults to 20. Has to be at least 4.
 #'        }
 #'        \item \code{family} = "negbinomial", \code{model} = "smoothing":
 #'        \itemize{

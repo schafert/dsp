@@ -4,20 +4,72 @@
 \alias{plot.dsp}
 \title{Plot the Bayesian trend filtering fitted values}
 \usage{
-\method{plot}{dsp}(x, type, true_values = NULL, t01 = NULL, include_joint_bands = FALSE, ...)
+\method{plot}{dsp}(
+  x,
+  type,
+  true_values = NULL,
+  t01 = NULL,
+  y_obs = NULL,
+  include_joint_bands = FALSE,
+  alpha = 0.05,
+  xlab = NULL,
+  ylab = NULL,
+  main = NULL,
+  xlim = NULL,
+  ylim = NULL,
+  mar = NULL,
+  par_args = list(),
+  legend = TRUE,
+  legend_cex = 1,
+  legend_pt_cex = 2,
+  nr = NULL,
+  nc = NULL,
+  cp_thres = 0.5,
+  ...
+)
 }
 \arguments{
-\item{x}{an object of class 'dsp' from \code{\link[=dsp_fit]{dsp_fit()}}}
+\item{x}{an object of class \code{dsp} from \code{\link[=dsp_fit]{dsp_fit()}}.}
 
-\item{type}{parameter name; must be included in x$mcmc_output}
+\item{type}{character string giving the parameter name to visualize; must be one of the entries in \code{x$mcmc_output}.}
 
-\item{true_values}{(defaults to NULL) the \code{T x 1} vector of the true parameter}
+\item{true_values}{optional ground-truth values to overlay on the plot. For scalar parameters, this should be a length-1 numeric value; for time-varying parameters, a \verb{T x 1} vector; and for multi-parameter time-varying quantities, a \verb{T x p} matrix matching the plotted parameter dimensions.}
 
-\item{t01}{the observation points; if NULL, assume \code{T} equally spaced points from 0 to 1}
+\item{t01}{optional vector of observation points. If \code{NULL}, the function assumes \code{T} equally spaced points on \verb{[0,1]}.}
 
-\item{include_joint_bands}{logical; if TRUE, compute simultaneous credible bands (only for \code{zeta},\code{omega},\code{yhat},\code{mu})}
+\item{y_obs}{optional vector of observed data point of length T. Only for \code{2}-dimensional parameters.}
 
-\item{...}{currently not being used}
+\item{include_joint_bands}{logical; if \code{TRUE}, include simultaneous credible bands in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: \code{zeta}, \code{omega}, \code{yhat}, and \code{mu} for 2D outputs, and \code{zeta}, \code{omega}, \code{yhat}, \code{mu}, and \code{beta} for 3D outputs.}
+
+\item{alpha}{numeric credibility level used to construct posterior intervals and bands. Defaults to \code{0.05}, corresponding to 95\\% intervals/bands.}
+
+\item{xlab}{optional x-axis label. If \code{NULL}, defaults to \code{"t"}.}
+
+\item{ylab}{optional y-axis label. If \code{NULL}, defaults to \code{type}.}
+
+\item{main}{optional plot title. For multi-panel plots, this may be either a single title or a vector of titles of length equal to the number of panels.}
+
+\item{xlim}{optional x-axis limits passed to the plotting routine.}
+
+\item{ylim}{optional y-axis limits passed to the plotting routine.}
+
+\item{mar}{optional numeric vector of length 4 giving plot margins, passed to \code{\link[graphics:par]{graphics::par()}}.}
+
+\item{par_args}{optional named list of additional graphical parameters passed to \code{\link[graphics:par]{graphics::par()}}, such as \code{cex.axis}, \code{cex.lab}, \code{cex.main}, \code{las}, or \code{mgp}.}
+
+\item{legend}{logical; if \code{TRUE}, add a legend to the plot.}
+
+\item{legend_cex}{numeric scaling factor for legend text size.}
+
+\item{legend_pt_cex}{numeric scaling factor for legend symbol size.}
+
+\item{nr}{optional number of rows in the plotting layout for multi-panel (\code{3}-dimensional) parameters.}
+
+\item{nc}{optional number of columns in the plotting layout for multi-panel (\code{3}-dimensional) parameters.}
+
+\item{cp_thres}{(default 0.5) cutoff proportion for percentage of posterior samples exceeding the threshold needed to label a changepoint}
+
+\item{...}{additional graphical arguments passed to the main plotting call, such as \code{\link[graphics:plot.default]{graphics::plot()}} or \code{\link[graphics:hist]{graphics::hist()}} depending on the parameter dimension.}
 }
 \value{
 No return value, called for side effects
@@ -28,13 +80,20 @@ the observed data, and true curves (if known)
 }
 \details{
 The plotting behavior depends on the dimension of the posterior samples stored in \code{x$mcmc_output[[type]]}:
+
 \itemize{
-\item \strong{1D (scalar parameter):} A density plot is generated using a histogram with overlaid kernel density estimate. The posterior mean and 95\% credible interval are annotated, along with the true value if provided.
-\item \strong{2D (vector-valued parameter over time):} A time-series plot is created, showing the posterior mean and 95\% pointwise credible intervals. If \code{include_joint_bands = TRUE} and the parameter is among \code{"omega"}, \code{"mu"}, \code{"yhat"}, or \code{"zeta"}, simultaneous credible bands are also drawn. Optionally, ground truth values (if supplied via \code{true_values}) are overlaid as orange dots.
-\item \strong{3D (parameter array):} A sequence of time-series plots is drawn, one for each slice of the third dimension (e.g., different components of a multivariate function). Posterior mean, pointwise intervals, joint bands (when applicable), and ground truth are visualized in the same style as the 2D case. The function pauses after each plot, allowing the user to interactively inspect each one.
-The x-axis values are given by \code{t01}. If not provided, they default to evenly spaced points in \eqn{[0, 1]}. For parameters with temporal differencing (e.g., \code{"evol_sigma_t2"}), initial time points used for prior initialization are automatically excluded.
-If the model includes change point detection (\code{model = "changepoint"}), and both \code{omega} and \code{r} are present in the MCMC output, vertical lines are drawn at the estimated change point locations for plots of \code{"mu"}, \code{"yhat"}, or \code{"omega"}.
+\item \strong{1D (scalar parameter):} A density-style summary is produced using a histogram with an overlaid kernel density estimate. The posterior mean and equal-tailed \eqn{(1-\alpha)100\%} credible interval are marked, and the true value is added if supplied through \code{true_values}.
+
+\item \strong{2D (time-varying parameter):} A time-series plot is produced showing the posterior mean together with equal-tailed pointwise credible intervals. If \code{include_joint_bands = TRUE} and the parameter is one of \code{zeta}, \code{omega}, \code{yhat}, or \code{mu}, simultaneous credible bands are also displayed. If \code{true_values} is provided, the ground truth is overlaid.
+
+\item \strong{3D (multi-parameter time-varying quantity):} A multi-panel collection of time-series plots is produced, one panel for each slice of the third dimension. Each panel shows the posterior mean, pointwise credible intervals, optional joint bands when supported, and optional ground-truth values. The panel layout is controlled by \code{nr} and \code{nc}; if omitted, a near-square layout is chosen automatically.
 }
+
+Axis labels, titles, plotting limits, margins, legend display, and additional graphical settings can be customized through \code{xlab}, \code{ylab}, \code{main}, \code{xlim}, \code{ylim}, \code{mar}, \code{legend}, \code{legend_cex}, \code{legend_pt_cex}, and \code{par_args}.
+
+The x-axis values are taken from \code{t01}. If \code{t01} is not supplied, evenly spaced points on \eqn{[0,1]} are used. For differenced variance parameters such as \code{"evol_sigma_t2"} and \code{"zeta_sigma_t2"}, the initial time points associated with prior initialization are automatically removed before plotting.
+
+For fitted changepoint models, changepoint annotations may be added when supported by the plotted parameter and the corresponding latent components are present in the MCMC output.#'
 }
 \examples{
 set.seed(200)
@@ -54,4 +113,10 @@ plot(mcmc_output, type = "mu", true_values = signal)
 # Estimated innovation variance vs ground truth for illustration only
 plot(mcmc_output, type = "obs_sigma_t2", true_values = noise^2)
 
+}
+\references{
+Krivobokova, T., Kneib, T., and Claeskens, G. (2010).
+Simultaneous confidence bands for penalized spline estimators.
+\emph{Journal of the American Statistical Association}, \strong{105}(490), 852--863.
+\doi{10.1198/jasa.2010.tm09165}
 }
