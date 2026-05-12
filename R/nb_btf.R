@@ -19,7 +19,7 @@
 #' must be one or more of:
 #' \itemize{
 #' \item 'mu' (conditional mean)
-#' \item 'yhat' (posterior predictive distribution)
+#' \item 'ypred' (posterior predictive distribution)
 #' \item 'evol_sigma_t2' (evolution error variance)
 #' \item 'r' (overdispersion)
 #' \item 'dhs_phi' (DHS AR(1) coefficient)
@@ -58,7 +58,7 @@
 
 btf_nb = function(y, evol_error = 'DHS', D = 2,
                   nsave = 1000, nburn = 1000, nskip = 4,
-                  mcmc_params = list("mu", "yhat","evol_sigma_t2", "r", "dhs_phi", "dhs_mean"),
+                  mcmc_params = list("mu", "ypred","evol_sigma_t2", "r", "dhs_phi", "dhs_mean"),
                   r_init = NULL, r_sample = TRUE,
                   step = 1,
                   evol0_sample = FALSE, # TODO: force default to not sample
@@ -133,7 +133,7 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
   if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu = array(NA, c(nsave, Nt))
-  if(!is.na(match('yhat', mcmc_params))) post_yhat = array(NA, c(nsave, Nt))
+  if(!is.na(match('ypred', mcmc_params))) post_ypred = array(NA, c(nsave, Nt))
   if(!is.na(match('r', mcmc_params)) || computeDIC) post_r = array(NA, c(nsave))
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, Nt))
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = numeric(nsave)
@@ -215,7 +215,7 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
 
         # Save the MCMC samples:
         if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu[isave,] = mu
-        if(!is.na(match('yhat', mcmc_params))) post_yhat[isave,] = stats::rnbinom(Nt, size = r, mu = exp(mu + offset))
+        if(!is.na(match('ypred', mcmc_params))) post_ypred[isave,] = stats::rnbinom(Nt, size = r, mu = exp(mu + offset))
         if(!is.na(match('r', mcmc_params)) || computeDIC) post_r[isave] = r
         if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2[isave,] = c(evolParams0$sigma_w0^2, evolParams$sigma_wt^2)
         if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi[isave] = evolParams$dhs_phi
@@ -229,7 +229,7 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
   }
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
-  if(!is.na(match('yhat', mcmc_params))) mcmc_output$yhat = post_yhat
+  if(!is.na(match('ypred', mcmc_params))) mcmc_output$ypred = post_ypred
   if(!is.na(match('r', mcmc_params))) mcmc_output$r = post_r
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi

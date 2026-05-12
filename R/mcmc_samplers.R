@@ -33,7 +33,7 @@
 #' must be one or more of:
 #' \itemize{
 #' \item "mu" (conditional mean)
-#' \item "yhat" (posterior predictive distribution)
+#' \item "ypred" (posterior predictive distribution)
 #' \item "evol_sigma_t2" (evolution error variance)
 #' \item "obs_sigma_t2" (observation error variance)
 #' \item "dhs_phi" (DHS AR(1) coefficient)
@@ -56,7 +56,7 @@
 
 btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
                nsave = 1000, nburn = 1000, nskip = 4,
-               mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h","h_smooth"),
+               mcmc_params = list("mu", "ypred","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h","h_smooth"),
                computeDIC = TRUE,
                verbose = TRUE,
                D_asv = 1,
@@ -129,7 +129,7 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
   if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu = array(NA, c(nsave, nT))
-  if(!is.na(match('yhat', mcmc_params))) post_yhat = array(NA, c(nsave, nT))
+  if(!is.na(match('ypred', mcmc_params))) post_ypred = array(NA, c(nsave, nT))
   if(!is.na(match('obs_sigma_t2', mcmc_params)) || computeDIC) post_obs_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = numeric(nsave)
@@ -228,7 +228,7 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
 
         # Save the MCMC samples:
         if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu[isave,] = mu
-        if(!is.na(match('yhat', mcmc_params))) post_yhat[isave,] = mu + sigma_et*rnorm(nT)
+        if(!is.na(match('ypred', mcmc_params))) post_ypred[isave,] = mu + sigma_et*rnorm(nT)
         if(!is.na(match('obs_sigma_t2', mcmc_params)) || computeDIC) post_obs_sigma_t2[isave,] = sigma_et^2
         if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2[isave,] = c(evolParams0$sigma_w0^2, evolParams$sigma_wt^2)
         if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi[isave] = evolParams$dhs_phi
@@ -243,7 +243,7 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
   }
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
-  if(!is.na(match('yhat', mcmc_params))) mcmc_output$yhat = post_yhat
+  if(!is.na(match('ypred', mcmc_params))) mcmc_output$ypred = post_ypred
   if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = post_obs_sigma_t2
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
@@ -306,7 +306,7 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
 #' must be one or more of:
 #' \itemize{
 #' \item "mu" (conditional mean)
-#' \item "yhat" (posterior predictive distribution)
+#' \item "ypred" (posterior predictive distribution)
 #' \item "evol_sigma_t2" (evolution error variance)
 #' \item "obs_sigma_t2" (observation error variance)
 #' \item "dhs_phi" (DHS AR(1) coefficient)
@@ -329,7 +329,7 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
 #' deviation is recommended to avoid numerical issues.
 btf0 = function(y, evol_error = 'DHS', obsSV = "const",
                 nsave = 1000, nburn = 1000, nskip = 4,
-                mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h","h_smooth"),
+                mcmc_params = list("mu", "ypred","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h","h_smooth"),
                 computeDIC = TRUE,
                 verbose = TRUE,
                 D_asv = 1,
@@ -368,7 +368,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
   if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu = array(NA, c(nsave, nT))
-  if(!is.na(match('yhat', mcmc_params))) post_yhat = array(NA, c(nsave, nT))
+  if(!is.na(match('ypred', mcmc_params))) post_ypred = array(NA, c(nsave, nT))
   if(!is.na(match('obs_sigma_t2', mcmc_params)) || computeDIC) post_obs_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = numeric(nsave)
@@ -460,7 +460,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 
         # Save the MCMC samples:
         if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu[isave,] = mu
-        if(!is.na(match('yhat', mcmc_params))) post_yhat[isave,] = mu + sigma_et*rnorm(nT)
+        if(!is.na(match('ypred', mcmc_params))) post_ypred[isave,] = mu + sigma_et*rnorm(nT)
         if(!is.na(match('obs_sigma_t2', mcmc_params)) || computeDIC) post_obs_sigma_t2[isave,] = sigma_et^2
         if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2[isave,] =  evolParams$sigma_wt^2
         if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi[isave] = evolParams$dhs_phi
@@ -475,7 +475,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
   }
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
-  if(!is.na(match('yhat', mcmc_params))) mcmc_output$yhat = post_yhat
+  if(!is.na(match('ypred', mcmc_params))) mcmc_output$ypred = post_ypred
   if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = post_obs_sigma_t2
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
@@ -545,7 +545,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' must be one or more of:
 #' \itemize{
 #' \item "mu" (conditional mean)
-#' \item "yhat" (posterior predictive distribution)
+#' \item "ypred" (posterior predictive distribution)
 #' \item "evol_sigma_t2" (evolution error variance)
 #' \item "zero_sigma_t2" (shrink-to-zero error variance)
 #' \item "obs_sigma_t2" (observation error variance)
@@ -571,7 +571,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 
 btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = "const",
                       nsave = 1000, nburn = 1000, nskip = 4,
-                      mcmc_params = list("mu", "yhat","evol_sigma_t2", "obs_sigma_t2",
+                      mcmc_params = list("mu", "ypred","evol_sigma_t2", "obs_sigma_t2",
                                          "zero_sigma_t2", "dhs_phi", "dhs_mean","dhs_phi_zero",
                                          "dhs_mean_zero","h","h_smooth"),
                       computeDIC = TRUE,
@@ -634,7 +634,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
   if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu = array(NA, c(nsave, nT))
-  if(!is.na(match('yhat', mcmc_params))) post_yhat = array(NA, c(nsave, nT))
+  if(!is.na(match('ypred', mcmc_params))) post_ypred = array(NA, c(nsave, nT))
   if(!is.na(match('obs_sigma_t2', mcmc_params)) || computeDIC) post_obs_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('zero_sigma_t2', mcmc_params))) post_zero_sigma_t2 = array(NA, c(nsave, nT))
@@ -727,7 +727,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 
         # Save the MCMC samples:
         if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu[isave,] = mu
-        if(!is.na(match('yhat', mcmc_params))) post_yhat[isave,] = mu + sigma_et*rnorm(nT)
+        if(!is.na(match('ypred', mcmc_params))) post_ypred[isave,] = mu + sigma_et*rnorm(nT)
         if(!is.na(match('obs_sigma_t2', mcmc_params)) || computeDIC) post_obs_sigma_t2[isave,] = sigma_et^2
         if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2[isave,] = c(evolParams0$sigma_w0^2, evolParams$sigma_wt^2)
         if(!is.na(match('zero_sigma_t2', mcmc_params))) post_zero_sigma_t2[isave,] = zeroParams$sigma_wt^2
@@ -746,7 +746,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
   }
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
-  if(!is.na(match('yhat', mcmc_params))) mcmc_output$yhat = post_yhat
+  if(!is.na(match('ypred', mcmc_params))) mcmc_output$ypred = post_ypred
   if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = post_obs_sigma_t2
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('zero_sigma_t2', mcmc_params))) mcmc_output$zero_sigma_t2 = post_zero_sigma_t2
@@ -814,7 +814,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 #' must be one or more of:
 #' \itemize{
 #' \item "mu" (conditional mean)
-#' \item "yhat" (posterior predictive distribution)
+#' \item "ypred" (posterior predictive distribution)
 #' \item "beta" (dynamic regression coefficients)
 #' \item "evol_sigma_t2" (evolution error variance)
 #' \item "obs_sigma_t2" (observation error variance)
@@ -840,7 +840,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 
 btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
                    nsave = 1000, nburn = 1000, nskip = 4,
-                   mcmc_params = list("mu", "yhat","beta","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h","h_smooth"),
+                   mcmc_params = list("mu", "ypred","beta","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h","h_smooth"),
                    use_backfitting = FALSE,
                    computeDIC = TRUE,
                    verbose = TRUE,
@@ -913,7 +913,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
   if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu = array(NA, c(nsave, nT))
-  if(!is.na(match('yhat', mcmc_params))) post_yhat = array(NA, c(nsave, nT))
+  if(!is.na(match('ypred', mcmc_params))) post_ypred = array(NA, c(nsave, nT))
   if(!is.na(match('beta', mcmc_params))) post_beta = array(NA, c(nsave, nT, p))
   if(!is.na(match('obs_sigma_t2', mcmc_params)) || computeDIC) post_obs_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, nT, p))
@@ -1019,7 +1019,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 
         # Save the MCMC samples:
         if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu[isave,] = mu
-        if(!is.na(match('yhat', mcmc_params))) post_yhat[isave,] = mu + sigma_et*rnorm(nT)
+        if(!is.na(match('ypred', mcmc_params))) post_ypred[isave,] = mu + sigma_et*rnorm(nT)
         if(!is.na(match('beta', mcmc_params))) post_beta[isave,,] = beta
         if(!is.na(match('obs_sigma_t2', mcmc_params)) || computeDIC) post_obs_sigma_t2[isave,] = sigma_et^2
         if(!is.na(match('evol_sigma_t2', mcmc_params))) {
@@ -1040,7 +1040,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
   }
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
-  if(!is.na(match('yhat', mcmc_params))) mcmc_output$yhat = post_yhat
+  if(!is.na(match('ypred', mcmc_params))) mcmc_output$ypred = post_ypred
   if(!is.na(match('beta', mcmc_params))) mcmc_output$beta = post_beta
   if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = post_obs_sigma_t2
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
@@ -1105,7 +1105,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 #' \itemize{
 #' \item "mu" (conditional mean)
 #' \item "beta" (B-spline basis coefficients)
-#' \item "yhat" (posterior predictive distribution)
+#' \item "ypred" (posterior predictive distribution)
 #' \item "evol_sigma_t2" (evolution error variance)
 #' \item "obs_sigma_t2" (observation error variance)
 #' \item "dhs_phi" (DHS AR(1) coefficient)
@@ -1131,7 +1131,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 
 btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D = 2,
                        nsave = 1000, nburn = 1000, nskip = 4,
-                       mcmc_params = list("mu", "yhat", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
+                       mcmc_params = list("mu", "ypred", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
                        computeDIC = TRUE,
                        verbose = TRUE){
 
@@ -1199,7 +1199,7 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
   if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu = array(NA, c(nsave, nT))
-  if(!is.na(match('yhat', mcmc_params))) post_yhat = array(NA, c(nsave, nT))
+  if(!is.na(match('ypred', mcmc_params))) post_ypred = array(NA, c(nsave, nT))
   if(!is.na(match('beta', mcmc_params))) post_beta = array(NA, c(nsave, p))
   if(!is.na(match('obs_sigma_t2', mcmc_params)) || computeDIC) post_obs_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, p))
@@ -1276,7 +1276,7 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
 
         # Save the MCMC samples:
         if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu[isave,] = mu
-        if(!is.na(match('yhat', mcmc_params))) post_yhat[isave,] = mu + sigma_e*rnorm(nT)
+        if(!is.na(match('ypred', mcmc_params))) post_ypred[isave,] = mu + sigma_e*rnorm(nT)
         if(!is.na(match('beta', mcmc_params))) post_beta[isave,] = matrix(beta)
         if(!is.na(match('obs_sigma_t2', mcmc_params)) || computeDIC) post_obs_sigma_t2[isave,] = sigma_e^2
         if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2[isave,] =  rbind(matrix(evolParams0$sigma_w0^2, nrow = D), evolParams$sigma_wt^2)
@@ -1291,7 +1291,7 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
   }
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
-  if(!is.na(match('yhat', mcmc_params))) mcmc_output$yhat = post_yhat
+  if(!is.na(match('ypred', mcmc_params))) mcmc_output$ypred = post_ypred
   if(!is.na(match('beta', mcmc_params))) mcmc_output$beta = post_beta
   if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = post_obs_sigma_t2
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
@@ -1352,7 +1352,7 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
 #' \itemize{
 #' \item "mu" (conditional mean)
 #' \item "beta" (B-spline basis coefficients)
-#' \item "yhat" (posterior predictive distribution)
+#' \item "ypred" (posterior predictive distribution)
 #' \item "evol_sigma_t2" (evolution error variance)
 #' \item "obs_sigma_t2" (observation error variance)
 #' \item "dhs_phi" (DHS AR(1) coefficient)
@@ -1379,7 +1379,7 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
 
 btf_bspline0 = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS',
                         nsave = 1000, nburn = 1000, nskip = 4,
-                        mcmc_params = list("mu", "yhat", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
+                        mcmc_params = list("mu", "ypred", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
                         computeDIC = TRUE,
                         verbose = TRUE){
 
@@ -1427,7 +1427,7 @@ btf_bspline0 = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS',
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
   if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu = array(NA, c(nsave, nT))
-  if(!is.na(match('yhat', mcmc_params))) post_yhat = array(NA, c(nsave, nT))
+  if(!is.na(match('ypred', mcmc_params))) post_ypred = array(NA, c(nsave, nT))
   if(!is.na(match('beta', mcmc_params))) post_beta = array(NA, c(nsave, p))
   if(!is.na(match('obs_sigma_t2', mcmc_params)) || computeDIC) post_obs_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, p))
@@ -1495,7 +1495,7 @@ btf_bspline0 = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS',
 
         # Save the MCMC samples:
         if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu[isave,] = mu
-        if(!is.na(match('yhat', mcmc_params))) post_yhat[isave,] = mu + sigma_e*rnorm(nT)
+        if(!is.na(match('ypred', mcmc_params))) post_ypred[isave,] = mu + sigma_e*rnorm(nT)
         if(!is.na(match('beta', mcmc_params))) post_beta[isave,] = matrix(beta)
         if(!is.na(match('obs_sigma_t2', mcmc_params)) || computeDIC) post_obs_sigma_t2[isave,] = sigma_e^2
         if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2[isave,] = evolParams$sigma_wt^2
@@ -1510,7 +1510,7 @@ btf_bspline0 = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS',
   }
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
-  if(!is.na(match('yhat', mcmc_params))) mcmc_output$yhat = post_yhat
+  if(!is.na(match('ypred', mcmc_params))) mcmc_output$ypred = post_ypred
   if(!is.na(match('beta', mcmc_params))) mcmc_output$beta = post_beta
   if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = post_obs_sigma_t2
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
