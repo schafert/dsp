@@ -1,3 +1,8 @@
+# dsp 1.4.0
+
+* Changed argument name t01 to times for consistency
+* Changed variable name yhat to ypred for correctness
+
 # dsp 1.3.0
 
 * Fixed inconsistencies in model specification family names.
