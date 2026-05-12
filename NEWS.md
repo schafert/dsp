@@ -1,3 +1,7 @@
+# dsp 1.4.1
+
+* Changed typo in print method for family "negbinomial"
+
 # dsp 1.4.0
 
 * Changed argument name t01 to times for consistency
