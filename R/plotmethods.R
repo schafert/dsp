@@ -8,8 +8,8 @@
 #' @param type character string giving the parameter name to visualize; must be one of the entries in `x$mcmc_output`.
 #' @param true_values optional ground-truth values to overlay on the plot. For scalar parameters, this should be a length-1 numeric value; for time-varying parameters, a `T x 1` vector; and for multi-parameter time-varying quantities, a `T x p` matrix matching the plotted parameter dimensions.
 #' @param y_obs optional vector of observed data point of length T. Only for `2`-dimensional parameters.
-#' @param t01 optional vector of observation points. If `NULL`, the function assumes `T` equally spaced points on `[0,1]`.
-#' @param include_joint_bands logical; if `TRUE`, include simultaneous credible bands in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: `zeta`, `omega`, `yhat`, and `mu` for 2D outputs, and `zeta`, `omega`, `yhat`, `mu`, and `beta` for 3D outputs. 
+#' @param times optional vector of observation points. If `NULL`, the function assumes `T` equally spaced points on `[0,1]`.
+#' @param include_joint_bands logical; if `TRUE`, include simultaneous credible bands in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: `zeta`, `omega`, `ypred`, and `mu` for 2D outputs, and `zeta`, `omega`, `ypred`, `mu`, and `beta` for 3D outputs. 
 #' @param alpha numeric credibility level used to construct posterior intervals and bands. Defaults to `0.05`, corresponding to 95\% intervals/bands.
 #' @param xlab optional x-axis label. If `NULL`, defaults to `"t"`.
 #' @param ylab optional y-axis label. If `NULL`, defaults to `type`.
@@ -32,14 +32,14 @@
 #' \itemize{
 #'   \item \strong{1D (scalar parameter):} A density-style summary is produced using a histogram with an overlaid kernel density estimate. The posterior mean and equal-tailed \eqn{(1-\alpha)100\%} credible interval are marked, and the true value is added if supplied through `true_values`.
 #'
-#'   \item \strong{2D (time-varying parameter):} A time-series plot is produced showing the posterior mean together with equal-tailed pointwise credible intervals. If `include_joint_bands = TRUE` and the parameter is one of `zeta`, `omega`, `yhat`, or `mu`, simultaneous credible bands are also displayed. If `true_values` is provided, the ground truth is overlaid.
+#'   \item \strong{2D (time-varying parameter):} A time-series plot is produced showing the posterior mean together with equal-tailed pointwise credible intervals. If `include_joint_bands = TRUE` and the parameter is one of `zeta`, `omega`, `ypred`, or `mu`, simultaneous credible bands are also displayed. If `true_values` is provided, the ground truth is overlaid.
 #'
 #'   \item \strong{3D (multi-parameter time-varying quantity):} A multi-panel collection of time-series plots is produced, one panel for each slice of the third dimension. Each panel shows the posterior mean, pointwise credible intervals, optional joint bands when supported, and optional ground-truth values. The panel layout is controlled by `nr` and `nc`; if omitted, a near-square layout is chosen automatically.
 #' }
 #'
 #' Axis labels, titles, plotting limits, margins, legend display, and additional graphical settings can be customized through `xlab`, `ylab`, `main`, `xlim`, `ylim`, `mar`, `legend`, `legend_cex`, `legend_pt_cex`, and `par_args`.
 #'
-#' The x-axis values are taken from `t01`. If `t01` is not supplied, evenly spaced points on \eqn{[0,1]} are used. For differenced variance parameters such as `"evol_sigma_t2"` and `"zeta_sigma_t2"`, the initial time points associated with prior initialization are automatically removed before plotting.
+#' The x-axis values are taken from `times`. If `times` is not supplied, evenly spaced points on \eqn{[0,1]} are used. For differenced variance parameters such as `"evol_sigma_t2"` and `"zeta_sigma_t2"`, the initial time points associated with prior initialization are automatically removed before plotting.
 #'
 #' For fitted changepoint models, changepoint annotations may be added when supported by the plotted parameter and the corresponding latent components are present in the MCMC output.#'
 #'
@@ -76,7 +76,7 @@
 #' @method plot dsp
 #' @export
 plot.dsp <- function(
-  x, type, true_values = NULL, t01 = NULL, y_obs = NULL, 
+  x, type, true_values = NULL, times = NULL, y_obs = NULL, 
   include_joint_bands = FALSE, alpha = 0.05,
   xlab = NULL, ylab = NULL, main = NULL,
   xlim = NULL, ylim = NULL,
@@ -119,13 +119,13 @@ plot.dsp <- function(
     # two dimension -> scatter plot
     # initializing Legend items
     nT = dimension[2]
-    if(is.null(t01)) t01 = seq(0, 1, length.out=nT)
+    if(is.null(times)) times = seq(0, 1, length.out=nT)
 
     # Preprocessing for evol_sigma_t2 parameters
     # Dropping first "D" since first D variances are for intializaiton
     if(type %in% c("evol_sigma_t2","zeta_sigma_t2")){
       samples = samples[,-c(1:(x$model_spec$arguments$D))]
-      t01 = t01[-c(1:(x$model_spec$arguments$D))]
+      times = times[-c(1:(x$model_spec$arguments$D))]
     }
 
     posterior_mean <- colMeans(samples)
@@ -133,7 +133,7 @@ plot.dsp <- function(
     dcib = credBands(samples,alpha)
 
     ylim_use <- if (is.null(ylim)) {
-      if (include_joint_bands && type %in% c("zeta", "omega", "yhat", "mu")) {
+      if (include_joint_bands && type %in% c("zeta", "omega", "ypred", "mu")) {
         range(posterior_mean, dcib, dcip, na.rm = TRUE)
       } else {
         range(posterior_mean, dcip, na.rm = TRUE)
@@ -141,7 +141,7 @@ plot.dsp <- function(
     } else {
       ylim
     }   
-    xlim_use <- if (is.null(xlim)) range(t01, na.rm = TRUE) else xlim
+    xlim_use <- if (is.null(xlim)) range(times, na.rm = TRUE) else xlim
     
     legend_labels <- c("Posterior Mean", "Pointwise CI")
     legend_pch <- c(NA, 15)
@@ -150,7 +150,7 @@ plot.dsp <- function(
     legend_col <- c(mean_color, "gray75")
 
     # changepoint block
-    draw_cp <- x$model_spec$model == "changepoint" && all(c("omega", "r") %in% names(x$mcmc_output)) && type %in% c("mu", "yhat", "omega")
+    draw_cp <- x$model_spec$model == "changepoint" && all(c("omega", "r") %in% names(x$mcmc_output)) && type %in% c("mu", "ypred", "omega")
     if(draw_cp){
       legend_labels <- c(legend_labels, "Estimated CP")
       legend_pch <- c(legend_pch, NA)
@@ -158,21 +158,21 @@ plot.dsp <- function(
       legend_lwd <- c(legend_lwd, 2)
       legend_col <- c(legend_col, "firebrick")
       cp_loc = predict(x,cp_thres = cp_thres)
-      cp_loc = t01[cp_loc - x$model_spec$arguments$D]
+      cp_loc = times[cp_loc - x$model_spec$arguments$D]
     }
     # build plot() args cleanly
     base_plot_args <- c(
       list(
-        x = t01, y = posterior_mean, type = "n",
+        x = times, y = posterior_mean, type = "n",
         xlab = xlab_use, ylab = ylab_use, main = main_use,
         xlim = xlim_use, ylim = ylim_use
       ),
       plot_args
     )
     do.call(plot, base_plot_args)
-    if(include_joint_bands && type %in% c("omega", "yhat", "mu", "zeta")){
+    if(include_joint_bands && type %in% c("omega", "ypred", "mu", "zeta")){
       polygon(
-        c(t01, rev(t01)),
+        c(times, rev(times)),
         c(dcib[, 2], rev(dcib[, 1])),
         col = "gray85", border = NA
       )
@@ -184,14 +184,14 @@ plot.dsp <- function(
     }
 
     polygon(
-      c(t01, rev(t01)),
+      c(times, rev(times)),
       c(dcip[, 2], rev(dcip[, 1])),
       col = "gray75", border = NA
     )
     if(draw_cp){abline(v = cp_loc, lty = 2, lwd = legend_lwd, col = "firebrick")}
-    lines(t01, posterior_mean, lwd = 3, col = mean_color)
+    lines(times, posterior_mean, lwd = 3, col = mean_color)
     if (!is.null(true_values)) {
-      points(t01, true_values, pch = 20, col = "darkorange",cex = legend_pt_cex)
+      points(times, true_values, pch = 20, col = "darkorange",cex = legend_pt_cex)
       legend_labels <- c(legend_labels, "Ground Truth")
       legend_pch <- c(legend_pch, 20)
       legend_lty <- c(legend_lty, NA)
@@ -200,10 +200,10 @@ plot.dsp <- function(
     }
 
     if (!is.null(y_obs)) {
-      if (length(y_obs) != length(t01)) {
+      if (length(y_obs) != length(times)) {
         stop("Length of y_obs must match the plotted time dimension.")
       }
-      points(t01, y_obs, pch = 16, col = "black", cex = 0.7)
+      points(times, y_obs, pch = 16, col = "black", cex = 0.7)
     }
     
     if (legend) {
@@ -287,16 +287,16 @@ plot.dsp <- function(
   else if(length(dimension) == 3){
     nplots = dimension[3]
     nT = dimension[2]
-    if(is.null(t01)) t01 = seq(0, 1, length.out=nT)
+    if(is.null(times)) times = seq(0, 1, length.out=nT)
     # Preprocessing for evol_sigma_t2 parameters
     # Dropping first "D" since first D variances are for intializaiton
     if(type %in% c("evol_sigma_t2", "zeta_sigma_t2")){
       samples = samples[, -c(1:(x$model_spec$arguments$D)), ]
-      t01 = t01[-c(1:(x$model_spec$arguments$D))]
+      times = times[-c(1:(x$model_spec$arguments$D))]
     }
 
     if(!is.null(true_values)){
-      if(!all(dim(true_values) == c(length(t01), nplots))){
+      if(!all(dim(true_values) == c(length(times), nplots))){
         stop("Dimension of true values and the parameters do not match.")
       }
     }
@@ -307,7 +307,7 @@ plot.dsp <- function(
     legend_lwd <- c(3, NA)
     legend_col <- c(mean_color, "gray75")
 
-    if(include_joint_bands && type %in% c("omega", "yhat", "mu", "beta", "zeta")){
+    if(include_joint_bands && type %in% c("omega", "ypred", "mu", "beta", "zeta")){
       legend_labels <- c(legend_labels, "Joint CI")
       legend_pch <- c(legend_pch, 15)
       legend_lty <- c(legend_lty, NA)
@@ -351,7 +351,7 @@ plot.dsp <- function(
       dcib <- credBands(samples[, , i], alpha)
 
       ylim_use <- if (is.null(ylim)) {
-        if (include_joint_bands && type %in% c("zeta", "omega", "yhat", "mu", "beta")) {
+        if (include_joint_bands && type %in% c("zeta", "omega", "ypred", "mu", "beta")) {
           range(posterior_mean, dcib, dcip, na.rm = TRUE)
         } else {
           range(posterior_mean, dcip, na.rm = TRUE)
@@ -360,12 +360,12 @@ plot.dsp <- function(
         ylim
       }
 
-      xlim_use <- if (is.null(xlim)) range(t01, na.rm = TRUE) else xlim
+      xlim_use <- if (is.null(xlim)) range(times, na.rm = TRUE) else xlim
       main_use_i <- if (is.null(main) || length(main) != nplots) paste0(type, "_", i) else main[i]
 
       base_plot_args <- c(
         list(
-          x = t01, y = posterior_mean, type = "n",
+          x = times, y = posterior_mean, type = "n",
           xlab = xlab_use, ylab = ylab_use, main = main_use_i,
           xlim = xlim_use, ylim = ylim_use
         ),
@@ -373,25 +373,25 @@ plot.dsp <- function(
       )
       do.call(plot, base_plot_args)
 
-      if(include_joint_bands && type %in% c("omega", "yhat", "mu", "zeta", "beta")){
+      if(include_joint_bands && type %in% c("omega", "ypred", "mu", "zeta", "beta")){
         polygon(
-          c(t01, rev(t01)),
+          c(times, rev(times)),
           c(dcib[, 2], rev(dcib[, 1])),
           col = "gray85", border = NA
         )
       }
 
       polygon(
-        c(t01, rev(t01)),
+        c(times, rev(times)),
         c(dcip[, 2], rev(dcip[, 1])),
         col = "gray75", border = NA
       )
 
       if(!is.null(true_values)){
-        points(t01, true_values[, i], pch = 20, col = "darkorange",cex = legend_pt_cex)
+        points(times, true_values[, i], pch = 20, col = "darkorange",cex = legend_pt_cex)
       }
 
-      lines(t01, posterior_mean, lwd = 3, col = mean_color)
+      lines(times, posterior_mean, lwd = 3, col = mean_color)
 
       if (legend) {
         usr <- par("usr")
