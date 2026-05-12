@@ -1,14 +1,13 @@
-## Resubmission
-This is a resubmission. In this version I have:
+## CRAN Package Check Results
 
-* added return values to all exported functions
+On the r-devel Windows win-builder there is a pre-existing compile error in Rcpp/Function.h                  
+(R_NamespaceRegistry not declared) that affects every Rcpp-based package on that builder and is unrelated to   
+this package. It builds cleanly on r-release and r-oldrel Windows, and on macOS/Linux.
 
-* deleted all examples from unexported functions which removed all instances of `\dontrun{}`
-
-* added suggestion for resetting par on exit for plot method
-  
 ## R CMD check results
 
 0 errors | 0 warnings | 1 note
 
-* This is a new release.
+## revdepcheck results
+
+revdepcheck not available for R version 4.5.3

@@ -23,7 +23,7 @@
 #' @param legend_pt_cex numeric scaling factor for legend symbol size.
 #' @param nr optional number of rows in the plotting layout for multi-panel (`3`-dimensional) parameters.
 #' @param nc optional number of columns in the plotting layout for multi-panel (`3`-dimensional) parameters.
-#' @param cp_thres (default 0.5) cutoff proportion for percentage of posterior samples exceeding the threshold needed to label a changepoint 
+#' @param cp_thres (default 0.5) cutoff proportion for percentage of posterior samples exceeding the threshold needed to label a changepoint
 #' @param ... additional graphical arguments passed to the main plotting call, such as [graphics::plot()] or [graphics::hist()] depending on the parameter dimension.
 #'
 #' @details
@@ -41,9 +41,10 @@
 #'
 #' The x-axis values are taken from `times`. If `times` is not supplied, evenly spaced points on \eqn{[0,1]} are used. For differenced variance parameters such as `"evol_sigma_t2"` and `"zeta_sigma_t2"`, the initial time points associated with prior initialization are automatically removed before plotting.
 #'
-#' For fitted changepoint models, changepoint annotations may be added when supported by the plotted parameter and the corresponding latent components are present in the MCMC output.#'
+#' For fitted changepoint models, changepoint annotations may be added when supported by the plotted parameter and the corresponding latent components are present in the MCMC output.
 #'
 #' @returns No return value, called for side effects
+#'
 #' @examples
 #' set.seed(200)
 #' signal = c(rep(0, 50), rep(10, 50))
@@ -72,9 +73,10 @@
 #' Simultaneous confidence bands for penalized spline estimators.
 #' \emph{Journal of the American Statistical Association}, \strong{105}(490), 852--863.
 #' \doi{10.1198/jasa.2010.tm09165}
-#' 
+#'
 #' @method plot dsp
 #' @export
+
 plot.dsp <- function(
   x, type, true_values = NULL, times = NULL, y_obs = NULL, 
   include_joint_bands = FALSE, alpha = 0.05,
@@ -85,7 +87,7 @@ plot.dsp <- function(
   legend = TRUE,
   legend_cex = 1,
   legend_pt_cex = 2,
-  nr = NULL, 
+  nr = NULL,
   nc = NULL,
   cp_thres = 0.5,
   ...
@@ -113,7 +115,7 @@ plot.dsp <- function(
   xlab_use <- if (is.null(xlab)) default_xlab else xlab
   ylab_use <- if (is.null(ylab)) default_ylab else ylab
   main_use <- if (is.null(main)) "" else main
-  
+
   # example: 2D branch
   if(length(dimension) == 2){
     # two dimension -> scatter plot
@@ -205,7 +207,7 @@ plot.dsp <- function(
       }
       points(times, y_obs, pch = 16, col = "black", cex = 0.7)
     }
-    
+
     if (legend) {
       usr <- par("usr")
       par(xpd = TRUE)

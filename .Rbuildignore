@@ -4,3 +4,5 @@
 ^cran-comments\.md$
 ^CRAN-SUBMISSION$
 ^LICENSE$
+^\.vscode$
+^revdep$
