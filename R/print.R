@@ -68,11 +68,11 @@ print.dsp_spec <- function(x, ...){
         cat("unspecified error variance model, and ")
       )
     }
-    
+
     cat(x$arguments$D, "degree of differencing.")
   }
 
-  if(x$family == "negbinom"){
+  if(x$family == "negbinomial"){
     cat("Negative binomial likelihood with", x$arguments$D, "degree of differencing.")
   }
 
