@@ -9,8 +9,8 @@
 #' @param true_values optional ground-truth values to overlay on the plot. For scalar parameters, this should be a length-1 numeric value; for time-varying parameters, a `T x 1` vector; and for multi-parameter time-varying quantities, a `T x p` matrix matching the plotted parameter dimensions.
 #' @param y_obs optional vector of observed data point of length T. Only for `2`-dimensional parameters.
 #' @param times optional vector of observation points. If `NULL`, the function assumes `T` equally spaced points on `[0,1]`.
-#' @param include_joint_bands logical; if `TRUE`, include simultaneous credible bands in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: `zeta`, `omega`, `ypred`, and `mu` for 2D outputs, and `zeta`, `omega`, `ypred`, `mu`, and `beta` for 3D outputs. 
-#' @param alpha numeric credibility level used to construct posterior intervals and bands. Defaults to `0.05`, corresponding to 95\% intervals/bands.
+#' @param include_joint_bands logical; if `TRUE`, include simultaneous credible bands in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: `zeta`, `omega`, `ypred`, and `mu` for 2D outputs, and `zeta`, `omega`, `ypred`, `mu`, and `beta` for 3D outputs.
+#' @param alpha numeric credibility level used to construct posterior intervals and bands. Defaults to `0.05`, corresponding to 95% intervals/bands.
 #' @param xlab optional x-axis label. If `NULL`, defaults to `"t"`.
 #' @param ylab optional y-axis label. If `NULL`, defaults to `type`.
 #' @param main optional plot title. For multi-panel plots, this may be either a single title or a vector of titles of length equal to the number of panels.
@@ -78,7 +78,7 @@
 #' @export
 
 plot.dsp <- function(
-  x, type, true_values = NULL, times = NULL, y_obs = NULL, 
+  x, type, true_values = NULL, times = NULL, y_obs = NULL,
   include_joint_bands = FALSE, alpha = 0.05,
   xlab = NULL, ylab = NULL, main = NULL,
   xlim = NULL, ylim = NULL,
@@ -142,9 +142,9 @@ plot.dsp <- function(
       }
     } else {
       ylim
-    }   
+    }
     xlim_use <- if (is.null(xlim)) range(times, na.rm = TRUE) else xlim
-    
+
     legend_labels <- c("Posterior Mean", "Pointwise CI")
     legend_pch <- c(NA, 15)
     legend_lty <- c(1, NA)
