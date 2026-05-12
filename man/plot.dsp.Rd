@@ -8,7 +8,7 @@
   x,
   type,
   true_values = NULL,
-  t01 = NULL,
+  times = NULL,
   y_obs = NULL,
   include_joint_bands = FALSE,
   alpha = 0.05,
@@ -35,13 +35,13 @@
 
 \item{true_values}{optional ground-truth values to overlay on the plot. For scalar parameters, this should be a length-1 numeric value; for time-varying parameters, a \verb{T x 1} vector; and for multi-parameter time-varying quantities, a \verb{T x p} matrix matching the plotted parameter dimensions.}
 
-\item{t01}{optional vector of observation points. If \code{NULL}, the function assumes \code{T} equally spaced points on \verb{[0,1]}.}
+\item{times}{optional vector of observation points. If \code{NULL}, the function assumes \code{T} equally spaced points on \verb{[0,1]}.}
 
 \item{y_obs}{optional vector of observed data point of length T. Only for \code{2}-dimensional parameters.}
 
-\item{include_joint_bands}{logical; if \code{TRUE}, include simultaneous credible bands in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: \code{zeta}, \code{omega}, \code{yhat}, and \code{mu} for 2D outputs, and \code{zeta}, \code{omega}, \code{yhat}, \code{mu}, and \code{beta} for 3D outputs.}
+\item{include_joint_bands}{logical; if \code{TRUE}, include simultaneous credible bands in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: \code{zeta}, \code{omega}, \code{ypred}, and \code{mu} for 2D outputs, and \code{zeta}, \code{omega}, \code{ypred}, \code{mu}, and \code{beta} for 3D outputs.}
 
-\item{alpha}{numeric credibility level used to construct posterior intervals and bands. Defaults to \code{0.05}, corresponding to 95\% intervals/bands.}
+\item{alpha}{numeric credibility level used to construct posterior intervals and bands. Defaults to \code{0.05}, corresponding to 95\\% intervals/bands.}
 
 \item{xlab}{optional x-axis label. If \code{NULL}, defaults to \code{"t"}.}
 
@@ -84,14 +84,14 @@ The plotting behavior depends on the dimension of the posterior samples stored i
 \itemize{
 \item \strong{1D (scalar parameter):} A density-style summary is produced using a histogram with an overlaid kernel density estimate. The posterior mean and equal-tailed \eqn{(1-\alpha)100\%} credible interval are marked, and the true value is added if supplied through \code{true_values}.
 
-\item \strong{2D (time-varying parameter):} A time-series plot is produced showing the posterior mean together with equal-tailed pointwise credible intervals. If \code{include_joint_bands = TRUE} and the parameter is one of \code{zeta}, \code{omega}, \code{yhat}, or \code{mu}, simultaneous credible bands are also displayed. If \code{true_values} is provided, the ground truth is overlaid.
+\item \strong{2D (time-varying parameter):} A time-series plot is produced showing the posterior mean together with equal-tailed pointwise credible intervals. If \code{include_joint_bands = TRUE} and the parameter is one of \code{zeta}, \code{omega}, \code{ypred}, or \code{mu}, simultaneous credible bands are also displayed. If \code{true_values} is provided, the ground truth is overlaid.
 
 \item \strong{3D (multi-parameter time-varying quantity):} A multi-panel collection of time-series plots is produced, one panel for each slice of the third dimension. Each panel shows the posterior mean, pointwise credible intervals, optional joint bands when supported, and optional ground-truth values. The panel layout is controlled by \code{nr} and \code{nc}; if omitted, a near-square layout is chosen automatically.
 }
 
 Axis labels, titles, plotting limits, margins, legend display, and additional graphical settings can be customized through \code{xlab}, \code{ylab}, \code{main}, \code{xlim}, \code{ylim}, \code{mar}, \code{legend}, \code{legend_cex}, \code{legend_pt_cex}, and \code{par_args}.
 
-The x-axis values are taken from \code{t01}. If \code{t01} is not supplied, evenly spaced points on \eqn{[0,1]} are used. For differenced variance parameters such as \code{"evol_sigma_t2"} and \code{"zeta_sigma_t2"}, the initial time points associated with prior initialization are automatically removed before plotting.
+The x-axis values are taken from \code{times}. If \code{times} is not supplied, evenly spaced points on \eqn{[0,1]} are used. For differenced variance parameters such as \code{"evol_sigma_t2"} and \code{"zeta_sigma_t2"}, the initial time points associated with prior initialization are automatically removed before plotting.
 
 For fitted changepoint models, changepoint annotations may be added when supported by the plotted parameter and the corresponding latent components are present in the MCMC output.
 }

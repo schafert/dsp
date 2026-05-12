@@ -13,7 +13,7 @@ btf_reg(
   nsave = 1000,
   nburn = 1000,
   nskip = 4,
-  mcmc_params = list("mu", "yhat", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi",
+  mcmc_params = list("mu", "ypred", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi",
     "dhs_mean", "h", "h_smooth"),
   use_backfitting = FALSE,
   computeDIC = TRUE,
@@ -51,7 +51,7 @@ i.e., save every (nskip + 1)th draw}
 must be one or more of:
 \itemize{
 \item "mu" (conditional mean)
-\item "yhat" (posterior predictive distribution)
+\item "ypred" (posterior predictive distribution)
 \item "beta" (dynamic regression coefficients)
 \item "evol_sigma_t2" (evolution error variance)
 \item "obs_sigma_t2" (observation error variance)

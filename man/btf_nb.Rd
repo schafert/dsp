@@ -11,7 +11,7 @@ btf_nb(
   nsave = 1000,
   nburn = 1000,
   nskip = 4,
-  mcmc_params = list("mu", "yhat", "evol_sigma_t2", "r", "dhs_phi", "dhs_mean"),
+  mcmc_params = list("mu", "ypred", "evol_sigma_t2", "r", "dhs_phi", "dhs_mean"),
   r_init = NULL,
   r_sample = TRUE,
   step = 1,
@@ -44,7 +44,7 @@ i.e., save every (nskip + 1)th draw}
 must be one or more of:
 \itemize{
 \item 'mu' (conditional mean)
-\item 'yhat' (posterior predictive distribution)
+\item 'ypred' (posterior predictive distribution)
 \item 'evol_sigma_t2' (evolution error variance)
 \item 'r' (overdispersion)
 \item 'dhs_phi' (DHS AR(1) coefficient)

@@ -13,7 +13,7 @@ btf_sparse(
   nsave = 1000,
   nburn = 1000,
   nskip = 4,
-  mcmc_params = list("mu", "yhat", "evol_sigma_t2", "obs_sigma_t2", "zero_sigma_t2",
+  mcmc_params = list("mu", "ypred", "evol_sigma_t2", "obs_sigma_t2", "zero_sigma_t2",
     "dhs_phi", "dhs_mean", "dhs_phi_zero", "dhs_mean_zero", "h", "h_smooth"),
   computeDIC = TRUE,
   verbose = TRUE,
@@ -51,7 +51,7 @@ i.e., save every (nskip + 1)th draw}
 must be one or more of:
 \itemize{
 \item "mu" (conditional mean)
-\item "yhat" (posterior predictive distribution)
+\item "ypred" (posterior predictive distribution)
 \item "evol_sigma_t2" (evolution error variance)
 \item "zero_sigma_t2" (shrink-to-zero error variance)
 \item "obs_sigma_t2" (observation error variance)

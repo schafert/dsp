@@ -12,7 +12,7 @@ btf_bspline0(
   nsave = 1000,
   nburn = 1000,
   nskip = 4,
-  mcmc_params = list("mu", "yhat", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi",
+  mcmc_params = list("mu", "ypred", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi",
     "dhs_mean"),
   computeDIC = TRUE,
   verbose = TRUE
@@ -40,7 +40,7 @@ must be one or more of:
 \itemize{
 \item "mu" (conditional mean)
 \item "beta" (B-spline basis coefficients)
-\item "yhat" (posterior predictive distribution)
+\item "ypred" (posterior predictive distribution)
 \item "evol_sigma_t2" (evolution error variance)
 \item "obs_sigma_t2" (observation error variance)
 \item "dhs_phi" (DHS AR(1) coefficient)
