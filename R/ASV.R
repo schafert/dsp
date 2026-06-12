@@ -3,7 +3,7 @@
 #' The penalty is determined by the prior on the evolution errors, which include:
 #' \itemize{
 #' \item the dynamic horseshoe prior ('DHS');
-#' \item the static horseshoe prior ('HS');
+#' \item the horseshoe prior ('HS');
 #' \item the Bayesian lasso ('BL');
 #' \item the normal-inverse-gamma prior ('NIG').
 #' }
@@ -51,7 +51,8 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
                    verbose = TRUE){
   nT = length(y)
   y = y - beta
-  sample_sd = sd(y)
+  #sample_sd = sd(y)
+  sample_sd = 1
   # initializing parameters
   if(nugget){
     sParams = init_paramsASV_n(y/sample_sd,evol_error,D)

@@ -54,7 +54,7 @@
 #'         \item \code{evol_error}: the evolution error distribution; .
 #'            \itemize{
 #'              \item the dynamic horseshoe prior ("DHS") (default);
-#'              \item the static horseshoe prior ("HS");
+#'              \item the horseshoe prior ("HS");
 #'              \item the Bayesian lasso ("BL") (\code{family} = "gaussian" only);
 #'              \item the normal stochastic volatility model ("SV") (\code{family} = "gaussian" only);
 #'              \item the normal-inverse-gamma prior ("NIG") (\code{family} = "gaussian" only).
@@ -278,11 +278,10 @@ dsp_spec <- function(family,
 #' Shared parameters across wrappers include:
 #' \itemize{
 #'   \item \code{mu}: Conditional mean.
-#'   \item \code{yhat}: Posterior predictive \eqn{\hat{y}_t}.
+#'   \item \code{ypred}: Posterior predictive \eqn{\tilde{y}_t}.
 #'   \item \code{evol_sigma_t2}: Variance of the state variable.
 #'   \item \code{obs_sigma_t2}: Observation variance \eqn{\sigma^2_{\epsilon}} (\code{family = "gaussian"}).
 #'   \item \code{dhs_phi}, \code{dhs_mean}: DHS hyperparameter draws (\code{evol_error = "DHS"}).
-#'   \item \code{h}: Time-varying log-volatility component, \code{log(obs_sigma_t2)} (\code{obsSV = "ASV"}).
 #' }
 #'
 #' Model-specific parameters include:
@@ -292,7 +291,7 @@ dsp_spec <- function(family,
 #'     \item \code{omega}: \eqn{D}-th differenced posterior mean draws, \eqn{\mu_t}.
 #'     \item \code{zeta}: anomaly component (when \code{useAnom = TRUE}).
 #'     \item \code{zeta_sigma_t2}: anomaly variance (when \code{useAnom = TRUE}).
-#'     \item \code{r}: threshold parameter in the thresholded DHS log-volatility dynamics.
+#'     \item \code{gamma}: threshold parameter in the thresholded DHS log-volatility dynamics.
 #'   }
 #'   \item \code{regression} (Gaussian):
 #'   \itemize{

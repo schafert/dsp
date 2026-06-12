@@ -7,7 +7,7 @@
 #' on the evolution errors, currently only the following options are available:
 #' \itemize{
 #' \item the dynamic horseshoe prior ('DHS');
-#' \item the static horseshoe prior ('HS');
+#' \item the horseshoe prior ('HS');
 #' }
 #' In each case, the evolution error is a scale mixture of Gaussians.
 #' Sampling is accomplished with a (parameter-expanded) Gibbs sampler,
@@ -214,7 +214,8 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
         isave = isave + 1
 
         # Save the MCMC samples:
-        if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu[isave,] = mu
+        # if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu[isave,] = mu
+        if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu[isave,] = exp(mu + offset)
         if(!is.na(match('ypred', mcmc_params))) post_ypred[isave,] = stats::rnbinom(Nt, size = r, mu = exp(mu + offset))
         if(!is.na(match('r', mcmc_params)) || computeDIC) post_r[isave] = r
         if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2[isave,] = c(evolParams0$sigma_w0^2, evolParams$sigma_wt^2)
@@ -240,9 +241,14 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
 
   if(computeDIC){
     # Log-likelihood evaluated at posterior means:
+    # loglike_hat = sum(stats::dnbinom(y,
+    #                                  size = mean(post_r),
+    #                                  mu = exp(colMeans(post_mu + offset)),
+    #                                  log = TRUE))
+    
     loglike_hat = sum(stats::dnbinom(y,
                                      size = mean(post_r),
-                                     mu = exp(colMeans(post_mu + offset)),
+                                     mu = colMeans(post_mu),
                                      log = TRUE))
 
     # Effective number of parameters (Note: two options)
