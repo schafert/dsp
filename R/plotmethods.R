@@ -152,7 +152,7 @@ plot.dsp <- function(
     legend_col <- c(mean_color, "gray75")
 
     # changepoint block
-    draw_cp <- x$model_spec$model == "changepoint" && all(c("omega", "r") %in% names(x$mcmc_output)) && type %in% c("mu", "ypred", "omega")
+    draw_cp <- x$model_spec$model == "changepoint" && all(c("omega", "gamma") %in% names(x$mcmc_output)) && type %in% c("mu", "ypred", "omega")
     if(draw_cp){
       legend_labels <- c(legend_labels, "Estimated CP")
       legend_pch <- c(legend_pch, NA)
@@ -191,7 +191,6 @@ plot.dsp <- function(
       col = "gray75", border = NA
     )
     if(draw_cp){abline(v = cp_loc, lty = 2, lwd = legend_lwd, col = "firebrick")}
-    lines(times, posterior_mean, lwd = 3, col = mean_color)
     if (!is.null(true_values)) {
       points(times, true_values, pch = 20, col = "darkorange",cex = legend_pt_cex)
       legend_labels <- c(legend_labels, "Ground Truth")
@@ -200,6 +199,7 @@ plot.dsp <- function(
       legend_lwd <- c(legend_lwd, NA)
       legend_col <- c(legend_col, "darkorange")
     }
+    lines(times, posterior_mean, lwd = 3, col = mean_color)
 
     if (!is.null(y_obs)) {
       if (length(y_obs) != length(times)) {

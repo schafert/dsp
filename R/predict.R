@@ -44,8 +44,8 @@ predict.dsp <- function(object, cp_thres = 0.5, cp_prop = FALSE, ...){
     stop("Changepoint model was not fit.")
   }
 
-  if(!all(c("omega", "r") %in% names(object$mcmc_output))){
-    stop("Can't calculate changepoint evidence without samples of omega and r.")
+  if(!all(c("omega", "gamma") %in% names(object$mcmc_output))){
+    stop("Can't calculate changepoint evidence without samples of omega and gamma.")
   }
 
   if (is.na(cp_thres) || !is.numeric(cp_thres) || cp_thres < 0 || cp_thres > 1) stop("cp_thres must be a numeric value between 0 and 1.")
@@ -53,7 +53,7 @@ predict.dsp <- function(object, cp_thres = 0.5, cp_prop = FALSE, ...){
   cp_list = rep(0, length(object$mcmc_output$omega[1,]))
   D = object$model_spec$arguments$D
 
-  cp_mat <- apply(object$mcmc_output$omega^2, MARGIN = 2, \(samp){samp > exp(object$mcmc_output$r)})
+  cp_mat <- apply(object$mcmc_output$omega^2, MARGIN = 2, \(samp){samp > exp(object$mcmc_output$gamma)})
 
   cp_list <- colMeans(cp_mat)
 

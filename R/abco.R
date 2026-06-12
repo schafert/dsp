@@ -34,8 +34,10 @@ NULL
 #' \itemize{
 #' \item "mu" (conditional mean)
 #' \item "omega" (Dth difference of mu)
-#' \item "yhat" (posterior predictive distribution)
+#' \item "ypred" (posterior predictive distribution)
 #' \item "evol_sigma_t2" (evolution error variance)
+#' \item "gamma": (Threshold parameter in the thresholded DHS log-volatility dynamics).
+#' \item "zeta": (Outlier component)
 #' \item "obs_sigma_t2" (observation error variance)
 #' \item "zeta_sigma_t2" (outlier error variance)
 #' \item "dhs_phi" (DHS AR(1) coefficient)
@@ -54,12 +56,12 @@ NULL
 
 abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
                 nsave = 1000, nburn = 1000, nskip = 4,
-                mcmc_params = list('mu', "omega", "yhat", "evol_sigma_t2","r","zeta",
-                                   "obs_sigma_t2","zeta_sigma_t2","dhs_phi","dhs_mean",
-                                   "h","h_smooth"),
+                mcmc_params = list('mu', "omega", "ypred", "evol_sigma_t2","gamma","zeta",
+                                   "obs_sigma_t2","zeta_sigma_t2","dhs_phi","dhs_mean","h_smooth"),
                 verbose = TRUE,
                 D_asv = 1,
                 evol_error_asv = "HS",
+                computeDIC = TRUE,
                 nugget_asv = TRUE){
   # Time points (in [0,1])
   nT = length(y); t01 = seq(0, 1, length.out=nT)
@@ -94,7 +96,6 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
   upper_b = evolParams$upper_b
 
 
-
   if (useAnom) {
     if(obsSV == "SV"){
       svParams = t_initSV(y-mu-c(rep(0,D),zeta))
@@ -127,17 +128,18 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
   if(!is.na(match('mu', mcmc_params))) post_mu = array(NA, c(nsave, nT))
   if(!is.na(match('zeta', mcmc_params))) post_zeta = array(NA, c(nsave, nT-D))
-  if(!is.na(match('yhat', mcmc_params))) post_yhat = array(NA, c(nsave, nT))
+  if(!is.na(match('ypred', mcmc_params))) post_ypred = array(NA, c(nsave, nT))
   if(!is.na(match('log_evol', mcmc_params))) post_log_evol = array(NA, c(nsave, nT-D))
-  if(!is.na(match('r', mcmc_params)) && evol_error == "DHS") post_r = numeric(nsave)
+  if(!is.na(match('gamma', mcmc_params)) && evol_error == "DHS") post_r = numeric(nsave)
   if(!is.na(match('omega', mcmc_params))) post_omega = array(NA, c(nsave, nT-D))
   if(!is.na(match('zeta_sigma_t2', mcmc_params))) post_zeta_sigma_t2 = array(NA, c(nsave, nT-D))
   if(!is.na(match('obs_sigma_t2', mcmc_params))) post_obs_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = numeric(nsave)
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean = numeric(nsave)
-  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h = array(NA,c(nsave,nT))
+  # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h = array(NA,c(nsave,nT))
   if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth = array(NA,c(nsave,nT))
+  post_loglike = numeric(nsave)
 
   nstot = nburn+(nskip+1)*(nsave)
   skipcount = 0; isave = 0 # For counting
@@ -216,8 +218,6 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
       }
     }
 
-
-
     if(nsi > nburn){
       # Increment the skip counter:
       skipcount = skipcount + 1
@@ -227,28 +227,35 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
         isave = isave + 1
 
         if(!is.na(match('mu', mcmc_params))) post_mu[isave,] = mu
-        if(!is.na(match('yhat', mcmc_params))) post_yhat[isave,] = mu + rnorm(nT, 0, sigma_e)
         if (useAnom) {
           if(!is.na(match('zeta', mcmc_params))) post_zeta[isave,] = zeta
           if(!is.na(match('zeta_sigma_t2', mcmc_params))) post_zeta_sigma_t2[isave,] = zeta_params$sigma_wt^2
+          if(!is.na(match('ypred', mcmc_params))) post_ypred[isave,] = mu + c(rep(0,D),zeta) + rnorm(nT, 0, sigma_e)
+        }else{
+          if(!is.na(match('ypred', mcmc_params))) post_ypred[isave,] = mu + rnorm(nT, 0, sigma_e)
         }
         if(!is.na(match('log_evol', mcmc_params))) post_log_evol[isave,] = evolParams$ht
         if(!is.na(match('omega', mcmc_params))) post_omega[isave,] = omega
-        if(!is.na(match('r', mcmc_params)) && evol_error == "DHS") post_r[isave] = evolParams$r
+        if(!is.na(match('gamma', mcmc_params)) && evol_error == "DHS") post_r[isave] = evolParams$r
         if(!is.na(match('obs_sigma_t2', mcmc_params))) post_obs_sigma_t2[isave,] = sigma_e^2
         if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2[isave,] = c(evolParams0$sigma_w0^2, evolParams$sigma_wt^2)
         if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi[isave] = evolParams$dhs_phi
         if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean[isave] = evolParams$dhs_mean
-        if(!is.na(match('h', mcmc_params)) && obsSV == "ASV")  post_h[isave,] = sParams$s_mu
+        # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV")  post_h[isave,] = sParams$s_mu
         if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth[isave,] = sParams$s_mu_sm
+        if(useAnom){
+          post_loglike[isave] = sum(stats::dnorm(y, mean = mu + c(rep(0,D),zeta), sd = sigma_e, log = TRUE))
+        }else{
+          post_loglike[isave] = sum(stats::dnorm(y, mean = mu, sd = sigma_e, log = TRUE))
+        }
         skipcount = 0
       }
     }
   }
   if(!is.na(match('zeta', mcmc_params))) mcmc_output$zeta = post_zeta
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
-  if(!is.na(match('yhat', mcmc_params))) mcmc_output$yhat = post_yhat
-  if(!is.na(match('r', mcmc_params)) && evol_error == "DHS") mcmc_output$r = post_r
+  if(!is.na(match('ypred', mcmc_params))) mcmc_output$ypred = post_ypred
+  if(!is.na(match('gamma', mcmc_params)) && evol_error == "DHS") mcmc_output$gamma = post_r
   if(!is.na(match('log_evol', mcmc_params))) mcmc_output$log_evol = post_log_evol
   if(!is.na(match('omega', mcmc_params))) mcmc_output$omega = post_omega
   if(!is.na(match('zeta_sigma_t2', mcmc_params))) mcmc_output$zeta_sigma_t2 = post_zeta_sigma_t2
@@ -256,9 +263,31 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
-  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") mcmc_output$h = post_h
+  # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") mcmc_output$h = post_h
   if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) mcmc_output$h_smooth = post_h_smooth
+  mcmc_output$loglike = post_loglike
 
+  if(computeDIC){
+    # Log-likelihood evaluated at posterior means:
+    # loglike_hat = sum(stats::dnbinom(y,
+    #                                  size = mean(post_r),
+    #                                  mu = exp(colMeans(post_mu + offset)),
+    #                                  log = TRUE))
+    if(useAnom){
+      loglike_hat = sum(stats::dnorm(y, mean = colMeans(post_mu) + c(rep(0,D),colMeans(post_zeta)), sd = colMeans(sqrt(post_obs_sigma_t2)), log = TRUE))
+    }else{
+      loglike_hat = sum(stats::dnorm(y, mean = colMeans(post_mu) , sd = colMeans(sqrt(post_obs_sigma_t2)), log = TRUE))
+    }
+
+    # Effective number of parameters (Note: two options)
+    p_d = c(2*(loglike_hat - mean(post_loglike)),
+            2*var(post_loglike))
+    # DIC:
+    DIC = -2*loglike_hat + 2*p_d
+
+    # Store the DIC and the effective number of parameters (p_d)
+    mcmc_output$DIC = DIC; mcmc_output$p_d = p_d
+  }
   mcmc_output = mcmc_output[!sapply(mcmc_output, is.null)]
   return (mcmc_output)
 }

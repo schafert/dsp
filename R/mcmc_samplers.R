@@ -5,7 +5,7 @@
 #' The penalty is determined by the prior on the evolution errors, which include:
 #' \itemize{
 #' \item the dynamic horseshoe prior ('DHS');
-#' \item the static horseshoe prior ('HS');
+#' \item the horseshoe prior ('HS');
 #' \item the Bayesian lasso ('BL');
 #' \item the normal stochastic volatility model ('SV');
 #' \item the normal-inverse-gamma prior ('NIG').
@@ -38,7 +38,6 @@
 #' \item "obs_sigma_t2" (observation error variance)
 #' \item "dhs_phi" (DHS AR(1) coefficient)
 #' \item "dhs_mean" (DHS AR(1) unconditional mean)
-#' \item "h" (log variances or log of \code{"obs_sigma_t2"}. Only used when \code{obsSV = "ASV"})
 #' \item "h_smooth" (smooth estimate of log variances. Only used when \code{obsSV = "ASV"} and \code{nugget_asv = TRUE})
 #' }
 #' @param computeDIC logical; if TRUE, compute the deviance information criterion \code{DIC}
@@ -56,7 +55,7 @@
 
 btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
                nsave = 1000, nburn = 1000, nskip = 4,
-               mcmc_params = list("mu", "ypred","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h","h_smooth"),
+               mcmc_params = list("mu", "ypred","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h_smooth"),
                computeDIC = TRUE,
                verbose = TRUE,
                D_asv = 1,
@@ -134,7 +133,7 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = numeric(nsave)
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean = numeric(nsave)
-  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h = array(NA,c(nsave,nT))
+  # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h = array(NA,c(nsave,nT))
   if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth = array(NA,c(nsave,nT))
   post_loglike = numeric(nsave)
 
@@ -234,7 +233,7 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
         if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi[isave] = evolParams$dhs_phi
         if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean[isave] = evolParams$dhs_mean
         post_loglike[isave] = sum(dnorm(y, mean = mu, sd = sigma_et, log = TRUE))
-        if(!is.na(match('h', mcmc_params)) && obsSV == "ASV")  post_h[isave,] = sParams$s_mu
+        # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV")  post_h[isave,] = sParams$s_mu
         if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth[isave,] = sParams$s_mu_sm
         # And reset the skip counter:
         skipcount = 0
@@ -248,7 +247,7 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
-  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") mcmc_output$h = post_h
+  # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") mcmc_output$h = post_h
   if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) mcmc_output$h_smooth = post_h_smooth
   # Also include the log-likelihood:
   mcmc_output$loglike = post_loglike
@@ -280,7 +279,7 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
 #' The penalty is determined by the prior on the evolution errors, which include:
 #' \itemize{
 #' \item the dynamic horseshoe prior ('DHS');
-#' \item the static horseshoe prior ('HS');
+#' \item the horseshoe prior ('HS');
 #' \item the Bayesian lasso ('BL');
 #' \item the normal stochastic volatility model ('SV');
 #' \item the normal-inverse-gamma prior ('NIG').
@@ -311,7 +310,6 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
 #' \item "obs_sigma_t2" (observation error variance)
 #' \item "dhs_phi" (DHS AR(1) coefficient)
 #' \item "dhs_mean" (DHS AR(1) unconditional mean)
-#' \item "h" (log variances or log of \code{"obs_sigma_t2"}. Only used when \code{obsSV = "ASV"})
 #' \item "h_smooth" (smooth estimate of log variances. Only used when \code{obsSV = "ASV"} and \code{nugget_asv = TRUE})
 #' }
 #' @param computeDIC logical; if TRUE, compute the deviance information criterion \code{DIC}
@@ -329,7 +327,7 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
 #' deviation is recommended to avoid numerical issues.
 btf0 = function(y, evol_error = 'DHS', obsSV = "const",
                 nsave = 1000, nburn = 1000, nskip = 4,
-                mcmc_params = list("mu", "ypred","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h","h_smooth"),
+                mcmc_params = list("mu", "ypred","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h_smooth"),
                 computeDIC = TRUE,
                 verbose = TRUE,
                 D_asv = 1,
@@ -373,7 +371,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = numeric(nsave)
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean = numeric(nsave)
-  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h = array(NA,c(nsave,nT))
+  # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h = array(NA,c(nsave,nT))
   if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth = array(NA,c(nsave,nT))
   post_loglike = numeric(nsave)
 
@@ -466,7 +464,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
         if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi[isave] = evolParams$dhs_phi
         if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean[isave] = evolParams$dhs_mean
         post_loglike[isave] = sum(dnorm(y, mean = mu, sd = sigma_et, log = TRUE))
-        if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h[isave,] = sParams$s_mu
+        # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h[isave,] = sParams$s_mu
         if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth[isave,] = sParams$s_mu_sm
         # And reset the skip counter:
         skipcount = 0
@@ -480,7 +478,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
-  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") mcmc_output$h = post_h
+  # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") mcmc_output$h = post_h
   if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) mcmc_output$h_smooth = post_h_smooth
 
   # Also include the log-likelihood:
@@ -516,7 +514,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' Each penalty is determined by a prior, which include:
 #' \itemize{
 #' \item the dynamic horseshoe prior ('DHS');
-#' \item the static horseshoe prior ('HS');
+#' \item the horseshoe prior ('HS');
 #' \item the Bayesian lasso ('BL');
 #' \item the normal stochastic volatility model ('SV');
 #' \item the normal-inverse-gamma prior ('NIG').
@@ -553,7 +551,6 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' \item "dhs_mean" (DHS AR(1) unconditional mean for evolution error)
 #' \item "dhs_phi_zero" (DHS AR(1) coefficient for shrink-to-zero error)
 #' \item "dhs_mean_zero" (DHS AR(1) unconditional mean for shrink-to-zero error)
-#' \item "h" (log variances or log of \code{"obs_sigma_t2"}. Only used when \code{obsSV = "ASV"})
 #' \item "h_smooth" (smooth estimate of log variances. Only used when \code{obsSV = "ASV"} and \code{nugget_asv = TRUE})
 #' }
 #' @param computeDIC logical; if TRUE, compute the deviance information criterion \code{DIC}
@@ -573,7 +570,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
                       nsave = 1000, nburn = 1000, nskip = 4,
                       mcmc_params = list("mu", "ypred","evol_sigma_t2", "obs_sigma_t2",
                                          "zero_sigma_t2", "dhs_phi", "dhs_mean","dhs_phi_zero",
-                                         "dhs_mean_zero","h","h_smooth"),
+                                         "dhs_mean_zero","h_smooth"),
                       computeDIC = TRUE,
                       verbose = TRUE,
                       D_asv = 1,
@@ -642,7 +639,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean = numeric(nsave)
   if(!is.na(match('dhs_phi_zero', mcmc_params)) && zero_error == "DHS") post_dhs_phi_zero = numeric(nsave)
   if(!is.na(match('dhs_mean_zero', mcmc_params)) && zero_error == "DHS") post_dhs_mean_zero = numeric(nsave)
-  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h = array(NA,c(nsave,nT))
+  # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h = array(NA,c(nsave,nT))
   if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth = array(NA,c(nsave,nT))
   post_loglike = numeric(nsave)
 
@@ -735,7 +732,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
         if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean[isave] = evolParams$dhs_mean
         if(!is.na(match('dhs_phi_zero', mcmc_params)) && zero_error == "DHS") post_dhs_phi_zero[isave] = zeroParams$dhs_phi
         if(!is.na(match('dhs_mean_zero', mcmc_params)) && zero_error == "DHS") post_dhs_mean_zero[isave] = zeroParams$dhs_mean
-        if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h[isave,] = sParams$s_mu
+        # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h[isave,] = sParams$s_mu
         if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth[isave,] = sParams$s_mu_sm
         post_loglike[isave] = sum(dnorm(y, mean = mu, sd = sigma_et, log = TRUE))
 
@@ -754,7 +751,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
   if(!is.na(match('dhs_phi_zero', mcmc_params)) && zero_error == "DHS") mcmc_output$dhs_phi_zero = post_dhs_phi_zero
   if(!is.na(match('dhs_mean_zero', mcmc_params)) && zero_error == "DHS") mcmc_output$dhs_mean_zero = post_dhs_mean_zero
-  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") mcmc_output$h = post_h
+  # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") mcmc_output$h = post_h
   if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) mcmc_output$h_smooth = post_h_smooth
   # Also include the log-likelihood:
   mcmc_output$loglike = post_loglike
@@ -786,7 +783,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 #' The penalty is determined by the prior on the evolution errors, which include:
 #' \itemize{
 #' \item the dynamic horseshoe prior ('DHS');
-#' \item the static horseshoe prior ('HS');
+#' \item the horseshoe prior ('HS');
 #' \item the Bayesian lasso ('BL');
 #' \item the normal stochastic volatility model ('SV');
 #' \item the normal-inverse-gamma prior ('NIG').
@@ -820,7 +817,6 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 #' \item "obs_sigma_t2" (observation error variance)
 #' \item "dhs_phi" (DHS AR(1) coefficient)
 #' \item "dhs_mean" (DHS AR(1) unconditional mean)
-#' \item "h" (log variances or log of \code{"obs_sigma_t2"}. Only used when \code{obsSV = "ASV"})
 #' \item "h_smooth" (smooth estimate of log variances. Only used when \code{obsSV = "ASV"} and \code{nugget_asv = TRUE})
 #' }
 #' @param use_backfitting logical; if TRUE, use backfitting to sample the predictors j=1,...,p
@@ -840,7 +836,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 
 btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
                    nsave = 1000, nburn = 1000, nskip = 4,
-                   mcmc_params = list("mu", "ypred","beta","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h","h_smooth"),
+                   mcmc_params = list("mu", "ypred","beta","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h_smooth"),
                    use_backfitting = FALSE,
                    computeDIC = TRUE,
                    verbose = TRUE,
@@ -919,7 +915,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, nT, p))
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = array(NA, c(nsave, p))
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean = array(NA, c(nsave, p))
-  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h = array(NA,c(nsave,nT))
+  # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h = array(NA,c(nsave,nT))
   if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth = array(NA,c(nsave,nT))
   post_loglike = numeric(nsave)
 
@@ -1029,7 +1025,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
         }
         if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi[isave,] = evolParams$dhs_phi
         if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean[isave,] = evolParams$dhs_mean
-        if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h[isave,] = sParams$s_mu
+        # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h[isave,] = sParams$s_mu
         if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth[isave,] = sParams$s_mu_sm
         post_loglike[isave] = sum(dnorm(y, mean = mu, sd = sigma_et, log = TRUE))
 
@@ -1046,7 +1042,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
-  if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") mcmc_output$h = post_h
+  # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") mcmc_output$h = post_h
   if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) mcmc_output$h_smooth = post_h_smooth
 
   # Also include the log-likelihood:
@@ -1081,7 +1077,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 #' The penalty is determined by the prior on the evolution errors, which include:
 #' \itemize{
 #' \item the dynamic horseshoe prior ('DHS');
-#' \item the static horseshoe prior ('HS');
+#' \item the horseshoe prior ('HS');
 #' \item the Bayesian lasso ('BL');
 #' \item the normal stochastic volatility model ('SV');
 #' \item the normal-inverse-gamma prior ('NIG').
@@ -1329,7 +1325,7 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
 #' The penalty is determined by the prior on the evolution errors, which include:
 #' \itemize{
 #' \item the dynamic horseshoe prior ('DHS');
-#' \item the static horseshoe prior ('HS');
+#' \item the horseshoe prior ('HS');
 #' \item the Bayesian lasso ('BL');
 #' \item the normal stochastic volatility model ('SV');
 #' \item the normal-inverse-gamma prior ('NIG').
