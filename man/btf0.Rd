@@ -12,7 +12,7 @@ btf0(
   nburn = 1000,
   nskip = 4,
   mcmc_params = list("mu", "ypred", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi",
-    "dhs_mean", "h", "h_smooth"),
+    "dhs_mean", "h_smooth"),
   computeDIC = TRUE,
   verbose = TRUE,
   D_asv = 1,
@@ -49,7 +49,6 @@ must be one or more of:
 \item "obs_sigma_t2" (observation error variance)
 \item "dhs_phi" (DHS AR(1) coefficient)
 \item "dhs_mean" (DHS AR(1) unconditional mean)
-\item "h" (log variances or log of \code{"obs_sigma_t2"}. Only used when \code{obsSV = "ASV"})
 \item "h_smooth" (smooth estimate of log variances. Only used when \code{obsSV = "ASV"} and \code{nugget_asv = TRUE})
 }}
 
@@ -72,7 +71,7 @@ Run the MCMC for Bayesian trend filtering with a penalty on the conditional expe
 The penalty is determined by the prior on the evolution errors, which include:
 \itemize{
 \item the dynamic horseshoe prior ('DHS');
-\item the static horseshoe prior ('HS');
+\item the horseshoe prior ('HS');
 \item the Bayesian lasso ('BL');
 \item the normal stochastic volatility model ('SV');
 \item the normal-inverse-gamma prior ('NIG').

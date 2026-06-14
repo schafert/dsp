@@ -14,7 +14,7 @@ btf_reg(
   nburn = 1000,
   nskip = 4,
   mcmc_params = list("mu", "ypred", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi",
-    "dhs_mean", "h", "h_smooth"),
+    "dhs_mean", "h_smooth"),
   use_backfitting = FALSE,
   computeDIC = TRUE,
   verbose = TRUE,
@@ -57,7 +57,6 @@ must be one or more of:
 \item "obs_sigma_t2" (observation error variance)
 \item "dhs_phi" (DHS AR(1) coefficient)
 \item "dhs_mean" (DHS AR(1) unconditional mean)
-\item "h" (log variances or log of \code{"obs_sigma_t2"}. Only used when \code{obsSV = "ASV"})
 \item "h_smooth" (smooth estimate of log variances. Only used when \code{obsSV = "ASV"} and \code{nugget_asv = TRUE})
 }}
 
@@ -84,7 +83,7 @@ first (D=1) or second (D=2) differences of each dynamic regression coefficient.
 The penalty is determined by the prior on the evolution errors, which include:
 \itemize{
 \item the dynamic horseshoe prior ('DHS');
-\item the static horseshoe prior ('HS');
+\item the horseshoe prior ('HS');
 \item the Bayesian lasso ('BL');
 \item the normal stochastic volatility model ('SV');
 \item the normal-inverse-gamma prior ('NIG').

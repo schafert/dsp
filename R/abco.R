@@ -48,6 +48,8 @@ NULL
 #' @param verbose logical; should R report extra information on progress?
 #' @param D_asv integer; degree of differencing (0, 1, or 2) for the ASV model. Only used when \code{obsSV = "ASV"}.
 #' @param evol_error_asv character; evolution error distribution for the ASV model. Must be one of the five options used in \code{evol_error}. Only used when \code{obsSV = "ASV"}.
+#' @param computeDIC logical; if TRUE (default), compute the deviance information criterion \code{DIC}
+#' and the effective number of parameters \code{p_d}
 #' @param nugget_asv logical; if \code{TRUE}, fits the nugget variant of the ASV model. Only used when \code{obsSV = "ASV"}.
 #'
 #' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}

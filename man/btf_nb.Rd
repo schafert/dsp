@@ -97,7 +97,7 @@ of a Negative Binomial distribution. The penalty is determined by the prior
 on the evolution errors, currently only the following options are available:
 \itemize{
 \item the dynamic horseshoe prior ('DHS');
-\item the static horseshoe prior ('HS');
+\item the horseshoe prior ('HS');
 }
 In each case, the evolution error is a scale mixture of Gaussians.
 Sampling is accomplished with a (parameter-expanded) Gibbs sampler,

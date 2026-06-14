@@ -1,3 +1,7 @@
+# dsp 1.5.0
+
+* `dsp_spec` now abstracts overdispersion sampling from the user by simplifying to options to default or Poisson approximation.
+
 # dsp 1.4.1
 
 * Changed typo in print method for family "negbinomial"

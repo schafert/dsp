@@ -14,7 +14,7 @@ btf_sparse(
   nburn = 1000,
   nskip = 4,
   mcmc_params = list("mu", "ypred", "evol_sigma_t2", "obs_sigma_t2", "zero_sigma_t2",
-    "dhs_phi", "dhs_mean", "dhs_phi_zero", "dhs_mean_zero", "h", "h_smooth"),
+    "dhs_phi", "dhs_mean", "dhs_phi_zero", "dhs_mean_zero", "h_smooth"),
   computeDIC = TRUE,
   verbose = TRUE,
   D_asv = 1,
@@ -59,7 +59,6 @@ must be one or more of:
 \item "dhs_mean" (DHS AR(1) unconditional mean for evolution error)
 \item "dhs_phi_zero" (DHS AR(1) coefficient for shrink-to-zero error)
 \item "dhs_mean_zero" (DHS AR(1) unconditional mean for shrink-to-zero error)
-\item "h" (log variances or log of \code{"obs_sigma_t2"}. Only used when \code{obsSV = "ASV"})
 \item "h_smooth" (smooth estimate of log variances. Only used when \code{obsSV = "ASV"} and \code{nugget_asv = TRUE})
 }}
 
@@ -86,7 +85,7 @@ Sparse Bayesian trend filtering has two penalties:
 Each penalty is determined by a prior, which include:
 \itemize{
 \item the dynamic horseshoe prior ('DHS');
-\item the static horseshoe prior ('HS');
+\item the horseshoe prior ('HS');
 \item the Bayesian lasso ('BL');
 \item the normal stochastic volatility model ('SV');
 \item the normal-inverse-gamma prior ('NIG').

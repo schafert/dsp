@@ -61,7 +61,7 @@ A named list of the \code{nsave} MCMC samples for the parameters named in \code{
 The penalty is determined by the prior on the evolution errors, which include:
 \itemize{
 \item the dynamic horseshoe prior ('DHS');
-\item the static horseshoe prior ('HS');
+\item the horseshoe prior ('HS');
 \item the Bayesian lasso ('BL');
 \item the normal-inverse-gamma prior ('NIG').
 }

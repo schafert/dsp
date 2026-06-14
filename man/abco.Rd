@@ -12,11 +12,12 @@ abco(
   nsave = 1000,
   nburn = 1000,
   nskip = 4,
-  mcmc_params = list("mu", "omega", "yhat", "evol_sigma_t2", "r", "zeta", "obs_sigma_t2",
-    "zeta_sigma_t2", "dhs_phi", "dhs_mean", "h", "h_smooth"),
+  mcmc_params = list("mu", "omega", "ypred", "evol_sigma_t2", "gamma", "zeta",
+    "obs_sigma_t2", "zeta_sigma_t2", "dhs_phi", "dhs_mean", "h_smooth"),
   verbose = TRUE,
   D_asv = 1,
   evol_error_asv = "HS",
+  computeDIC = TRUE,
   nugget_asv = TRUE
 )
 }
@@ -46,8 +47,10 @@ must be one or more of:
 \itemize{
 \item "mu" (conditional mean)
 \item "omega" (Dth difference of mu)
-\item "yhat" (posterior predictive distribution)
+\item "ypred" (posterior predictive distribution)
 \item "evol_sigma_t2" (evolution error variance)
+\item "gamma": (Threshold parameter in the thresholded DHS log-volatility dynamics).
+\item "zeta": (Outlier component)
 \item "obs_sigma_t2" (observation error variance)
 \item "zeta_sigma_t2" (outlier error variance)
 \item "dhs_phi" (DHS AR(1) coefficient)
@@ -61,6 +64,9 @@ must be one or more of:
 \item{D_asv}{integer; degree of differencing (0, 1, or 2) for the ASV model. Only used when \code{obsSV = "ASV"}.}
 
 \item{evol_error_asv}{character; evolution error distribution for the ASV model. Must be one of the five options used in \code{evol_error}. Only used when \code{obsSV = "ASV"}.}
+
+\item{computeDIC}{logical; if TRUE (default), compute the deviance information criterion \code{DIC}
+and the effective number of parameters \code{p_d}}
 
 \item{nugget_asv}{logical; if \code{TRUE}, fits the nugget variant of the ASV model. Only used when \code{obsSV = "ASV"}.}
 }
