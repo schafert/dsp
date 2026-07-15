@@ -93,7 +93,7 @@ plot.dsp <- function(
   ...
 ){
   # Time series:
-  mean_color = "dodgerblue3"
+  mean_color = "dodgerblue"
   samples = x$mcmc_output[[type]]
   if(is.null(samples)){
     stop("Must be one of the parameters in x$mcmc_output")
@@ -192,14 +192,14 @@ plot.dsp <- function(
     )
     if(draw_cp){abline(v = cp_loc, lty = 2, lwd = legend_lwd, col = "firebrick")}
     if (!is.null(true_values)) {
-      points(times, true_values, pch = 20, col = "darkorange",cex = legend_pt_cex)
+      points(times, true_values, pch = 20, col = "black",cex = legend_pt_cex)
       legend_labels <- c(legend_labels, "Ground Truth")
       legend_pch <- c(legend_pch, 20)
       legend_lty <- c(legend_lty, NA)
       legend_lwd <- c(legend_lwd, NA)
-      legend_col <- c(legend_col, "darkorange")
+      legend_col <- c(legend_col, "black")
     }
-    lines(times, posterior_mean, lwd = 3, col = mean_color)
+    lines(times, posterior_mean, lwd = 4, col = mean_color)
 
     if (!is.null(y_obs)) {
       if (length(y_obs) != length(times)) {
@@ -230,7 +230,7 @@ plot.dsp <- function(
                      "Posterior Mean",
                      "Pointwise CI")
     legend_lty    = c(1,1,2)
-    legend_lwd    = c(4,4,2)
+    legend_lwd    = c(4,4,4)
     legend_col    = c("black",mean_color,mean_color)
 
     # one dimension -> density plot
@@ -263,11 +263,11 @@ plot.dsp <- function(
       if (length(true_values) != 1) {
         stop("Dimensions of true values and parameters do not match")
       }
-      abline(v = true_values[1], col = "darkorange", lwd = 4)
+      abline(v = true_values[1], col = "black", lwd = 4)
       legend_labels <- c(legend_labels, "Ground Truth")
       legend_lty <- c(legend_lty, 1)
       legend_lwd <- c(legend_lwd, 4)
-      legend_col <- c(legend_col, "darkorange")
+      legend_col <- c(legend_col, "black")
     }
 
     if (legend) {
@@ -322,7 +322,7 @@ plot.dsp <- function(
       legend_pch <- c(legend_pch, 20)
       legend_lty <- c(legend_lty, NA)
       legend_lwd <- c(legend_lwd, NA)
-      legend_col <- c(legend_col, "darkorange")
+      legend_col <- c(legend_col, "black")
     }
 
     # layout
@@ -390,10 +390,10 @@ plot.dsp <- function(
       )
 
       if(!is.null(true_values)){
-        points(times, true_values[, i], pch = 20, col = "darkorange",cex = legend_pt_cex)
+        points(times, true_values[, i], pch = 20, col = "black",cex = legend_pt_cex)
       }
 
-      lines(times, posterior_mean, lwd = 3, col = mean_color)
+      lines(times, posterior_mean, lwd = 4, col = mean_color)
 
       if (legend) {
         usr <- par("usr")
