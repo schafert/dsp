@@ -1,3 +1,5 @@
+# dsp 1.5.1
+
 # dsp 1.5.0
 
 * `dsp_spec` now abstracts overdispersion sampling from the user by simplifying to options to default or Poisson approximation.
