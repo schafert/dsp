@@ -51,12 +51,30 @@ must be one or more of:
 }
 Defaults to everything.}
 
-\item{r_init}{numeric; initial value (defaults to 5) of MCMC sampling for
-overdispersion parameter; must be an integer if r_sample is 'int_mh' or
-\code{NULL} (initializes to default of 5)}
+\item{r_init}{numeric; initial value of the overdispersion parameter, or
+\code{NULL} to use the default of 5. Must be a positive integer whenever the
+\code{'int_mh'} sampler is active (that is, \code{r_sample} is \code{TRUE} or \code{'int_mh'}),
+because the initial auxiliary variables are drawn with \code{\link[pgdraw:pgdraw]{pgdraw::pgdraw()}},
+which requires integer input. Non-integer values are permitted when \code{r} is
+held fixed (\code{r_sample = FALSE}) or with the \code{'slice'} and \code{'mh'} samplers.}
 
-\item{r_sample}{logical; If \code{TRUE} (default), the overdispersion is sampled,
-else it is fixed at \code{r_init};}
+\item{r_sample}{logical or character; controls whether and how the
+overdispersion \code{r} is sampled. If \code{TRUE} (default), \code{r} is sampled with the
+\code{'int_mh'} sampler; if \code{FALSE}, it is held fixed at \code{r_init}. A character
+value selects the sampler explicitly:
+\itemize{
+\item \code{'int_mh'}: random walk Metropolis-Hastings on an integer grid. This
+keeps \code{r} integer valued, which allows the faster Polya-Gamma sampler
+(\code{\link[pgdraw:pgdraw]{pgdraw::pgdraw()}}) to be used for the auxiliary variables.
+\item \code{'slice'}: slice sampler on continuous \code{r}. Experimental.
+\item \code{'mh'}: random walk Metropolis-Hastings on continuous \code{r}. Experimental.
+}
+\code{'slice'} and \code{'mh'} leave \code{r} continuous, so the auxiliary variables fall
+back to \code{\link[BayesLogit:rpg]{BayesLogit::rpg()}}, which is substantially slower. Both are
+experimental and have seen little use; \code{'int_mh'} is recommended.
+The character form is only available when calling \code{btf_nb()} directly. Through
+\code{\link[=dsp_spec]{dsp_spec()}} this argument is not user settable: it is driven by \code{r_user},
+which fixes \code{r} at the supplied value.}
 
 \item{step}{numeric (defaults to 1); step length of proposal distribution for
 Metropolis-Hasting sampling of overdispersion parameter; ignored if r_sample is \code{FALSE}}

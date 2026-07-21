@@ -69,11 +69,13 @@ print.dsp_spec <- function(x, ...){
       )
     }
 
-    cat(x$arguments$D, "degree of differencing.")
+    cat(x$arguments$D, if (isTRUE(x$arguments$D == 1)) "degree" else "degrees",
+        "of differencing.")
   }
 
   if(x$family == "negbinomial"){
-    cat("Negative binomial likelihood with", x$arguments$D, "degree of differencing.")
+    cat("Negative binomial likelihood with", x$arguments$D,
+        if (isTRUE(x$arguments$D == 1)) "degree" else "degrees", "of differencing.")
   }
 
   invisible(NULL)

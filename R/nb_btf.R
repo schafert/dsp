@@ -26,11 +26,29 @@
 #' \item 'dhs_mean' (DHS AR(1) unconditional mean)
 #' }
 #' Defaults to everything.
-#' @param r_init numeric; initial value (defaults to 5) of MCMC sampling for
-#' overdispersion parameter; must be an integer if r_sample is 'int_mh' or
-#' `NULL` (initializes to default of 5)
-#' @param r_sample logical; If `TRUE` (default), the overdispersion is sampled,
-#' else it is fixed at `r_init`;
+#' @param r_init numeric; initial value of the overdispersion parameter, or
+#' `NULL` to use the default of 5. Must be a positive integer whenever the
+#' `'int_mh'` sampler is active (that is, `r_sample` is `TRUE` or `'int_mh'`),
+#' because the initial auxiliary variables are drawn with [pgdraw::pgdraw()],
+#' which requires integer input. Non-integer values are permitted when `r` is
+#' held fixed (`r_sample = FALSE`) or with the `'slice'` and `'mh'` samplers.
+#' @param r_sample logical or character; controls whether and how the
+#' overdispersion `r` is sampled. If `TRUE` (default), `r` is sampled with the
+#' `'int_mh'` sampler; if `FALSE`, it is held fixed at `r_init`. A character
+#' value selects the sampler explicitly:
+#' \itemize{
+#'   \item `'int_mh'`: random walk Metropolis-Hastings on an integer grid. This
+#'   keeps `r` integer valued, which allows the faster Polya-Gamma sampler
+#'   ([pgdraw::pgdraw()]) to be used for the auxiliary variables.
+#'   \item `'slice'`: slice sampler on continuous `r`. Experimental.
+#'   \item `'mh'`: random walk Metropolis-Hastings on continuous `r`. Experimental.
+#' }
+#' `'slice'` and `'mh'` leave `r` continuous, so the auxiliary variables fall
+#' back to [BayesLogit::rpg()], which is substantially slower. Both are
+#' experimental and have seen little use; `'int_mh'` is recommended.
+#' The character form is only available when calling `btf_nb()` directly. Through
+#' [dsp_spec()] this argument is not user settable: it is driven by `r_user`,
+#' which fixes `r` at the supplied value.
 #' @param step numeric (defaults to 1); step length of proposal distribution for
 #' Metropolis-Hasting sampling of overdispersion parameter; ignored if r_sample is `FALSE`
 #' @param evol0_sample logical; if `TRUE` (default), the prior variance of the initial `D` values of mu is sampled,
@@ -95,6 +113,27 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
     r <- r_init
   }
 
+  # Resolve the overdispersion settings once, since they do not change across
+  # iterations.
+  #
+  # r_sample is either logical, or the name of a sampler ("int_mh", "slice",
+  # "mh") for callers using btf_nb() directly. Through dsp_spec() it is not set
+  # by the user at all: r_user drives it, fixing r by setting r_sample = FALSE.
+  # Only FALSE turns sampling off. The test here was previously
+  # !is.null(r_sample), which is also TRUE for FALSE, so r was sampled even
+  # when r_user asked for it to be held fixed.
+  do_sample_r = !isFALSE(r_sample) && !is.null(r_sample)
+  r_sampler   = if(is.character(r_sample)) r_sample else "int_mh"
+
+  # Choice of Polya-Gamma sampler. pgdraw is roughly 17x faster than rpg here,
+  # but requires integer b = y + r, so it is only usable when r is integer.
+  # int_mh proposes on an integer grid and keeps it so; slice and mh do not.
+  # When r is held fixed, it is integer only if the supplied value is.
+  # This previously tested r_sample directly, so the default (logical TRUE) fell
+  # through to rpg even though int_mh was sampling r on the integer grid.
+  use_pgdraw  = identical(r_sampler, "int_mh") &&
+                (do_sample_r || isTRUE(r == round(r)))
+
   # Compute the Cholesky term (uses random variances for a more conservative sparsity pattern)
   if(!is.null(chol0)) chol0 = initChol_spam(nT = Nt, D = D)
 
@@ -103,7 +142,8 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
   mu <-  matrix(log(y + 1) + 0.1*rnorm(Nt), ncol = 1)
 
   # Initial SD (implicitly assumes a constant mean)
-  eta_t <- pgdraw::pgdraw(y + r, mu + offset - log(r))
+  eta_t <- if(use_pgdraw) pgdraw::pgdraw(y + r, mu + offset - log(r))
+           else BayesLogit::rpg(Nt, y + r, mu + offset - log(r))
 
   sigma_et <- sqrt(1/eta_t)
 
@@ -165,12 +205,12 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
     if(any.missing) y[is.missing] = stats::rnbinom(length(is.missing), size = r, mu = mu[is.missing])
 
     # Sample the overdispersion:
-    if(!is.null(r_sample)){
-      r <- sample_r(y, r, exp(mu + offset), step = step)
+    if(do_sample_r){
+      r <- sample_r(y, r, exp(mu + offset), r_sample = r_sampler, step = step)
     }
 
     # Sample auxiliary variables
-    if(is.null(r_sample) || r_sample == "int_mh"){
+    if(use_pgdraw){
       eta_t <- pgdraw::pgdraw(y + r, mu + offset - log(r))
     }else{
       eta_t <- BayesLogit::rpg(Nt, y + r, mu + offset - log(r))

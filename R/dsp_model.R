@@ -111,6 +111,21 @@ dsp_spec <- function(family,
   obsSV <- input_args$obsSV
   if (is.null(obsSV)) obsSV <- "NONE"  # default fallback if needed
 
+  # r_init and r_sample are internal, driven by r_user. Reject them if supplied
+  # directly: r_user overwrites both, so a directly supplied value would look
+  # like it took effect while being silently discarded. This runs before the
+  # r_user transform below so that it does not catch that transform's own
+  # assignments.
+  if(family == "negbinomial"){
+    directArgs <- intersect(c("r_init", "r_sample"), names(input_args))
+    if(length(directArgs) > 0){
+      warning(sprintf(
+        "The following arguments are set through 'r_user' and cannot be supplied directly; they will be ignored: %s",
+        paste(directArgs, collapse = ", ")), call. = FALSE)
+      for(arg in directArgs) input_args[[arg]] <- NULL
+    }
+  }
+
   # Transform r_user to the two arguments r_init and r_sample
   if(!is.null(input_args$r_user)){
     input_args$r_init <- input_args$r_user
@@ -226,7 +241,7 @@ dsp_spec <- function(family,
   # If any of the required arguments are missing give them default values
   default_args <- list(D =2, useAnom = FALSE, obsSV = "const",times = NULL,
                        evol_error = "DHS", num_knots = 20,
-                       r_init = 5, r_sample = FALSE, offset = 0,
+                       r_init = 5, r_sample = TRUE, offset = 0,
                        D_asv = 1,evol_error_asv = "HS",nugget_asv = FALSE)
   requiredArgs = setdiff(required_args(family,model), names(input_args))
   # X is required to run regression
