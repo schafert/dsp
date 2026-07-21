@@ -109,11 +109,14 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol
           if(all(is.finite(mu))) break
         }
 
+        # Record that this draw needed the floor. Warning here would fire once
+        # per draw, so dsp_fit() reports the total for the fit instead.
+        if(attempt > 0 && all(is.finite(mu)))
+          .dsp_state$n_illcond = .dsp_state$n_illcond + 1L
+
         if(!all(is.finite(mu)))
           stop('sampleBTF: Cholesky failed to factorize the precision matrix, even ',
-               'after bounding the dynamic range of the evolution variances. This ',
-               'usually indicates a degenerate fit; rescaling y to unit standard ',
-               'deviation often resolves it.')
+               'after bounding the dynamic range of the evolution variances.')
       }
     }
   }

@@ -159,8 +159,12 @@ plot.dsp <- function(
       legend_lty <- c(legend_lty, 2)
       legend_lwd <- c(legend_lwd, 2)
       legend_col <- c(legend_col, "firebrick")
+      # predict.dsp() already returns indices on the scale of mu and times: it
+      # adds D to the omega index, since omega = diff(mu, differences = D) means
+      # omega[i] is the difference at mu[i + D]. Do not subtract D again here,
+      # which would draw each changepoint D observations early.
       cp_loc = predict(x,cp_thres = cp_thres)
-      cp_loc = times[cp_loc - x$model_spec$arguments$D]
+      cp_loc = times[cp_loc]
     }
     # build plot() args cleanly
     base_plot_args <- c(
@@ -190,7 +194,11 @@ plot.dsp <- function(
       c(dcip[, 2], rev(dcip[, 1])),
       col = "gray75", border = NA
     )
-    if(draw_cp){abline(v = cp_loc, lty = 2, lwd = legend_lwd, col = "firebrick")}
+    # lwd must be a scalar here. legend_lwd is the legend's width vector and
+    # contains NA placeholders for the filled swatches; abline() recycles lwd
+    # across the lines it draws, so passing it silently dropped every
+    # changepoint that landed on an NA. 2 matches the legend entry above.
+    if(draw_cp){abline(v = cp_loc, lty = 2, lwd = 2, col = "firebrick")}
     if (!is.null(true_values)) {
       points(times, true_values, pch = 20, col = "black",cex = legend_pt_cex)
       legend_labels <- c(legend_labels, "Ground Truth")

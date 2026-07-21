@@ -20,3 +20,10 @@
 #' @importFrom truncdist rtrunc
 ## usethis namespace: end
 NULL
+
+# Internal package state. Counts the state draws in which the precision matrix
+# was too ill-conditioned to factorize and sampleBTF() fell back to flooring the
+# evolution variances. dsp_fit() resets this before a fit and reports the total
+# afterwards.
+.dsp_state <- new.env(parent = emptyenv())
+.dsp_state$n_illcond <- 0L
