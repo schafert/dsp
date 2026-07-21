@@ -41,7 +41,6 @@
 #' @param chol0 logical; If anything except `NULL` (the default), the Cholesky term of the log volatility is precomputed
 #' @param offset length \code{T} vector of offset values for the log conditional expectation
 #' @param verbose logical; If TRUE (the default), time remaining is printed to console
-#' @param seed optional seed for random number generation for reproducible results
 #'
 #' @return
 #' A named list with the following. One named element for each of the parameters specified in `mcmc_params` containing
@@ -67,10 +66,7 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
                   chol0 = NULL, # TODO: bad default argument for chol0 but...
                   computeDIC = TRUE,
                   offset = 0,
-                  verbose = TRUE,
-                  seed = NULL){
-
-  set.seed(seed)
+                  verbose = TRUE){
 
   # Convert to upper case:
   evol_error = toupper(evol_error)
@@ -245,7 +241,7 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
     #                                  size = mean(post_r),
     #                                  mu = exp(colMeans(post_mu + offset)),
     #                                  log = TRUE))
-    
+
     loglike_hat = sum(stats::dnbinom(y,
                                      size = mean(post_r),
                                      mu = colMeans(post_mu),

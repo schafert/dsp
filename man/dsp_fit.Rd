@@ -13,6 +13,7 @@ dsp_fit(
   nskip = 4,
   computeDIC = TRUE,
   verbose = TRUE,
+  seed = NULL,
   ...
 )
 
@@ -34,6 +35,10 @@ i.e., save every (nskip + 1)th draw}
 and the effective number of parameters \code{p_d}}
 
 \item{verbose}{logical; should extra information on progress be printed to the console? Defaults to FALSE}
+
+\item{seed}{optional integer; if supplied, seeds the random number generator
+for a reproducible fit. Equivalent to calling \code{set.seed()} beforehand,
+and applies to every family and model.}
 
 \item{...}{currently not used}
 

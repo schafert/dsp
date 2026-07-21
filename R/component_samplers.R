@@ -29,6 +29,20 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol
 
   nT = length(y)
 
+  # Conditioning of the precision matrix.
+  #
+  # DHS/HS priors shrink the evolution variances toward zero. The precision
+  # matrix is built from 1/evol_sigma_t2, so an underflowed entry produces an
+  # extreme diagonal: 1e-13 against a maximum of 1e3 gives a condition number of
+  # roughly 1e16, which exceeds double precision, and the Cholesky in
+  # sample_mat_c fails to factorize.
+  #
+  # The variances are used as supplied here. The floor is applied only after a
+  # factorization fails, by the pmax() call in the recovery loop in the loc_obs
+  # branch below, and only on the retry attempts. Flooring every draw up front
+  # is unsuitable: on the sunspot ASV/DHS fit the min/max ratio has median
+  # 3.0e-12, so a 1e-12 floor binds on 32.5% of draws and shifts the posterior.
+
   # Linear term:
   linht = y/obs_sigma_t2
 
@@ -68,18 +82,38 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol
       mu = as.matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(nT)))
 
       }else{
-        if (D == 1) {
-          diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(1/evol_sigma_t2[-1], 0)
-          diag2 = -1/evol_sigma_t2[-1]
-          rd = RcppZiggurat::zrnorm(nT)
-          mu = as.matrix(sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2), length(diag1), length(loc_obs$r), c(linht), rd, D))
-        } else {
-          diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(0, 4/evol_sigma_t2[-(1:2)], 0) + c(1/evol_sigma_t2[-(1:2)], 0, 0)
-          diag2 = c(-2/evol_sigma_t2[3], -2*(1/evol_sigma_t2[-(1:2)] + c(1/evol_sigma_t2[-(1:3)],0)))
-          diag3 = 1/evol_sigma_t2[-(1:2)]
-          rd = RcppZiggurat::zrnorm(nT)
-          mu = as.matrix(sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2, diag3, diag3), length(diag1), length(loc_obs$r), c(linht), rd, D))
+        # sample_mat_c returns NaN when its Cholesky fails to factorize. Recover
+        # by compressing the dynamic range of the evolution variances and
+        # redrawing, rather than letting a failed draw enter the chain. The
+        # first attempt uses the variances as supplied, so draws that factorize
+        # normally are unaffected.
+        evol_try = evol_sigma_t2
+        for(attempt in 0:3){
+
+          if(attempt > 0)
+            evol_try = pmax(evol_sigma_t2, max(evol_sigma_t2)*10^(-13 + attempt))
+
+          if (D == 1) {
+            diag1 = 1/obs_sigma_t2 + 1/evol_try + c(1/evol_try[-1], 0)
+            diag2 = -1/evol_try[-1]
+            rd = RcppZiggurat::zrnorm(nT)
+            mu = as.matrix(sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2), length(diag1), length(loc_obs$r), c(linht), rd, D))
+          } else {
+            diag1 = 1/obs_sigma_t2 + 1/evol_try + c(0, 4/evol_try[-(1:2)], 0) + c(1/evol_try[-(1:2)], 0, 0)
+            diag2 = c(-2/evol_try[3], -2*(1/evol_try[-(1:2)] + c(1/evol_try[-(1:3)],0)))
+            diag3 = 1/evol_try[-(1:2)]
+            rd = RcppZiggurat::zrnorm(nT)
+            mu = as.matrix(sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2, diag3, diag3), length(diag1), length(loc_obs$r), c(linht), rd, D))
+          }
+
+          if(all(is.finite(mu))) break
         }
+
+        if(!all(is.finite(mu)))
+          stop('sampleBTF: Cholesky failed to factorize the precision matrix, even ',
+               'after bounding the dynamic range of the evolution variances. This ',
+               'usually indicates a degenerate fit; rescaling y to unit standard ',
+               'deviation often resolves it.')
       }
     }
   }

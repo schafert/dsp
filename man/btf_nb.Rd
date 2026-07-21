@@ -21,8 +21,7 @@ btf_nb(
   chol0 = NULL,
   computeDIC = TRUE,
   offset = 0,
-  verbose = TRUE,
-  seed = NULL
+  verbose = TRUE
 )
 }
 \arguments{
@@ -78,8 +77,6 @@ and the effective number of parameters \code{p_d}}
 \item{offset}{length \code{T} vector of offset values for the log conditional expectation}
 
 \item{verbose}{logical; If TRUE (the default), time remaining is printed to console}
-
-\item{seed}{optional seed for random number generation for reproducible results}
 }
 \value{
 A named list with the following. One named element for each of the parameters specified in \code{mcmc_params} containing

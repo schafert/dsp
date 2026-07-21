@@ -270,6 +270,9 @@ dsp_spec <- function(family,
 #' @param computeDIC logical; if TRUE (default), compute the deviance information criterion \code{DIC}
 #' and the effective number of parameters \code{p_d}
 #' @param verbose logical; should extra information on progress be printed to the console? Defaults to FALSE
+#' @param seed optional integer; if supplied, seeds the random number generator
+#' for a reproducible fit. Equivalent to calling \code{set.seed()} beforehand,
+#' and applies to every family and model.
 #' @param ... optional additional arguments to pass to the MCMC sampler.
 #'
 #' @return \code{dsp_fit} returns an object of class "\code{dsp}".
@@ -335,10 +338,31 @@ dsp_fit = function(y, model_spec,
                       nsave = 1000, nburn = 1000, nskip = 4,
                       computeDIC = TRUE,
                       verbose = TRUE,
+                      seed = NULL,
                       ...){
   if (!inherits(model_spec, "dsp_spec")) {
     stop("'model_spec' must be an object created by 'dsp_spec()'.")
   }
+
+  # All seeding happens here, so every family and model behaves the same way.
+  # Individual fitters must not call set.seed() themselves.
+  #
+  # Note set.seed(NULL) does not leave the RNG alone, it re-initializes it from
+  # system entropy, so seed is only applied when actually supplied.
+  if(!is.null(seed)) set.seed(seed)
+
+  # The state draws use RcppZiggurat::zrnorm, which has its own RNG stream that
+  # set.seed() cannot reach. Left alone, that stream simply continues from
+  # wherever the last call left it, so two dsp_fit() calls in one session return
+  # different results even under the same set.seed(). It only looks reproducible
+  # under Rscript, because a fresh process always starts the stream in the same
+  # place.
+  #
+  # The line below ties the two streams together. sample.int() draws from R's
+  # RNG, which set.seed() does control, so a given set.seed() always yields the
+  # same number here, and that number is what the Ziggurat stream starts from.
+
+  RcppZiggurat::zsetseed(sample.int(.Machine$integer.max, 1))
 
   family = model_spec$family
   model = model_spec$model

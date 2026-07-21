@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <random>
+#include <limits>
 #include <Rcpp.h>
 #include <RcppEigen.h>
 
@@ -27,6 +28,17 @@ Eigen::VectorXd sample_mat(std::vector<int> row_ind, std::vector<int> col_ind,
 
   Eigen::SimplicialLLT <Eigen::SparseMatrix<double>, Eigen::Lower, Eigen::NaturalOrdering<int>> chol;
   chol.compute(mat);
+
+  // SimplicialLLT does not report failure through its result. If mat is not
+  // numerically positive definite, matrixL() and matrixU() are left in an
+  // unspecified state and the solve below returns meaningless values. These
+  // are not reliably detectable by the caller: they may be NaN, but are also
+  // sometimes finite values far outside the plausible range of the states, and
+  // they vary between runs on identical input. Returning them silently
+  // causes problems downstream, so check the status and signal failure as NaN.
+  if (chol.info() != Eigen::Success) {
+    return Eigen::VectorXd::Constant(n, std::numeric_limits<double>::quiet_NaN());
+  }
 
   Eigen::VectorXd tp = chol.matrixU().solve(chol.matrixL().solve(linht) + rd);
 
