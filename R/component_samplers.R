@@ -509,19 +509,17 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0,
   # This is the response in our DLM, log(y^2)
   ystar = log(h_y^2 + yoffset)
 
-  # Sample the mixture components
-  # z = draw_indicators_generic(ystar-h_prev, rep(0, length(ystar)), length(ystar),
-  #           q, m_st, sqrt(v_st2), length(q))
-  # TODO: make sure this isn't a breaking change
+  # Sample one mixture component per element of the (n x p) residual matrix
+  # ystar - h_prev, so n*p draws are needed. Passing n here returned only the
+  # first n; the short vector then recycled column-wise below, forcing every
+  # column (covariate) to share column 1's mixture components. This left p = 1
+  # models (smoothing) correct but corrupted p > 1 models (time-varying
+  # regression).
+  mixture_component = sample_j_wrap(n*p, ystar - h_prev)
 
-  # Subset mean and variances to the sampled mixture components; (n x p) matrices
-  # m_st_all = matrix(m_st[z], nrow=n); v_st2_all = matrix(v_st2[z], nrow=n)
-  # Sample the mixture components
-  mixture_component = sample_j_wrap(n, ystar - h_prev)
-
-  # Subset mean and variances to the sampled mixture components; (n x p) matrices
-  m_st_all = mixture_component$mean
-  v_st2_all = mixture_component$var
+  # Reshape to the (n x p) matrices expected downstream.
+  m_st_all = matrix(mixture_component$mean, nrow = n)
+  v_st2_all = matrix(mixture_component$var, nrow = n)
 
   # Joint AWOL sampler for j=1,...,p:
 

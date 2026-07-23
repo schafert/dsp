@@ -203,9 +203,13 @@ initDHS = function(omega){
   arCoefs = apply(ht, 2, function(x){
     params = try(arima(x, c(1,0,0)), silent = TRUE)
     if(is(params, "try-error")){
-      params = params$coef
-    } else{
+      # arima failed: fall back to a fixed AR(1) coefficient and the marginal mean
       params = c(0.8, mean(x)/(1 - 0.8))
+    } else{
+      # arima succeeded: use the fitted coefficients. The branches were
+      # previously reversed, so a successful fit was discarded in favour of the
+      # fallback, initialising dhs_mean roughly 5x too extreme.
+      params = params$coef
     }
     params
   })
