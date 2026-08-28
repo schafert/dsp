@@ -34,3 +34,4 @@ However, the MCMC may be less efficient.
 \note{
 Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 }
+\keyword{internal}

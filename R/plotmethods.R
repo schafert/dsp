@@ -1,8 +1,12 @@
 #----------------------------------------------------------------------------
-#' Plot the Bayesian trend filtering fitted values
+#' Plot posterior summaries from a fitted dsp model
 #'
-#' Plot the BTF posterior mean of the conditional expectation with posterior credible intervals (pointwise and joint),
-#' the observed data, and true curves (if known)
+#' Visualize posterior samples for a selected parameter from a fitted
+#' `dsp` object. The parameter to plot must be specified using `type`,
+#' which should correspond to one of the entries in `x$mcmc_output`.
+#' Depending on the dimension of the selected posterior samples, the
+#' function produces either a posterior density plot, a time-series plot
+#' with credible intervals, or a multi-panel time-series plot.
 #'
 #' @param x an object of class `dsp` from [dsp_fit()].
 #' @param type character string giving the parameter name to visualize; must be one of the entries in `x$mcmc_output`.
@@ -93,6 +97,12 @@ plot.dsp <- function(
   ...
 ){
   # Time series:
+  if (missing(type)) {
+    stop(
+      "`type` must be specified. Available parameters are: ",
+      paste(names(x$mcmc_output), collapse = ", ")
+    )
+  }
   mean_color = "dodgerblue"
   samples = x$mcmc_output[[type]]
   if(is.null(samples)){

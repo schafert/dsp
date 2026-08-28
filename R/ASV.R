@@ -41,7 +41,7 @@
 #' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
 #' deviation is recommended to avoid numerical issues.
-#'
+#' @keywords internal
 fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
                    nsave = 1000, nburn = 1000, nskip = 4,
                    mcmc_params = list("h", "logy2hat","sigma2","evol_sigma_t2",
@@ -155,7 +155,7 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
 #' Gaussian mixture in Omori et al 2007 paper.
 #'
 #' @return a vector containing posterior predictive on log(y^2)
-#'
+#' @keywords internal
 generate_ly2hat <- function(h,p_error_term){
   return(h + matrix(rnorm(length(h),
                           mean = p_error_term$mean,
@@ -176,6 +176,7 @@ generate_ly2hat <- function(h,p_error_term){
 #' \item s_evolParams0: a list containing posterior samples of parameters associated with the variance of first D observation of the log variance term, h.
 #' \item s_evolParams: a list containing posterior samples parameters associated with the variance of D to the last observations of the log variance temr , h.
 #' }
+#' @keywords internal
 init_paramsASV <- function(data,evol_error,D){
   yoffset = any(data^2 < 10^-16,na.rm = TRUE)*mad(data,na.rm = TRUE)/10^10
   data = log(data^2 + yoffset)
@@ -224,6 +225,7 @@ init_paramsASV <- function(data,evol_error,D){
 #' \item s_evolParams0: a list containing posterior samples of parameters associated with the variance of first D observation of the log variance term, h.
 #' \item s_evolParams: a list containing posterior samples parameters associated with the variance of D to the last observations of the log variance temr , h.
 #' }
+#' @keywords internal
 fit_paramsASV <- function(data,sParams,evol_error,D){
   yoffset = any(data^2 < 10^-16)*mad(data)/10^10
   data = log(data^2 + yoffset)
@@ -281,6 +283,7 @@ fit_paramsASV <- function(data,sParams,evol_error,D){
 #' \item s_evolParams0: a list containing posterior samples of parameters associated with the variance of first D observation of the log variance term, h.
 #' \item s_evolParams: a list containing posterior samples parameters associated with the variance of D to the last observations of the log variance temr , h.
 #' }
+#' @keywords internal
 init_paramsASV_n <- function(data,evol_error,D){
   yoffset = any(data^2 < 10^-16,na.rm = TRUE)*mad(data,na.rm = TRUE)/10^10
   data = log(data^2 + yoffset)
@@ -341,6 +344,7 @@ init_paramsASV_n <- function(data,evol_error,D){
 #' \item s_evolParams0: a list containing posterior samples of parameters associated with the variance of first D observation of the log variance term, h.
 #' \item s_evolParams: a list containing posterior samples parameters associated with the variance of D to the last observations of the log variance temr , h.
 #' }
+#' @keywords internal
 fit_paramsASV_n <- function(data,sParams,evol_error,D){
   yoffset = any(data^2 < 10^-16)*mad(data)/10^10
   data = log(data^2 + yoffset)
@@ -404,6 +408,7 @@ fit_paramsASV_n <- function(data,sParams,evol_error,D){
 #'
 #' @return a list containing DIC and p_d. Two options for estimating both DIC and p_d, which are both included.
 #'
+#' @keywords internal
 computeDIC_ASV <- function(y,beta,post_sigma2,post_loglike){
   # Bayesian measures of model complexity and fit
   # Log-likelihood evaluated at posterior means:

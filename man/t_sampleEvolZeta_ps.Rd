@@ -18,3 +18,4 @@ the \code{T} vector of standard deviations, and additional parameters for invers
 \description{
 Compute one draw of the anomaly component parameters.
 }
+\keyword{internal}

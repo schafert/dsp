@@ -17,3 +17,4 @@ and additional parameters for inverse gamma priors (shape and scale).
 Compute initial values for either a horseshoe prior or horseshoe+ prior
 for the anomaly component.
 }
+\keyword{internal}

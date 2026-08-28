@@ -18,3 +18,4 @@ a vector containing posterior predictive on log(y^2)
 \description{
 Posterior predictive sampler on the transformed y (log(y^2))
 }
+\keyword{internal}

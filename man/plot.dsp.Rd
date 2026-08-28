@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotmethods.R
 \name{plot.dsp}
 \alias{plot.dsp}
-\title{Plot the Bayesian trend filtering fitted values}
+\title{Plot posterior summaries from a fitted dsp model}
 \usage{
 \method{plot}{dsp}(
   x,
@@ -75,8 +75,12 @@
 No return value, called for side effects
 }
 \description{
-Plot the BTF posterior mean of the conditional expectation with posterior credible intervals (pointwise and joint),
-the observed data, and true curves (if known)
+Visualize posterior samples for a selected parameter from a fitted
+\code{dsp} object. The parameter to plot must be specified using \code{type},
+which should correspond to one of the entries in \code{x$mcmc_output}.
+Depending on the dimension of the selected posterior samples, the
+function produces either a posterior density plot, a time-series plot
+with credible intervals, or a multi-panel time-series plot.
 }
 \details{
 The plotting behavior depends on the dimension of the posterior samples stored in \code{x$mcmc_output[[type]]}:

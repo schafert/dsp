@@ -57,7 +57,7 @@ predict.dsp <- function(object, cp_thres = 0.5, cp_prop = FALSE, ...){
 
   cp_list <- colMeans(cp_mat)
 
-  cp_t <- which(cp_list >= cp_thres) + D
+  cp_t <- as.integer(which(cp_list >= cp_thres) + D)
 
   if(cp_prop){
     return(list(cp_t = cp_t, cp_prop = cp_list))

@@ -19,7 +19,7 @@
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 #' @import Matrix
 #' @importFrom spam rmvnorm.canonical as.spam.dgCMatrix
-
+#' @keywords internal
 sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol0 = NULL, prior_mean = NULL){
 
   # Some quick checks:
@@ -144,7 +144,7 @@ sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs = NULL, chol
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 #' @importFrom spam rmvnorm.canonical as.spam.dgCMatrix
 #' @importFrom Matrix chol t solve
-
+#' @keywords internal
 sampleBTF_sparse = function(y,
                             obs_sigma_t2,
                             evol_sigma_t2,
@@ -226,6 +226,7 @@ sampleBTF_sparse = function(y,
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 #'
 #' @importFrom spam rmvnorm.canonical as.spam.dgCMatrix
+#' @keywords internal
 sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = NULL){
 
   # Some quick checks:
@@ -341,7 +342,7 @@ sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = 
 #' @return \code{T x p} matrix of simulated dynamic regression coefficients \code{beta}
 #'
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
-#'
+#' @keywords internal
 sampleBTF_reg_backfit = function(y, X, beta, obs_sigma_t2, evol_sigma_t2, D = 1){
 
   # Some quick checks:
@@ -408,7 +409,7 @@ sampleBTF_reg_backfit = function(y, X, beta, obs_sigma_t2, evol_sigma_t2, D = 1)
 #' @return \code{p x 1} vector of simulated basis coefficients \code{beta}
 #'
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
-#'
+#' @keywords internal
 sampleBTF_bspline = function(y, X, obs_sigma2, evol_sigma_t2, XtX_bands, Xty = NULL, D = 1){
 
   # Some quick checks:
@@ -483,7 +484,7 @@ sampleBTF_bspline = function(y, X, obs_sigma2, evol_sigma_t2, XtX_bands, Xty = N
 #'
 #' @note For Bayesian trend filtering, \code{p = 1}. More generally, the sampler allows for
 #' \code{p > 1} but assumes (contemporaneous) independence across the log-vols for \code{j = 1,...,p}.
-#'
+#' @keywords internal
 sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, loc = NULL){
 
   # Compute dimensions:
@@ -590,6 +591,7 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0,
 #' simply use \code{sigma_e = 1} in the functional call.
 #'
 #' @importFrom mgcv rig
+#' @keywords internal
 sampleEvolParams = function(omega, evolParams,  sigma_e = 1, evol_error = "DHS", loc = NULL){
 
   # Check:
@@ -678,6 +680,7 @@ sampleEvolParams = function(omega, evolParams,  sigma_e = 1, evol_error = "DHS",
 #' @note The priors induced by \code{prior_dhs_phi} all imply a stationary (log-) volatility process.
 #'
 #' @import pgdraw
+#' @keywords internal
 sampleDSP = function(omega, evolParams, sigma_e = 1, loc = NULL, prior_dhs_phi = c(10,2), alphaPlusBeta = 1){
 
   # Store the DSP parameters locally:
@@ -735,6 +738,7 @@ sampleDSP = function(omega, evolParams, sigma_e = 1, loc = NULL, prior_dhs_phi =
 #' and additional parameters associated with SV model.
 #'
 #' @import stochvol
+#' @keywords internal
 sampleSVparams = function(omega, svParams){
 
   # Make sure omega is (n x p) matrix
@@ -774,7 +778,7 @@ sampleSVparams = function(omega, svParams){
 #' @param svParams list of parameters to be updated
 #' @return List of relevant components in \code{svParams}: \code{sigma_wt}, the \code{T x p} matrix of standard deviations,
 #' and additional parameters associated with SV model.
-#'
+#' @keywords internal
 sampleSVparams0 = function(omega, svParams){
 
   # Make sure omega is (n x p) matrix
@@ -839,6 +843,7 @@ sampleSVparams0 = function(omega, svParams){
 #' generally for sampling \code{p > 1} independent AR(1) processes (jointly).
 #'
 #' @importFrom truncdist rtrunc
+#' @keywords internal
 sampleAR1 = function(h_yc, h_phi, h_sigma_eta_t, prior_dhs_phi = NULL){
 
   # Compute dimensions:
@@ -897,7 +902,7 @@ sampleAR1 = function(h_yc, h_phi, h_sigma_eta_t, prior_dhs_phi = NULL){
 #' \item the sampled mean(s) \code{dhs_mean} and
 #' \item the sampled precision(s) \code{dhs_mean_prec_j} from the Polya-Gamma parameter expansion
 #'}
-#'
+#' @keywords internal
 sampleLogVolMu = function(h, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, h_log_scale = 0){
 
   # Compute "local" dimensions:
@@ -941,7 +946,7 @@ sampleLogVolMu = function(h, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, h_log_sc
 #' @note This sampler is particularly for \code{p > 1} and the setting in which we want hierarchical
 #' shrinkage effects, e.g. predictor- and time-dependent shrinkage, predictor-dependent shrinkage,
 #' and global shrinkage, with a natural hierarchical ordering.
-#'
+#' @keywords internal
 sampleLogVolMu0 = function(h_mu, h_mu0, dhs_mean_prec_j, h_log_scale = 0){
 
   dhs_mean_prec_0 = pgdraw::pgdraw(b = 1, c = c(h_mu0 - h_log_scale))
@@ -966,6 +971,7 @@ sampleLogVolMu0 = function(h_mu, h_mu0, dhs_mean_prec_j, h_log_scale = 0){
 #' @return List of relevant components:
 #' the \code{p x 1} evolution error SD \code{sigma_w0}
 #' and the \code{p x 1} parameter-expanded RV's \code{px_sigma_w0}
+#' @keywords internal
 sampleEvol0 = function(mu0, evolParams0, commonSD = FALSE, A = 1){
 
   # Store length locally:
@@ -1011,6 +1017,7 @@ sampleEvol0 = function(mu0, evolParams0, commonSD = FALSE, A = 1){
 #' @param alpha \code{n x 1} vector (of data, scaled by variance)
 #' @return Draw from N(mu, Sigma), which is \code{p x 1}, and is computed in \code{O(n^2*p)}
 #' @note Assumes D is diagonal, but extensions are available
+#' @keywords internal
 sampleFastGaussian = function(Phi, Ddiag, alpha){
 
   # Dimensions:
@@ -1043,6 +1050,7 @@ sampleFastGaussian = function(Phi, Ddiag, alpha){
 #' @param obs \code{Td x 1} vector for the data.
 #' @return Dataframe containing the posterior samples: mean and variance for the mixture component.
 #' @note When the obs is not not specified, the components are samples from the prior distribution.
+#' @keywords internal
 sample_j_wrap <- function(Td,obs=NULL){
   # Omori, Chib, Shephard, Nakajima (2007) 10-component mixture:
   m_st  = c(1.92677, 1.34744, 0.73504, 0.02266, -0.85173, -1.97278, -3.46788, -5.55246, -8.68384, -14.65000)

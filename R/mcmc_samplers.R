@@ -52,7 +52,7 @@
 #' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
 #' deviation is recommended to avoid numerical issues.
-
+#' @keywords internal
 btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
                nsave = 1000, nburn = 1000, nskip = 4,
                mcmc_params = list("mu", "ypred","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h_smooth"),
@@ -325,6 +325,7 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
 #' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
 #' deviation is recommended to avoid numerical issues.
+#' @keywords internal
 btf0 = function(y, evol_error = 'DHS', obsSV = "const",
                 nsave = 1000, nburn = 1000, nskip = 4,
                 mcmc_params = list("mu", "ypred","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h_smooth"),
@@ -565,7 +566,7 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 #' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
 #' deviation is recommended to avoid numerical issues.
-
+#' @keywords internal
 btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = "const",
                       nsave = 1000, nburn = 1000, nskip = 4,
                       mcmc_params = list("mu", "ypred","evol_sigma_t2", "obs_sigma_t2",
@@ -833,7 +834,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 #' @note The data \code{y} may contain NAs, which will be treated with a simple imputation scheme
 #' via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
 #' deviation is recommended to avoid numerical issues.
-
+#' @keywords internal
 btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
                    nsave = 1000, nburn = 1000, nskip = 4,
                    mcmc_params = list("mu", "ypred","beta","evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean","h_smooth"),
@@ -1124,7 +1125,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
 #' \item Computations are linear in the number of basis coefficients, which may be
 #' substantially fewer than the number of time points.
 #' }
-
+#' @keywords internal
 btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D = 2,
                        nsave = 1000, nburn = 1000, nskip = 4,
                        mcmc_params = list("mu", "ypred", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),
@@ -1372,7 +1373,7 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
 #' }
 #'
 #'
-
+#' @keywords internal
 btf_bspline0 = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS',
                         nsave = 1000, nburn = 1000, nskip = 4,
                         mcmc_params = list("mu", "ypred", "beta", "evol_sigma_t2", "obs_sigma_t2", "dhs_phi", "dhs_mean"),

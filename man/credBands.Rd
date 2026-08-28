@@ -22,3 +22,4 @@ The input needs not be curves: the simultaneous credible "bands" may be computed
 for vectors. The resulting credible intervals will provide joint coverage at the (1-alpha)\%
 level across all components of the vector.
 }
+\keyword{internal}

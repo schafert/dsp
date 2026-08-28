@@ -17,3 +17,4 @@ and additional parameters (unconditional mean, AR(1) coefficient, and standard d
 Compute initial values for normal stochastic volatility parameters.
 The model assumes an AR(1) for the log-volatility.
 }
+\keyword{internal}

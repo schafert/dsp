@@ -23,3 +23,4 @@ and mu = Sigma*crossprod(Phi, alpha):
 \note{
 Assumes D is diagonal, but extensions are available
 }
+\keyword{internal}

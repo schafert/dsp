@@ -21,3 +21,4 @@ a list containing DIC and p_d. Two options for estimating both DIC and p_d, whic
 \description{
 Function for calculating DIC and Pb (Bayesian measures of model complexity and fit by Spiegelhalter et al. 2002)
 }
+\keyword{internal}

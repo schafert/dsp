@@ -22,3 +22,4 @@ dynamic horseshoe prior ('DHS'), horseshoe prior ('HS'),
 Bayesian lasso ('BL'), normal stochastic volatility ('SV'),
 or normal-inverse-gamma prior ('NIG').
 }
+\keyword{internal}

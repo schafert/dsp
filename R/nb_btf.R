@@ -299,7 +299,7 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
 
   return(mcmc_output);
 }
-
+#' @keywords internal
 sampleBTF_nb <- function(y, r, offset, eta_t, obs_sigma_t2, evol_sigma_t2,
                          D = 1, chol0 = NULL){
 
@@ -355,7 +355,7 @@ sampleBTF_nb <- function(y, r, offset, eta_t, obs_sigma_t2, evol_sigma_t2,
   mu
 }
 
-
+#' @keywords internal
 sample_r <- function(y, d.prev, mu, r_sample = "int_mh",
                      step = 1, lambda_r = 10,
                      prior_r = expression(log(1 + x^2/100)))

@@ -16,3 +16,4 @@ Computes the Cholesky decomposition for the quadratic term in the (Gaussian) pos
 of the Bayesian Trend Filtering coefficients. The sparsity pattern will not change during the
 MCMC, so we can save computation time by computing this up front.
 }
+\keyword{internal}

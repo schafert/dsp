@@ -22,3 +22,4 @@ of a Bayesian trend filtering model with \code{D = 1} or \code{D = 2}.
 This function exploits the known \code{D}-banded structure of \code{Q}
 to compute the matrix directly, using objects in the Matrix package.
 }
+\keyword{internal}

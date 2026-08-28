@@ -33,3 +33,4 @@ The log density function may return -Inf for points outside the support
 of the distribution.  If a lower and/or upper bound is specified for the
 support, the log density function will not be called outside such limits.
 }
+\keyword{internal}

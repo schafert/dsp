@@ -55,7 +55,7 @@ NULL
 #' @return A named list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}
 #'
 #' @importFrom progress progress_bar
-
+#' @keywords internal
 abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
                 nsave = 1000, nburn = 1000, nskip = 4,
                 mcmc_params = list('mu', "omega", "ypred", "evol_sigma_t2","gamma","zeta",
@@ -304,6 +304,7 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
 #' and additional parameters for inverse gamma priors (shape and scale).
 #'
 #' @importFrom MCMCpack rinvgamma
+#' @keywords internal
 t_initEvolZeta_ps = function(zeta){
   zeta = as.matrix(zeta)
   n = nrow(zeta)
@@ -333,6 +334,7 @@ t_initEvolZeta_ps = function(zeta){
 #' the \code{T} vector of standard deviations, and additional parameters for inverse gamma priors (shape and scale).
 #'
 #' @importFrom MCMCpack rinvgamma
+#' @keywords internal
 t_sampleEvolZeta_ps = function(omega, evolParams){
   #omega = as.matrix(omega)
   n = length(omega)
@@ -371,6 +373,7 @@ t_sampleEvolZeta_ps = function(omega, evolParams){
 #' @note Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 #'
 #' @importFrom RcppZiggurat zrnorm
+#' @keywords internal
 t_sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs){
 
   # Some quick checks:
@@ -448,6 +451,7 @@ t_sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs){
 #' @note The priors induced by \code{prior_dhs_phi} all imply a stationary (log-) volatility process.
 #'
 #' @importFrom pgdraw pgdraw
+#' @keywords internal
 t_sampleEvolParams = function(omega, evolParams, D = 1, sigma_e = 1, lower_b, upper_b, loc, prior_dhs_phi = c(20,1), alphaPlusBeta = 1){
   # Store the DSP parameters locally:
   ht = evolParams$ht; dhs_mean = evolParams$dhs_mean; dhs_phi = evolParams$dhs_phi; dhs_phi2 = evolParams$dhs_phi2
@@ -512,6 +516,7 @@ t_sampleEvolParams = function(omega, evolParams, D = 1, sigma_e = 1, lower_b, up
 #' @note For Bayesian trend filtering, \code{p = 1}. More generally, the sampler allows for
 #' \code{p > 1} but assumes (contemporaneous) independence across the log-vols for \code{j = 1,...,p}.
 #'
+#' @keywords internal
 t_sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_sigma_eta_0, h_st, loc){
 
   # Compute dimensions:
@@ -583,7 +588,7 @@ t_sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_si
 #' on \code{[(dhs_phi + 1)/2]}
 #'
 #' @return \code{2} vector of sampled TAR(1) coefficient(s)
-#'
+#' @keywords internal
 t_sampleAR1 = function(h_yc, h_phi, h_phi2, h_sigma_eta_t, h_st, prior_dhs_phi = NULL){
 
   # Compute dimensions:
@@ -635,6 +640,7 @@ t_sampleAR1 = function(h_yc, h_phi, h_phi2, h_sigma_eta_t, h_st, prior_dhs_phi =
 #' @return the sampled mean(s) \code{dhs_mean}
 #'
 #' @importFrom pgdraw pgdraw
+#' @keywords internal
 t_sampleLogVolMu = function(h, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_sigma_eta_0, h_st, h_log_scale = 0){
 
   # Compute "local" dimensions:
@@ -681,6 +687,7 @@ t_sampleLogVolMu = function(h, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_sigma_eta_0
 #' @param D the degree of differencing (one or two)
 #'
 #' @return the sampled threshold value \code{r}
+#' @keywords internal
 t_sampleR_mh = function(h_yc, h_phi, h_phi2, h_sigma_eta_t, h_sigma_eta_0, h_st, h_r, lower_b, upper_b, omega, D){
   n = length(h_yc);
 
@@ -718,6 +725,7 @@ t_sampleR_mh = function(h_yc, h_phi, h_phi2, h_sigma_eta_t, h_sigma_eta_0, h_st,
 #' and additional parameters associated with the DHS priors.
 #'
 #' @importFrom msm rtnorm
+#' @keywords internal
 t_initEvolParams_no = function(y, D, omega){
 
   # "Local" number of time points
@@ -756,6 +764,7 @@ t_initEvolParams_no = function(y, D, omega){
 #' @return List of relevant components: \code{sigma_wt}, the \code{T} vector of standard deviations,
 #' and additional parameters (unconditional mean, AR(1) coefficient, and standard deviation).
 #' @importFrom methods is
+#' @keywords internal
 t_initSV = function(omega){
 
   # Make sure omega is (n x p) matrix
@@ -786,6 +795,7 @@ t_initSV = function(omega){
 #' and additional parameters associated with SV model.
 #'
 #' @importFrom stochvol svsample_fast_cpp
+#' @keywords internal
 t_sampleSVparams = function(omega, svParams){
 
   # Make sure omega is (n x p) matrix
@@ -830,6 +840,7 @@ t_sampleSVparams = function(omega, svParams){
 #' \item the column indices \code{c}
 #' }
 #'
+#' @keywords internal
 t_create_loc <- function(len, D){
   if (D == 0 || D == 1){
     row_ind = c()

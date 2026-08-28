@@ -29,3 +29,4 @@ This sampler is particularly for \code{p > 1} and the setting in which we want h
 shrinkage effects, e.g. predictor- and time-dependent shrinkage, predictor-dependent shrinkage,
 and global shrinkage, with a natural hierarchical ordering.
 }
+\keyword{internal}

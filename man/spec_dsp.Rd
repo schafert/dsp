@@ -20,3 +20,4 @@ and the second column is the spectrum evaluated at that frequency
 \description{
 Compute the spectrum of an AR(p) model
 }
+\keyword{internal}

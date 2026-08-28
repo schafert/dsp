@@ -26,3 +26,4 @@ sample_mat_c(row_ind, col_ind, mat_val, mat_l, num_inp, linht, rd, D)
 \description{
 Wrapper function for C++ call for sample mat, check pre-conditions to prevent crash
 }
+\keyword{internal}

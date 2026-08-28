@@ -43,3 +43,4 @@ AR(1) log-vol processes to produce an efficient joint sampler in \code{O(Tp)} ti
 For Bayesian trend filtering, \code{p = 1}. More generally, the sampler allows for
 \code{p > 1} but assumes (contemporaneous) independence across the log-vols for \code{j = 1,...,p}.
 }
+\keyword{internal}

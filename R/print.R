@@ -23,8 +23,8 @@ print.dsp <- function(x, ...){
 
   print(x$model_spec)
   cat("\nTotal number of MCMC samples burned in:", x$mcpar["nburn"], "\n")
-  cat("Thinning interval use:", x$mcpar["nskip"], "\n")
-  cat("Total number of MCMC samples saved:", x$mcpar["nsave"])
+  cat("Thinning interval used:", x$mcpar["nskip"], "\n")
+  cat("Total number of MCMC samples saved:", x$mcpar["nsave"],"\n")
 
 
   invisible(NULL)
@@ -70,14 +70,45 @@ print.dsp_spec <- function(x, ...){
     }
 
     cat(x$arguments$D, if (isTRUE(x$arguments$D == 1)) "degree" else "degrees",
-        "of differencing.")
+        "of differencing.\n")
   }
 
   if(x$family == "negbinomial"){
     cat("Negative binomial likelihood with", x$arguments$D,
-        if (isTRUE(x$arguments$D == 1)) "degree" else "degrees", "of differencing.")
+        if (isTRUE(x$arguments$D == 1)) "degree" else "degrees", "of differencing. \n")
+  }
+  if (x$model == "changepoint"){
+    cat("Prior for the mean function: Dynamic horseshoe prior with threshold autoregression\n")
+  }
+  if (!is.null(x$arguments$evol_error)) {
+    cat("Prior for the mean function: ")
+    switch(x$arguments$evol_error,
+           HS  = cat("Horseshoe prior"),
+           DHS = cat("Dynamic horseshoe prior"),
+           NIG = cat("Normal-inverse-gamma prior"),
+           BL  = cat("Bayesian lasso prior"),
+           SV  = cat("Stochastic volatility prior"))
+    cat("\n")
+  }
+  if(x$family == "gaussian"){
+    cat("Prior for the variance function: ")
+    if (x$model == "bspline"){
+      cat("Normal-inverse-gamma prior\n")
+    }else{
+      switch(x$arguments$obsSV,
+             const = cat("Normal-inverse-gamma prior"),
+             SV = cat("Stochastic volatility prior"),
+             ASV = {cat("Adaptive stochastic volatility with ")
+               switch(x$arguments$evol_error_asv,
+                      HS  = cat("Horseshoe prior"),
+                      DHS = cat("Dynamic horseshoe prior"),
+                      NIG = cat("Normal-inverse-gamma prior"),
+                      BL  = cat("Bayesian lasso prior"),
+                      SV  = cat("Stochastic volatility prior"))
+             })
+      cat("\n")
+    }
   }
 
   invisible(NULL)
-
 }

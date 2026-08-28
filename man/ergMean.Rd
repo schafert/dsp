@@ -15,3 +15,4 @@ A vector \code{y} with each element defined by \code{y[i] = mean(x[1:i])}
 \description{
 Compute the ergodic (running) mean.
 }
+\keyword{internal}

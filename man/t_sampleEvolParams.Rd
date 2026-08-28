@@ -59,3 +59,4 @@ with \code{alpha = beta = 1/2}.
 \note{
 The priors induced by \code{prior_dhs_phi} all imply a stationary (log-) volatility process.
 }
+\keyword{internal}

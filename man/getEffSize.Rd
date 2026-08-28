@@ -16,3 +16,4 @@ Table of summary statistics using the function \code{summary()}.
 Compute the summary statistics for the effective sample size (ESS) across
 posterior samples for possibly many variables
 }
+\keyword{internal}

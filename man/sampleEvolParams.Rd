@@ -43,3 +43,4 @@ but in each case contains the evolution error standard deviations \code{sigma_wt
 To avoid scaling by the observation standard deviation \code{sigma_e},
 simply use \code{sigma_e = 1} in the functional call.
 }
+\keyword{internal}

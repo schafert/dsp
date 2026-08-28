@@ -15,3 +15,4 @@ A scalar or vector of values in (0,1)
 \description{
 Compute the inverse log-odds
 }
+\keyword{internal}

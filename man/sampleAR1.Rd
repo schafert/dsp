@@ -31,3 +31,4 @@ to a multivariate case with independent components.
 For the standard AR(1) case, \code{p = 1}. However, the function applies more
 generally for sampling \code{p > 1} independent AR(1) processes (jointly).
 }
+\keyword{internal}
