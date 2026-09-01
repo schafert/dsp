@@ -12,13 +12,12 @@
 #'
 #'
 #' @returns
-#' If cp_prop = FALSE, a numeric vector of indices that correspond to indices of the observed data.
+#' If `cp_prop = FALSE`, an integer vector containing the indices of detected changepoints in the observed data.
+#' If no changepoints are detected, an empty integer vector is returned.
+#'
 #' If cp_prop = TRUE, a list containing:
-#'
-#'     - 'cp_t':  a numeric vector of indices that correspond to indices of the observed data.
-#'     - 'cp_prop': a numeric vector of length (T - D) with the pointwise proportion of samples where the increment exceeds the threshold.
-#'
-#' If no proportions exceed cp_thres, then the vector will be a length 0 integer vector.
+#'     - 'cp_t':  an integer vector containing the indices of detected changepoints.
+#'     - 'cp_prop': a numeric vector of length `T - D` containing the pointwise posterior proportions of threshold exceedance.
 #'
 #' @examples
 #' set.seed(200)
