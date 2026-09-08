@@ -42,3 +42,4 @@ serving as a design matrix in the observation equation.
 \note{
 Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 }
+\keyword{internal}

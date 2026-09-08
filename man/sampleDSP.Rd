@@ -49,3 +49,4 @@ with \code{alpha = beta}. The primary example is the dynamic horseshoe process w
 \note{
 The priors induced by \code{prior_dhs_phi} all imply a stationary (log-) volatility process.
 }
+\keyword{internal}

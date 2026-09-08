@@ -32,3 +32,4 @@ and time-dependent innovation variances. In particular, we use the sampler for t
 log-volatility AR(1) process with the parameter-expanded Polya-Gamma sampler. The sampler also applies
 to a multivariate case with independent components.
 }
+\keyword{internal}

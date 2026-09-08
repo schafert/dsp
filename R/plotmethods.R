@@ -1,11 +1,15 @@
 #----------------------------------------------------------------------------
-#' Plot the Bayesian trend filtering fitted values
+#' Plot posterior summaries from a fitted dsp model
 #'
-#' Plot the BTF posterior mean of the conditional expectation with posterior credible intervals (pointwise and joint),
-#' the observed data, and true curves (if known)
+#' Visualize posterior samples for a selected parameter from a fitted
+#' `dsp` object. The parameter to plot must be specified using `type`,
+#' which should correspond to one of the entries in `x$mcmc_output`. By default, `type = "mu"`.
+#' Depending on the dimension of the selected posterior samples, the
+#' function produces either a posterior density plot, a time-series plot
+#' with credible intervals, or a multi-panel time-series plot.
 #'
 #' @param x an object of class `dsp` from [dsp_fit()].
-#' @param type character string giving the parameter name to visualize; must be one of the entries in `x$mcmc_output`.
+#' @param type character string giving the parameter name to visualize; must be one of the entries in `x$mcmc_output`. Defaults to `"mu"`.
 #' @param true_values optional ground-truth values to overlay on the plot. For scalar parameters, this should be a length-1 numeric value; for time-varying parameters, a `T x 1` vector; and for multi-parameter time-varying quantities, a `T x p` matrix matching the plotted parameter dimensions.
 #' @param y_obs optional vector of observed data point of length T. Only for `2`-dimensional parameters.
 #' @param times optional vector of observation points. If `NULL`, the function assumes `T` equally spaced points on `[0,1]`.
@@ -78,7 +82,7 @@
 #' @export
 
 plot.dsp <- function(
-  x, type, true_values = NULL, times = NULL, y_obs = NULL,
+  x, type = "mu", true_values = NULL, times = NULL, y_obs = NULL,
   include_joint_bands = FALSE, alpha = 0.05,
   xlab = NULL, ylab = NULL, main = NULL,
   xlim = NULL, ylim = NULL,
@@ -93,6 +97,12 @@ plot.dsp <- function(
   ...
 ){
   # Time series:
+  if (missing(type)) {
+    stop(
+      "`type` must be specified. Available parameters are: ",
+      paste(names(x$mcmc_output), collapse = ", ")
+    )
+  }
   mean_color = "dodgerblue"
   samples = x$mcmc_output[[type]]
   if(is.null(samples)){

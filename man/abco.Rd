@@ -80,3 +80,4 @@ The penalty utilizes the dynamic horseshoe prior on the evolution errors.
 Sampling is accomplished with a (parameter-expanded) Gibbs sampler,
 mostly relying on a dynamic linear model representation.
 }
+\keyword{internal}

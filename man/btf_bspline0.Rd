@@ -81,3 +81,4 @@ The primary advantages of \code{btf_bspline} over \code{btf} are
 substantially fewer than the number of time points.
 }
 }
+\keyword{internal}

@@ -16,3 +16,4 @@ getARpXmat(y, p = 1, include_intercept = FALSE)
 \description{
 Compute the design matrix X for AR(p) model
 }
+\keyword{internal}

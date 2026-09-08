@@ -21,3 +21,4 @@ and additional parameters associated with the DHS priors.
 Compute initial values for evolution error variance parameters under the
 dynamic horseshoe prior
 }
+\keyword{internal}

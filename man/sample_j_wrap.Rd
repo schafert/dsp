@@ -21,3 +21,4 @@ by approximating it with the mixture Gaussian distribution described in Omori et
 \note{
 When the obs is not not specified, the components are samples from the prior distribution.
 }
+\keyword{internal}

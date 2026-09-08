@@ -26,3 +26,4 @@ a list containing 4 sets of parameters
 \description{
 Helper function for initializing parameters for ASV model
 }
+\keyword{internal}

@@ -50,3 +50,4 @@ Compute one draw of the threshold parameter in th TAR(1) model with Gaussian inn
 and time-dependent innovation variances. The sampler utilizes metropolis hasting to draw
 from uniform prior.
 }
+\keyword{internal}

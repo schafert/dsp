@@ -46,7 +46,7 @@ Method for printing basic information about the model specification
 }
 \examples{
 model_spec <- dsp_spec(family = "gaussian",
-                      model = "changepoint")
+                      model = "smoothing")
 
 
 print(model_spec)

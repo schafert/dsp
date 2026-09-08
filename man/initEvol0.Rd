@@ -25,3 +25,4 @@ where the SDs may be common or distinct among the states.
 \details{
 This function initializes the parameters for a PX-Gibbs sampler.
 }
+\keyword{internal}

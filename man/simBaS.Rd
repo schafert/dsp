@@ -27,3 +27,4 @@ The minimum of the returned value, \code{PsimBaS_t},
 over the domain \code{t} is the Global Bayesian P-Value (GBPV) for testing
 whether the function is zero everywhere.
 }
+\keyword{internal}

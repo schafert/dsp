@@ -19,3 +19,4 @@ and additional parameters associated with SV model.
 Compute one draw of the normal stochastic volatility parameters.
 The model assumes an AR(1) for the log-volatility.
 }
+\keyword{internal}

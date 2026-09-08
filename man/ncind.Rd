@@ -21,3 +21,4 @@ Sample from \{1,...,k\}
 \description{
 Sample Z from 1,2,...,k, with P(Z=i) proportional to q_iN(mu_i,sig2_i).
 }
+\keyword{internal}

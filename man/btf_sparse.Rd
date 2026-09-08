@@ -99,3 +99,4 @@ The data \code{y} may contain NAs, which will be treated with a simple imputatio
 via an additional Gibbs sampling step. In general, rescaling \code{y} to have unit standard
 deviation is recommended to avoid numerical issues.
 }
+\keyword{internal}

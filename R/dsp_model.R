@@ -88,7 +88,7 @@
 #'
 #' @examples
 #' model_spec <- dsp_spec(family = "gaussian",
-#'                       model = "changepoint")
+#'                       model = "smoothing")
 #'
 #'
 #' @export

@@ -37,3 +37,4 @@ then the correct thresholding rule is based on \code{kappa = 1/(1 + evol_sigma_t
 The latter case may be implemented by omitting the input for \code{post_obs_sigma_t2}
 (or setting it to NULL).
 }
+\keyword{internal}

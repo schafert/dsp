@@ -19,3 +19,4 @@ Build the \code{Tp x Tp} matrix XtX using the Matrix() package
 X'X is a one-time computing cost. Special cases may have more efficient computing options,
 but the Matrix representation is important for efficient computations within the sampler.
 }
+\keyword{internal}

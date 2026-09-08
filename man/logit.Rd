@@ -15,3 +15,4 @@ A scalar or vector of log-odds
 \description{
 Compute the log-odds
 }
+\keyword{internal}

@@ -39,3 +39,4 @@ This model is equivalent to the Bayesian trend filtering (BTF) model, assuming a
 \note{
 Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 }
+\keyword{internal}

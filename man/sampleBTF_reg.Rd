@@ -34,3 +34,4 @@ assuming appropriate (shrinkage/sparsity) priors for the evolution errors.
 \note{
 Missing entries (NAs) are not permitted in \code{y}. Imputation schemes are available.
 }
+\keyword{internal}

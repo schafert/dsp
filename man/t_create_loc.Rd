@@ -23,3 +23,4 @@ Create row and column indices for locations of symmetric band-sparse matrix.
 Starts with the locations of the diagonal, proceed with upper-diagonals,
 followed by lower-diagonals.
 }
+\keyword{internal}

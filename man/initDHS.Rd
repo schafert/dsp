@@ -20,3 +20,4 @@ and the mean of log-vol means \code{dhs_mean0} (relevant when \code{p > 1})
 \description{
 Compute initial values for evolution error variance parameters under the dynamic horseshoe prior
 }
+\keyword{internal}
