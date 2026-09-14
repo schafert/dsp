@@ -27,3 +27,24 @@ NULL
 # afterwards.
 .dsp_state <- new.env(parent = emptyenv())
 .dsp_state$n_illcond <- 0L
+
+#' Dynamic Shrinkage Process (dsp) Object
+#'
+#' Check whether an object is a fitted \code{dsp} model.
+#'
+#' @details
+#' A \code{dsp} object is a clcode{\link{dsp_fit}}.
+#' It contains \code{mcmc_output}, a list of posterior draws whose matrix
+#' elements are \code{nsave} br elements are of
+#' length \code{nsave}; \code{DIC}, the deviance information criterion and
+#' effective number of parametber of saved draws,
+#' the burn-in and the thinning interval; and \code{model_spec}, the
+#' \code{dsp_spec} object desc
+#'
+#' @param object any \R object
+#' @return Logical, whether \code{object} inherits from class \code{dsp}.
+#' @aliases dsp-class
+#' @export
+is.dsp <- function(object){
+  inherits(object, "dsp")
+}

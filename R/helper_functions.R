@@ -482,6 +482,7 @@ getEffSize = function(postX) {
   if(is.null(dim(postX))) return(effectiveSize(postX))
   summary(coda::effectiveSize(coda::as.mcmc(array(postX, c(dim(postX)[1], prod(dim(postX)[-1]))))))
 }
+
 #----------------------------------------------------------------------------
 #' Compute the ergodic (running) mean.
 #' @param x vector for which to compute the running mean
