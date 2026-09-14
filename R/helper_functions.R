@@ -469,28 +469,6 @@ simBaS = function(sampFuns){
 }
 
 #----------------------------------------------------------------------------
-#' Summarize of effective sample size
-#'
-#' Compute the summary statistics for the effective sample size (ESS) across
-#' posterior samples for possibly many variables
-#'
-#' @param postX An array of arbitrary dimension \code{(nsims x ... x ...)}, where \code{nsims} is the number of posterior samples
-#' @return Table of summary statistics using the function \code{summary()}.
-#' @importFrom coda effectiveSize as.mcmc
-#' @keywords internal
-getEffSize = function(postX) {
-  if(is.null(dim(postX))) return(effectiveSize(postX))
-  summary(coda::effectiveSize(coda::as.mcmc(array(postX, c(dim(postX)[1], prod(dim(postX)[-1]))))))
-}
-
-#----------------------------------------------------------------------------
-#' Compute the ergodic (running) mean.
-#' @param x vector for which to compute the running mean
-#' @return A vector \code{y} with each element defined by \code{y[i] = mean(x[1:i])}
-#' @keywords internal
-ergMean = function(x) {cumsum(x)/(1:length(x))}
-
-#----------------------------------------------------------------------------
 #' Compute the log-odds
 #' @param x scalar or vector in (0,1) for which to compute the (componentwise) log-odds
 #' @return A scalar or vector of log-odds
