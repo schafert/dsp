@@ -2,8 +2,8 @@
 #' Plot posterior summaries from a fitted dsp model
 #'
 #' Visualize posterior samples for a selected parameter from a fitted
-#' `dsp` object. The parameter to plot must be specified using `type`,
-#' which should correspond to one of the entries in `x$mcmc_output`. By default, `type = "mu"`.
+#' `dsp` object. The parameter to plot is chosen with `type`, which must name
+#' one of the entries in `x$mcmc_output` and defaults to `"mu"`.
 #' Depending on the dimension of the selected posterior samples, the
 #' function produces either a posterior density plot, a time-series plot
 #' with credible intervals, or a multi-panel time-series plot.
@@ -96,18 +96,19 @@ plot.dsp <- function(
   cp_thres = 0.5,
   ...
 ){
-  # Time series:
-  if (missing(type)) {
-    stop(
-      "`type` must be specified. Available parameters are: ",
-      paste(names(x$mcmc_output), collapse = ", ")
-    )
+  # Validate the value rather than whether it was supplied. missing() is TRUE
+  # exactly when the caller omitted the argument, which is the case the default
+  # exists to serve, and FALSE when the caller passes NULL. Testing the value
+  # lets the default work and gives NULL and unrecognised names the same
+  # informative message.
+  if (is.null(type) || !is.character(type) || length(type) != 1L ||
+      is.null(x$mcmc_output[[type]])) {
+    stop("`type` must name one of: ",
+         paste(names(x$mcmc_output), collapse = ", "))
   }
+
   mean_color = "dodgerblue"
   samples = x$mcmc_output[[type]]
-  if(is.null(samples)){
-    stop("Must be one of the parameters in x$mcmc_output")
-  }
   dimension = dim(samples)
 
   oldpar <- par(no.readonly = TRUE)
