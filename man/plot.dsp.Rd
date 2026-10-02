@@ -76,8 +76,8 @@ No return value, called for side effects
 }
 \description{
 Visualize posterior samples for a selected parameter from a fitted
-\code{dsp} object. The parameter to plot must be specified using \code{type},
-which should correspond to one of the entries in \code{x$mcmc_output}. By default, \code{type = "mu"}.
+\code{dsp} object. The parameter to plot is chosen with \code{type}, which must name
+one of the entries in \code{x$mcmc_output} and defaults to \code{"mu"}.
 Depending on the dimension of the selected posterior samples, the
 function produces either a posterior density plot, a time-series plot
 with credible intervals, or a multi-panel time-series plot.
