@@ -1,7 +1,7 @@
 Type: Package
 Package: dsp
 Title: Dynamic Shrinkage Process and Change Point Detection
-Version: 1.6.0
+Version: 1.7.0
 Authors@R: c(
     person("Daniel R.", "Kowal", , "daniel.kowal@rice.edu", role = c("aut", "cph")),
     person("Haoxuan", "Wu", , "hw399@cornell.edu", role = c("aut")),
@@ -64,6 +64,3 @@ RoxygenNote: 7.3.3
 Config/testthat/edition: 3
 URL: https://github.com/schafert/dsp
 BugReports: https://github.com/schafert/dsp/issues
-RemoteType: local
-RemotePkgRef: local::.
-RemoteUrl: /Users/bc454/Desktop/Research/DSP_software/dsp

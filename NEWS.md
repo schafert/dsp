@@ -1,3 +1,21 @@
+# dsp 1.7.0
+
+* Added a `coda::as.mcmc()` method for fitted `dsp` objects, so that the
+  convergence diagnostics and plotting functions in `coda` can be applied
+  directly. Parameters are flattened to one column per index, named so that
+  individual time points can be addressed, and the result records the
+  sampler's iteration index, including burn-in and thinning.
+* Added `is.dsp()` and documented the `dsp` class, including the components of
+  a fitted object and their dimensions.
+* `plot()` now works without an explicit `type`, defaulting to `"mu"`. The
+  default was previously unreachable because the method tested whether the
+  argument had been supplied rather than testing its value. Supplying `NULL`,
+  an unrecognised name, a vector or a non-character value now gives one message
+  naming the quantities the fitted object holds.
+* Removed `RemoteType`, `RemotePkgRef` and `RemoteUrl` from DESCRIPTION, which
+  were left behind by a local installation.
+* Removed two unused internal functions, `getEffSize()` and `ergMean()`.
+
 # dsp 1.6.0
 
 * Fixed random number generation so that `set.seed` controls results; `btf_nb` reset the seed and the state sampler drew from a separate stream.
