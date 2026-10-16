@@ -31,7 +31,7 @@
 #' y = signal + noise
 #' model_spec = dsp_spec(family = "gaussian", model = "changepoint",
 #'                       D = 1, useAnom = TRUE)
-#' mcmc_output = dsp_fit(y, model_spec = model_spec, nsave = 500, nburn = 500)
+#' mcmc_output = dsp_fit(y, model_spec = model_spec, nsave = 200, nburn = 200)
 #' predict(mcmc_output)
 #'
 #' @method predict dsp
