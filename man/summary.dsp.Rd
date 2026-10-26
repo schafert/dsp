@@ -2,26 +2,65 @@
 % Please edit documentation in R/summary.R
 \name{summary.dsp}
 \alias{summary.dsp}
-\title{Summarize DSP MCMC chains}
+\title{Summarize a fitted dsp model}
 \usage{
-\method{summary}{dsp}(object, pars, probs = c(0.025, 0.25, 0.5, 0.75, 0.975), ...)
+\method{summary}{dsp}(object, pars, probs = c(0.025, 0.975), ess = FALSE, ...)
 }
 \arguments{
 \item{object}{object of class dsp from \code{\link[=dsp_fit]{dsp_fit()}}}
 
-\item{pars}{parameter names specified for summaries; currently defaults to all parameters named in object$mcmc_output}
+\item{pars}{parameter names to summarize; defaults to all parameters
+returned by \code{\link[=par_names]{par_names()}}}
 
-\item{probs}{numeric vector of \code{\link[=quantile]{quantile()}}s requested for posterior summary of pars. Defaults to c(0.025, 0.25, 0.50, 0.75, 0.975)}
+\item{probs}{numeric vector of length two giving the probabilities of the
+posterior interval reported for scalar parameters. Defaults to
+c(0.025, 0.975)}
 
-\item{...}{currently not being used}
+\item{ess}{logical; if TRUE, also report the minimum and median pointwise
+effective sample size of each time-varying or vector parameter. Defaults
+to FALSE, because this requires one spectral estimate per time point and
+takes several seconds for long series.}
+
+\item{...}{currently not used}
 }
 \value{
-Returns a named list of the same length as pars where within each element of the list
-is a numeric matrix (vector parameters) or vector (scalar parameters). For matrices, each row is a time point (or dimension) of the parameter and each column
-is a named summary. The names are accessible with \code{colnames}. For vectors (scalar parameters), each element is a named summary.
+An object of class \code{summary.dsp}, a list with components
+\describe{
+\item{model_spec}{the \code{\link[=dsp_spec]{dsp_spec()}} object of the fitted model}
+\item{mcpar}{the number of saved draws, the burn-in and \code{nskip}}
+\item{nobs}{the number of time points}
+\item{DIC}{the data frame returned by \code{\link[=DIC]{DIC()}}, or \code{NULL} if the DIC
+was not computed}
+\item{scalars}{a matrix with one row per scalar parameter and columns
+\code{mean}, \code{sd}, the two quantiles and \code{ess}, or
+\code{NULL} if there are none}
+\item{vectors}{a data frame with one row per non-scalar parameter and
+columns \code{length}, \code{mean_min} and \code{mean_max}, and, if
+\code{ess = TRUE}, \code{ess_min} and \code{ess_median}; or \code{NULL}
+if there are none}
+}
 }
 \description{
-Summarize DSP MCMC chains
+Produces a compact summary of a fitted model: the model specification, the
+MCMC settings, the deviance information criterion and one line per
+parameter.
+}
+\details{
+Scalar parameters are summarized by their posterior mean, standard
+deviation, interval and effective sample size. A parameter indexed by time
+(or by basis function, or by predictor) is summarized in one line by its
+length and the range of its pointwise posterior means, and, if
+\code{ess = TRUE}, the minimum and median of its pointwise effective sample
+sizes. A regression coefficient array \code{beta} is reported one line per
+predictor.
+
+Effective sample sizes are computed by \code{\link[coda:effectiveSize]{coda::effectiveSize()}}. Elements
+with no posterior variation, such as the fixed initial values of the
+evolution variances, are excluded from the minimum and median.
+
+Pointwise posterior summaries of a time-varying parameter are returned by
+\code{\link[=fitted.dsp]{fitted.dsp()}}, and the posterior draws by \code{\link[=as.mcmc.dsp]{as.mcmc.dsp()}}, for which the
+diagnostic functions in \pkg{coda} are available.
 }
 \examples{
 set.seed(200)
@@ -37,8 +76,12 @@ model_spec = dsp_spec(family = "gaussian", model = "changepoint",
                       D = 1, useAnom = TRUE, obsSV = "SV")
 mcmc_output = dsp_fit(y, model_spec = model_spec, nsave = 200, nburn = 200)
 
-summary_fit <- summary(mcmc_output)
-summary_fit$mu[,"mean"]
-summary_fit$evol_sigma_t2[,"mean"]
+summary(mcmc_output)
 
+# pointwise summaries of the mean function
+head(fitted(mcmc_output))
+
+}
+\seealso{
+\code{\link[=fitted.dsp]{fitted.dsp()}}, \code{\link[=DIC]{DIC()}}, \code{\link[=as.mcmc.dsp]{as.mcmc.dsp()}}
 }

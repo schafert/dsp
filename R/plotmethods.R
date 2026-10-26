@@ -3,13 +3,13 @@
 #'
 #' Visualize posterior samples for a selected parameter from a fitted
 #' `dsp` object. The parameter to plot is chosen with `type`, which must name
-#' one of the entries in `x$mcmc_output` and defaults to `"mu"`.
+#' one of the parameters returned by [par_names()] and defaults to `"mu"`.
 #' Depending on the dimension of the selected posterior samples, the
 #' function produces either a posterior density plot, a time-series plot
 #' with credible intervals, or a multi-panel time-series plot.
 #'
 #' @param x an object of class `dsp` from [dsp_fit()].
-#' @param type character string giving the parameter name to visualize; must be one of the entries in `x$mcmc_output`. Defaults to `"mu"`.
+#' @param type character string giving the parameter name to visualize; must be one of the parameters returned by [par_names()]. Defaults to `"mu"`.
 #' @param true_values optional ground-truth values to overlay on the plot. For scalar parameters, this should be a length-1 numeric value; for time-varying parameters, a `T x 1` vector; and for multi-parameter time-varying quantities, a `T x p` matrix matching the plotted parameter dimensions.
 #' @param y_obs optional vector of observed data point of length T. Only for `2`-dimensional parameters.
 #' @param times optional vector of observation points. If `NULL`, the function assumes `T` equally spaced points on `[0,1]`.
@@ -102,9 +102,9 @@ plot.dsp <- function(
   # lets the default work and gives NULL and unrecognised names the same
   # informative message.
   if (is.null(type) || !is.character(type) || length(type) != 1L ||
-      is.null(x$mcmc_output[[type]])) {
+      !type %in% par_names(x)) {
     stop("`type` must name one of: ",
-         paste(names(x$mcmc_output), collapse = ", "))
+         paste(par_names(x), collapse = ", "))
   }
 
   mean_color = "dodgerblue"

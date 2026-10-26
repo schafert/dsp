@@ -17,7 +17,9 @@
 #'
 #' If cp_prop = TRUE, a list containing:
 #'     - 'cp_t':  an integer vector containing the indices of detected changepoints.
-#'     - 'cp_prop': a numeric vector of length `T - D` containing the pointwise posterior proportions of threshold exceedance.
+#'     - 'cp_prop': a numeric vector of length `T` containing the pointwise posterior proportions of threshold exceedance,
+#'       aligned with the observed series so that `cp_prop[cp_t]` gives the proportions at the detected changepoints.
+#'       The first `D` entries are `NA`, because no increment is defined there.
 #'
 #' @examples
 #' set.seed(200)
@@ -34,6 +36,9 @@
 #' mcmc_output = dsp_fit(y, model_spec = model_spec, nsave = 200, nburn = 200)
 #' predict(mcmc_output)
 #'
+#' cp <- predict(mcmc_output, cp_prop = TRUE)
+#' cp$cp_prop[cp$cp_t]
+#'
 #' @method predict dsp
 #' @export
 
@@ -49,7 +54,6 @@ predict.dsp <- function(object, cp_thres = 0.5, cp_prop = FALSE, ...){
 
   if (is.na(cp_thres) || !is.numeric(cp_thres) || cp_thres < 0 || cp_thres > 1) stop("cp_thres must be a numeric value between 0 and 1.")
 
-  cp_list = rep(0, length(object$mcmc_output$omega[1,]))
   D = object$model_spec$arguments$D
 
   cp_mat <- apply(object$mcmc_output$omega^2, MARGIN = 2, \(samp){samp > exp(object$mcmc_output$gamma)})
@@ -59,7 +63,8 @@ predict.dsp <- function(object, cp_thres = 0.5, cp_prop = FALSE, ...){
   cp_t <- as.integer(which(cp_list >= cp_thres) + D)
 
   if(cp_prop){
-    return(list(cp_t = cp_t, cp_prop = cp_list))
+    # omega holds the T - D increments, so pad the front to index by time
+    return(list(cp_t = cp_t, cp_prop = c(rep(NA_real_, D), cp_list)))
   }
 
   return(cp_t)

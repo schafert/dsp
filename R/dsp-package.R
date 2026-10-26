@@ -41,7 +41,11 @@ NULL
 #' the burn-in and the thinning interval; and \code{model_spec}, the
 #' \code{dsp_spec} object describing the fitted model.
 #'
-#' @seealso [as.mcmc.dsp()], [summary.dsp()]
+#' The accessor functions [par_names()], [fitted.dsp()], [DIC()],
+#' [get_spec()] and [nobs.dsp()] extract these components without referring
+#' to the structure of the object.
+#'
+#' @seealso [dsp-accessors], [as.mcmc.dsp()], [summary.dsp()]
 #'
 #' @param object any \R object
 #' @return Logical, whether \code{object} inherits from class \code{dsp}.

@@ -1,3 +1,28 @@
+# dsp 1.8.0
+
+* Added accessor functions so that a fitted model can be inspected without
+  referring to the structure of the object: `par_names()` lists the parameters
+  with stored draws, `fitted()` returns pointwise posterior summaries of one
+  parameter, `DIC()` returns the deviance information criterion under both
+  estimators of the effective number of parameters, `get_spec()` returns the
+  model specification and `nobs()` returns the number of time points.
+* `summary()` now returns an object of class `summary.dsp` with a print method.
+  It reports the model specification, the MCMC settings, the DIC and one line
+  per parameter, and fits on one screen. Effective sample sizes are computed by
+  `coda::effectiveSize()`; pointwise ones for time-varying parameters are
+  opt in through `ess = TRUE`. The pointwise posterior summaries that
+  `summary()` previously returned as a list are now returned by `fitted()`, with
+  quantile columns named as by `quantile()` (`"2.5%"` rather than `"q_2.5"`).
+* `as.mcmc()` is re-exported from `coda`, so `as.mcmc(fit)` works after
+  `library(dsp)` alone.
+* `predict(cp_prop = TRUE)` now returns the changepoint probabilities aligned
+  with the observed series, with `NA` for the first `D` time points, so that
+  `cp_prop[cp_t]` gives the probabilities at the detected changepoints.
+* `print()` for fitted models reported `nskip` as the thinning interval. It now
+  reports `nskip + 1`, the interval `coda::thin()` gives.
+* `plot()` now rejects `type = "DIC"` and `type = "p_d"`, which are not draws.
+* Fixed a missing "and" in the printed specification of B-spline models.
+
 # dsp 1.7.0
 
 * Added a `coda::as.mcmc()` method for fitted `dsp` objects, so that the

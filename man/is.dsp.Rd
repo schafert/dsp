@@ -24,7 +24,11 @@ length \code{nsave}; \code{DIC}, the deviance information criterion and
 effective number of parameters; \code{mcpar}, the number of saved draws,
 the burn-in and the thinning interval; and \code{model_spec}, the
 \code{dsp_spec} object describing the fitted model.
+
+The accessor functions \code{\link[=par_names]{par_names()}}, \code{\link[=fitted.dsp]{fitted.dsp()}}, \code{\link[=DIC]{DIC()}},
+\code{\link[=get_spec]{get_spec()}} and \code{\link[=nobs.dsp]{nobs.dsp()}} extract these components without referring
+to the structure of the object.
 }
 \seealso{
-\code{\link[=as.mcmc.dsp]{as.mcmc.dsp()}}, \code{\link[=summary.dsp]{summary.dsp()}}
+\link{dsp-accessors}, \code{\link[=as.mcmc.dsp]{as.mcmc.dsp()}}, \code{\link[=summary.dsp]{summary.dsp()}}
 }

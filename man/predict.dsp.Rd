@@ -22,7 +22,9 @@ If no changepoints are detected, an empty integer vector is returned.
 
 If cp_prop = TRUE, a list containing:
 - 'cp_t':  an integer vector containing the indices of detected changepoints.
-- 'cp_prop': a numeric vector of length \code{T - D} containing the pointwise posterior proportions of threshold exceedance.
+- 'cp_prop': a numeric vector of length \code{T} containing the pointwise posterior proportions of threshold exceedance,
+aligned with the observed series so that \code{cp_prop[cp_t]} gives the proportions at the detected changepoints.
+The first \code{D} entries are \code{NA}, because no increment is defined there.
 }
 \description{
 Predict changepoints from the output of ABCO
@@ -45,5 +47,8 @@ model_spec = dsp_spec(family = "gaussian", model = "changepoint",
                       D = 1, useAnom = TRUE)
 mcmc_output = dsp_fit(y, model_spec = model_spec, nsave = 200, nburn = 200)
 predict(mcmc_output)
+
+cp <- predict(mcmc_output, cp_prop = TRUE)
+cp$cp_prop[cp$cp_t]
 
 }

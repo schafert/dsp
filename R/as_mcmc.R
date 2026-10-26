@@ -7,7 +7,7 @@
 #'
 #' @param x an object of class `dsp`; see [dsp-class]
 #' @param pars character vector of parameter names to retain; defaults to all
-#'   parameters named in \code{x$mcmc_output}
+#'   parameters returned by [par_names()]
 #' @param ... Further arguments to be passed to specific methods
 #'
 #' @details
@@ -23,7 +23,7 @@
 #'
 #' The deviance information criterion and the effective number of parameters
 #' are posterior summaries rather than draws, and are dropped by the coercion.
-#' They remain available in \code{x$DIC}.
+#' They remain available through [DIC()].
 #'
 #' The sampler saves every \code{nskip + 1} iterations after burn-in, so the
 #' returned object records a thinning interval of \code{nskip + 1}, a starting
@@ -35,7 +35,7 @@
 #' An object of class \code{\link[coda]{mcmc}} with \code{nsave} rows and one
 #' column per scalar element of the retained parameters named by \code{pars}.
 #'
-#' @seealso [dsp-class], [summary.dsp()], [coda::mcmc()]
+#' @seealso [dsp-class], [par_names()], [summary.dsp()], [coda::mcmc()]
 #'
 #' @examples
 #' set.seed(200)
@@ -45,7 +45,7 @@
 #' model_spec <- dsp_spec(family = "gaussian", model = "smoothing", D = 1)
 #' fit <- dsp_fit(y, model_spec = model_spec, nsave = 200, nburn = 200)
 #'
-#' draws <- coda::as.mcmc(fit, pars = c("dhs_phi", "dhs_mean"))
+#' draws <- as.mcmc(fit, pars = c("dhs_phi", "dhs_mean"))
 #' summary(draws)
 #' coda::effectiveSize(draws)
 #'
@@ -62,17 +62,7 @@ as.mcmc.dsp <- function(x, pars, ...){
   nburn <- unname(x$mcpar["nburn"])
   nskip <- unname(x$mcpar["nskip"])
 
-  # Retain only the elements that hold posterior draws. DIC and p_d are
-  # posterior summaries, and any element whose leading dimension is not the
-  # number of saved draws cannot be a monitored quantity.
-  draws <- x$mcmc_output[!names(x$mcmc_output) %in% c("DIC", "p_d")]
-
-  is_draw <- vapply(draws, function(samps){
-    d <- dim(samps)
-    if(is.null(d)) length(samps) == nsave else d[1] == nsave
-  }, logical(1))
-
-  draws <- draws[is_draw]
+  draws <- get_draws(x)
 
   if(length(draws) == 0)
     stop("No posterior draws were found in 'x$mcmc_output'.", call. = FALSE)
@@ -143,3 +133,7 @@ get_flatnames <- function(name, dim = NULL, first_index = 1){
   return(paste0(name, "[", do.call(paste, c(grid, sep = ", ")), "]"))
 
 }
+
+#' @importFrom coda as.mcmc
+#' @export
+coda::as.mcmc

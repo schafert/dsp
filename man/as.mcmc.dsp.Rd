@@ -10,7 +10,7 @@
 \item{x}{an object of class \code{dsp}; see \linkS4class{dsp}}
 
 \item{pars}{character vector of parameter names to retain; defaults to all
-parameters named in \code{x$mcmc_output}}
+parameters returned by \code{\link[=par_names]{par_names()}}}
 
 \item{...}{Further arguments to be passed to specific methods}
 }
@@ -36,7 +36,7 @@ the draws of the second regression coefficient at time 3.
 
 The deviance information criterion and the effective number of parameters
 are posterior summaries rather than draws, and are dropped by the coercion.
-They remain available in \code{x$DIC}.
+They remain available through \code{\link[=DIC]{DIC()}}.
 
 The sampler saves every \code{nskip + 1} iterations after burn-in, so the
 returned object records a thinning interval of \code{nskip + 1}, a starting
@@ -51,11 +51,11 @@ y <- signal + rnorm(100)
 model_spec <- dsp_spec(family = "gaussian", model = "smoothing", D = 1)
 fit <- dsp_fit(y, model_spec = model_spec, nsave = 200, nburn = 200)
 
-draws <- coda::as.mcmc(fit, pars = c("dhs_phi", "dhs_mean"))
+draws <- as.mcmc(fit, pars = c("dhs_phi", "dhs_mean"))
 summary(draws)
 coda::effectiveSize(draws)
 
 }
 \seealso{
-\linkS4class{dsp}, \code{\link[=summary.dsp]{summary.dsp()}}, \code{\link[coda:mcmc]{coda::mcmc()}}
+\linkS4class{dsp}, \code{\link[=par_names]{par_names()}}, \code{\link[=summary.dsp]{summary.dsp()}}, \code{\link[coda:mcmc]{coda::mcmc()}}
 }
