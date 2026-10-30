@@ -12,7 +12,7 @@ credible_bands(object, pars = "mu", level = 0.95, ...)
 \item{pars}{character string naming one time-varying parameter; see
 \code{\link[=par_names]{par_names()}}. Defaults to \code{"mu"}.}
 
-\item{level}{the joint coverage probability of the bands. Defaults to 0.95.}
+\item{level}{the credibility level of the bands. Defaults to 0.95.}
 
 \item{...}{currently not used}
 }
@@ -33,9 +33,9 @@ The bands of Crainiceanu et al. (2007) have the form posterior mean plus or
 minus a multiple of the pointwise posterior standard deviation. The
 multiple is the \code{level} quantile, over the posterior draws, of the
 largest standardized absolute deviation from the posterior mean across all
-time points. The bands therefore contain the whole trajectory with
-posterior probability \code{level}, whereas the pointwise intervals from
-\code{\link[=fitted.dsp]{fitted.dsp()}} have that coverage at each time point separately.
+time points. The bands therefore contain the whole trajectory in a
+proportion \code{level} of the posterior draws, whereas the pointwise
+intervals from \code{\link[=fitted.dsp]{fitted.dsp()}} are computed at each time point separately.
 
 The SimBaS of Meyer et al. (2015) at time \eqn{t} is the smallest
 \eqn{\alpha} for which the \eqn{1 - \alpha} simultaneous band excludes zero

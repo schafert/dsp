@@ -8,7 +8,7 @@
 #' @param object an object of class `dsp`; see [dsp-class]
 #' @param pars character string naming one time-varying parameter; see
 #'   [par_names()]. Defaults to \code{"mu"}.
-#' @param level the joint coverage probability of the bands. Defaults to 0.95.
+#' @param level the credibility level of the bands. Defaults to 0.95.
 #' @param ... currently not used
 #'
 #' @details
@@ -16,9 +16,9 @@
 #' minus a multiple of the pointwise posterior standard deviation. The
 #' multiple is the \code{level} quantile, over the posterior draws, of the
 #' largest standardized absolute deviation from the posterior mean across all
-#' time points. The bands therefore contain the whole trajectory with
-#' posterior probability \code{level}, whereas the pointwise intervals from
-#' [fitted.dsp()] have that coverage at each time point separately.
+#' time points. The bands therefore contain the whole trajectory in a
+#' proportion \code{level} of the posterior draws, whereas the pointwise
+#' intervals from [fitted.dsp()] are computed at each time point separately.
 #'
 #' The SimBaS of Meyer et al. (2015) at time \eqn{t} is the smallest
 #' \eqn{\alpha} for which the \eqn{1 - \alpha} simultaneous band excludes zero

@@ -434,13 +434,13 @@ band_stats = function(sampFuns){
 #' \doi{10.1198/106186007X208768}).
 #'
 #' @param sampFuns \code{Nsims x m} matrix of \code{Nsims} MCMC samples and \code{m} points along the curve
-#' @param alpha confidence level
+#' @param alpha one minus the credibility level of the bands
 #'
 #' @return \code{m x 2} matrix of credible bands; the first column is the lower band, the second is the upper band
 #'
 #' @note The input needs not be curves: the simultaneous credible "bands" may be computed
-#' for vectors. The resulting credible intervals will provide joint coverage at the (1-alpha)%
-#' level across all components of the vector. At a point with no posterior
+#' for vectors. The result is a joint credible band at credibility level 1 - alpha
+#' across all components of the vector. At a point with no posterior
 #' variation, both bands equal the constant value.
 #' @keywords internal
 
