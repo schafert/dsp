@@ -1,10 +1,13 @@
 # Fits used across the tests below. Kept small so the file runs quickly.
 
+# y is simulated before the call: inside it, set.seed() would run after
+# dsp_fit() sets its seed and replace the sampler's stream
+y_cp <- {set.seed(200); c(rep(0, 40), rep(8, 40)) + rnorm(80)}
+spec_cp <- dsp_spec(family = "gaussian", model = "changepoint",
+                    D = 1, useAnom = TRUE, obsSV = "SV")
 fit_cp <- suppressWarnings(suppressMessages(
-  dsp_fit(y = {set.seed(200); c(rep(0, 40), rep(8, 40)) + rnorm(80)},
-          model_spec = dsp_spec(family = "gaussian", model = "changepoint",
-                                D = 1, useAnom = TRUE, obsSV = "SV"),
-          nsave = 100, nburn = 100, verbose = FALSE)
+  dsp_fit(y = y_cp, model_spec = spec_cp,
+          nsave = 100, nburn = 100, verbose = FALSE, seed = 1)
 ))
 
 sim_reg <- {set.seed(1); simRegression(nT = 40, p = 3, p_0 = 1)}
@@ -13,13 +16,13 @@ fit_reg <- suppressMessages(
   dsp_fit(y = sim_reg$y,
           model_spec = dsp_spec(family = "gaussian", model = "regression",
                                 D = 1, X = sim_reg$X),
-          nsave = 100, nburn = 100, verbose = FALSE)
+          nsave = 100, nburn = 100, verbose = FALSE, seed = 1)
 )
 
 fit_nb <- suppressMessages(
   dsp_fit(y = {set.seed(3); rpois(60, 5)},
           model_spec = dsp_spec(family = "negbinomial", model = "smoothing", D = 1),
-          nsave = 100, nburn = 100, verbose = FALSE)
+          nsave = 100, nburn = 100, verbose = FALSE, seed = 1)
 )
 
 
@@ -113,9 +116,13 @@ test_that("summary returns a summary.dsp object with one line per parameter", {
   expect_equal(s$nobs, 80L)
   expect_identical(s$DIC, DIC(fit_cp))
 
-  # gamma, dhs_phi, dhs_mean and loglike are scalars; the rest are vectors
-  expect_setequal(rownames(s$scalars), c("gamma", "dhs_phi", "dhs_mean", "loglike"))
-  expect_setequal(rownames(s$vectors), setdiff(par_names(fit_cp), rownames(s$scalars)))
+  # gamma, dhs_phi, dhs_mean, loglike and the one initial evolution variance
+  # (D = 1) are scalars; the rest are vectors
+  expect_setequal(rownames(s$scalars),
+                  c("evol_sigma_t2[1]", "gamma", "dhs_phi", "dhs_mean", "loglike"))
+  expect_setequal(rownames(s$vectors),
+                  c(setdiff(par_names(fit_cp), c(rownames(s$scalars), "evol_sigma_t2")),
+                    "evol_sigma_t2[2:80]"))
   expect_equal(colnames(s$scalars), c("mean", "sd", "2.5%", "97.5%", "ess"))
   expect_equal(s$vectors["mu", "mean_max"], max(colMeans(fit_cp$mcmc_output$mu)))
 
@@ -153,4 +160,118 @@ test_that("ess_varying excludes columns with no posterior variation", {
 
   expect_true(is.na(e[1]))
   expect_equal(e[2], unname(coda::effectiveSize(b[, 2])))
+})
+
+
+test_that("credible_bands returns joint bands and SimBaS", {
+
+  b <- credible_bands(fit_cp, pars = "omega")
+  pw <- fitted(fit_cp, pars = "omega", probs = c(0.025, 0.975))
+
+  expect_equal(colnames(b), c("mean", "lower", "upper", "simBaS"))
+  expect_equal(nrow(b), nrow(pw))
+  expect_equal(unname(b[, "mean"]), unname(pw[, "mean"]))
+
+  # joint bands are at least as wide as the pointwise intervals
+  expect_true(all(b[, "lower"] <= pw[, "2.5%"] + 1e-8))
+  expect_true(all(b[, "upper"] >= pw[, "97.5%"] - 1e-8))
+
+  expect_true(all(b[, "simBaS"] >= 0 & b[, "simBaS"] <= 1))
+
+  # A run of 100 draws can mix poorly between placing the jump at t = 40 or 41,
+  # so the evidence for the jump is checked on a longer run
+  fit_long <- suppressWarnings(suppressMessages(
+    dsp_fit(y = y_cp, model_spec = spec_cp,
+            nsave = 1000, nburn = 1000, verbose = FALSE, seed = 1)
+  ))
+  bl <- credible_bands(fit_long, pars = "omega")
+
+  # the jump at t = 41 is flagged. The model may instead place the jump at
+  # t = 40 and explain y[40] as an anomaly, so accept either increment.
+  expect_lt(min(bl[(40:41) - 1, "simBaS"]), 0.05)
+
+  # the score is the smallest alpha at which the joint band excludes zero
+  i <- which.min(bl[, "simBaS"])
+  alpha <- bl[i, "simBaS"]
+  excl <- credible_bands(fit_long, pars = "omega", level = 1 - alpha - 0.01)
+  expect_true(excl[i, "lower"] > 0 || excl[i, "upper"] < 0)
+
+  # one band per predictor
+  bb <- credible_bands(fit_reg, pars = "beta")
+  expect_equal(dim(bb), c(nobs(fit_reg), ncol(sim_reg$X), 4))
+  expect_equal(dimnames(bb)[[3]], c("mean", "lower", "upper", "simBaS"))
+
+  expect_error(credible_bands(fit_cp, pars = "gamma"), "scalar")
+  expect_error(credible_bands(fit_cp, level = 95), "level")
+  expect_error(credible_bands(fit_cp, pars = "nope"), "one of the parameters")
+})
+
+
+test_that("band helpers ignore columns with no posterior variation", {
+
+  set.seed(1)
+  m <- cbind(0, matrix(rnorm(400), 100, 4), 5)
+
+  cb <- dsp:::credBands(m)
+  expect_false(anyNA(cb))
+  expect_equal(cb[1, ], c(0, 0))
+  expect_equal(cb[6, ], c(5, 5))
+
+  s <- dsp:::simBaS(m)
+  expect_true(is.na(s[1]) && is.na(s[6]))
+  expect_equal(s[2:5], dsp:::simBaS(m[, 2:5]))
+
+  # agrees with the definition of Meyer et al. (2015)
+  Efx <- colMeans(m[, 2:5]); SDfx <- apply(m[, 2:5], 2, sd)
+  Maxfx <- apply(abs(sweep(sweep(m[, 2:5], 2, Efx), 2, SDfx, "/")), 1, max)
+  expect_equal(s[2:5], sapply(abs(Efx)/SDfx, \(z) mean(z <= Maxfx)))
+})
+
+
+test_that("a constant observation variance is stored once per draw", {
+
+  expect_null(dim(fit_reg$mcmc_output$obs_sigma_t2))
+  expect_length(fit_reg$mcmc_output$obs_sigma_t2, 100)
+  expect_gt(stats::sd(fit_reg$mcmc_output$obs_sigma_t2), 0)
+  expect_length(fitted(fit_reg, pars = "obs_sigma_t2"), 6)
+
+  # time-varying under SV
+  expect_equal(dim(fit_cp$mcmc_output$obs_sigma_t2), c(100, 80))
+
+  s <- summary(fit_reg)
+  expect_true("obs_sigma_t2" %in% rownames(s$scalars))
+  expect_false("obs_sigma_t2" %in% rownames(s$vectors))
+
+  pdf(NULL); on.exit(dev.off())
+  expect_silent(plot(fit_reg, type = "obs_sigma_t2"))
+})
+
+
+test_that("summary reports the initial evolution variances separately", {
+
+  s <- summary(fit_cp)
+  # D = 1: one initial variance, a scalar
+  expect_true("evol_sigma_t2[1]" %in% rownames(s$scalars))
+  expect_true("evol_sigma_t2[2:80]" %in% rownames(s$vectors))
+  expect_false("evol_sigma_t2" %in% c(rownames(s$scalars), rownames(s$vectors)))
+
+  # regression: one pair of lines per predictor
+  s <- summary(fit_reg)
+  expect_true(all(paste0("evol_sigma_t2[1, ", 1:3, "]") %in% rownames(s$scalars)))
+  expect_true(all(paste0("evol_sigma_t2[2:40, ", 1:3, "]") %in% rownames(s$vectors)))
+})
+
+
+test_that("the anomaly is aligned with y and zero for the first D", {
+
+  expect_equal(dim(fit_cp$mcmc_output$zeta), c(100, 80))
+  expect_equal(dim(fit_cp$mcmc_output$zeta_sigma_t2), c(100, 80))
+  # D = 1: the anomaly is defined for t > D only
+  expect_true(all(fit_cp$mcmc_output$zeta[, 1] == 0))
+  expect_true(all(fit_cp$mcmc_output$zeta_sigma_t2[, 1] == 0))
+  expect_true(all(fit_cp$mcmc_output$zeta_sigma_t2[, -1] > 0))
+  expect_equal(dim(fit_cp$mcmc_output$omega), c(100, 79))
+
+  pdf(NULL); on.exit(dev.off())
+  expect_silent(plot(fit_cp, type = "zeta_sigma_t2"))
 })

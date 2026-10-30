@@ -7,15 +7,18 @@
 t_sampleEvolZeta_ps(omega, evolParams)
 }
 \arguments{
-\item{omega}{\code{T} vector of errors}
+\item{omega}{\code{T - D} vector of anomalies}
 
 \item{evolParams}{list of parameters to be updated}
 }
 \value{
 List of relevant components in \code{evolParams}:  \code{sigma_wt},
-the \code{T} vector of standard deviations, and additional parameters for inverse gamma priors (shape and scale).
+the \code{T - D} vector of standard deviations, and the auxiliary variables of the inverse-gamma representation of the prior.
 }
 \description{
-Compute one draw of the anomaly component parameters.
+Compute one draw of the parameters of the horseshoe+ prior on the anomaly
+component, as in Wu et al. (2024). As in the code of that paper, the
+additional local scale has a half-Cauchy prior with scale 4, so its
+auxiliary variable \code{eta_v} has rate \code{1/16}.
 }
 \keyword{internal}

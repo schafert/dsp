@@ -392,9 +392,46 @@ ncind = function(y,mu,sig,q){
 
 
 #####################################################################################################
+#' Standardized maximum deviation of posterior draws
+#'
+#' Shared computation for [credBands()] and [simBaS()]: the pointwise posterior
+#' mean and standard deviation, and for each draw the maximum over the domain
+#' of the standardized absolute deviation from the mean.
+#'
+#' @param sampFuns \code{Nsims x m} matrix of \code{Nsims} MCMC samples and \code{m} points along the curve
+#'
+#' @return A list with components \code{Efx} and \code{SDfx}, vectors of
+#'   length \code{m}, \code{Maxfx}, a vector of length \code{Nsims}, and
+#'   \code{varies}, a logical vector of length \code{m}.
+#'
+#' @note Points with no posterior variation, such as fixed initial values,
+#' have a standardized deviation of 0/0. They are excluded from the maximum,
+#' so that they do not make every \code{Maxfx} undefined.
+#' @keywords internal
+
+band_stats = function(sampFuns){
+
+  N = nrow(sampFuns)
+
+  # Compute pointwise mean and SD of f(x):
+  Efx = colMeans(sampFuns); SDfx = apply(sampFuns, 2, sd)
+
+  varies = SDfx > 0
+  if(!any(varies)) stop("The draws have no posterior variation.", call. = FALSE)
+
+  # Compute standardized absolute deviation at the varying points:
+  Standfx = abs(sampFuns[, varies, drop = FALSE] - tcrossprod(rep(1, N), Efx[varies]))/
+    tcrossprod(rep(1, N), SDfx[varies])
+
+  # And the maximum:
+  list(Efx = Efx, SDfx = SDfx, Maxfx = apply(Standfx, 1, max), varies = varies)
+}
+#####################################################################################################
 #' Compute Simultaneous Credible Bands
 #'
 #' Compute (1-alpha)\% credible BANDS for a function based on MCMC samples using Crainiceanu et al. (2007)
+#' (Journal of Computational and Graphical Statistics, 16(2), 265--288,
+#' \doi{10.1198/106186007X208768}).
 #'
 #' @param sampFuns \code{Nsims x m} matrix of \code{Nsims} MCMC samples and \code{m} points along the curve
 #' @param alpha confidence level
@@ -403,32 +440,25 @@ ncind = function(y,mu,sig,q){
 #'
 #' @note The input needs not be curves: the simultaneous credible "bands" may be computed
 #' for vectors. The resulting credible intervals will provide joint coverage at the (1-alpha)%
-#' level across all components of the vector.
+#' level across all components of the vector. At a point with no posterior
+#' variation, both bands equal the constant value.
 #' @keywords internal
 
 credBands = function(sampFuns, alpha = .05){
 
-  N = nrow(sampFuns); m = ncol(sampFuns)
-
-  # Compute pointwise mean and SD of f(x):
-  Efx = colMeans(sampFuns); SDfx = apply(sampFuns, 2, sd)
-
-  # Compute standardized absolute deviation:
-  Standfx = abs(sampFuns - tcrossprod(rep(1, N), Efx))/tcrossprod(rep(1, N), SDfx)
-
-  # And the maximum:
-  Maxfx = apply(Standfx, 1, max)
+  bs = band_stats(sampFuns)
 
   # Compute the (1-alpha) sample quantile:
-  Malpha = quantile(Maxfx, 1-alpha)
+  Malpha = quantile(bs$Maxfx, 1-alpha, names = FALSE)
 
   # Finally, store the bands in a (m x 2) matrix of (lower, upper)
-  cbind(Efx - Malpha*SDfx, Efx + Malpha*SDfx)
+  cbind(bs$Efx - Malpha*bs$SDfx, bs$Efx + Malpha*bs$SDfx)
 }
 #####################################################################################################
 #' Compute Simultaneous Band Scores (SimBaS)
 #'
-#' Compute simultaneous band scores (SimBaS) from Meyer et al. (2015, Biometrics).
+#' Compute simultaneous band scores (SimBaS) from Meyer et al. (2015, Biometrics,
+#' 71(3), 563--574, \doi{10.1111/biom.12299}).
 #' SimBaS uses MC(MC) simulations of a function of interest to compute the minimum
 #' alpha such that the joint credible bands at the alpha level do not include zero.
 #' This quantity is computed for each grid point (or observation point) in the domain
@@ -436,7 +466,7 @@ credBands = function(sampFuns, alpha = .05){
 #'
 #' @param sampFuns \code{Nsims x m} matrix of \code{Nsims} MCMC samples and \code{m} points along the curve
 #'
-#' @return \code{m x 1} vector of simBaS
+#' @return \code{m x 1} vector of simBaS, \code{NA} at points with no posterior variation
 #'
 #' @note The input needs not be curves: the simBaS may be computed
 #' for vectors to achieve a multiplicity adjustment.
@@ -448,22 +478,14 @@ credBands = function(sampFuns, alpha = .05){
 
 simBaS = function(sampFuns){
 
-  N = nrow(sampFuns); m = ncol(sampFuns)
+  bs = band_stats(sampFuns)
 
-  # Compute pointwise mean and SD of f(x):
-  Efx = colMeans(sampFuns); SDfx = apply(sampFuns, 2, sd)
-
-  # Compute standardized absolute deviation:
-  Standfx = abs(sampFuns - tcrossprod(rep(1, N), Efx))/tcrossprod(rep(1, N), SDfx)
-
-  # And the maximum:
-  Maxfx = apply(Standfx, 1, max)
-
-  # And now compute the SimBaS scores:
-  PsimBaS_t = rowMeans(sapply(Maxfx, function(x) abs(Efx)/SDfx <= x))
-
-  # Alternatively, using a loop:
-  #PsimBaS_t = numeric(nT); for(t in 1:m) PsimBaS_t[t] = mean((abs(Efx)/SDfx)[t] <= Maxfx)
+  # PsimBaS_t[t] = mean(abs(Efx[t])/SDfx[t] <= Maxfx), the proportion of draws
+  # whose maximum is at least the standardized mean. With Maxfx sorted, the
+  # number of draws below a value is findInterval(value, ., left.open = TRUE).
+  z = abs(bs$Efx[bs$varies])/bs$SDfx[bs$varies]
+  PsimBaS_t = rep(NA_real_, length(bs$Efx))
+  PsimBaS_t[bs$varies] = 1 - findInterval(z, sort(bs$Maxfx), left.open = TRUE)/length(bs$Maxfx)
 
   PsimBaS_t
 }

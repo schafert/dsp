@@ -39,7 +39,7 @@
 
 \item{y_obs}{optional vector of observed data point of length T. Only for \code{2}-dimensional parameters.}
 
-\item{include_joint_bands}{logical; if \code{TRUE}, include simultaneous credible bands in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: \code{zeta}, \code{omega}, \code{ypred}, and \code{mu} for 2D outputs, and \code{zeta}, \code{omega}, \code{ypred}, \code{mu}, and \code{beta} for 3D outputs.}
+\item{include_joint_bands}{logical; if \code{TRUE}, include simultaneous credible bands (Crainiceanu et al. 2007; see \code{\link[=credible_bands]{credible_bands()}}) in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: \code{zeta}, \code{omega}, \code{ypred}, and \code{mu} for 2D outputs, and \code{zeta}, \code{omega}, \code{ypred}, \code{mu}, and \code{beta} for 3D outputs.}
 
 \item{alpha}{numeric credibility level used to construct posterior intervals and bands. Defaults to \code{0.05}, corresponding to 95\% intervals/bands.}
 
@@ -95,7 +95,7 @@ The plotting behavior depends on the dimension of the posterior samples stored i
 
 Axis labels, titles, plotting limits, margins, legend display, and additional graphical settings can be customized through \code{xlab}, \code{ylab}, \code{main}, \code{xlim}, \code{ylim}, \code{mar}, \code{legend}, \code{legend_cex}, \code{legend_pt_cex}, and \code{par_args}.
 
-The x-axis values are taken from \code{times}. If \code{times} is not supplied, evenly spaced points on \eqn{[0,1]} are used. For differenced variance parameters such as \code{"evol_sigma_t2"} and \code{"zeta_sigma_t2"}, the initial time points associated with prior initialization are automatically removed before plotting.
+The x-axis values are taken from \code{times}. If \code{times} is not supplied, evenly spaced points on \eqn{[0,1]} are used. For \code{"evol_sigma_t2"}, the first \code{D} entries, which are the variances of the initial states, are removed before plotting.
 
 For fitted changepoint models, changepoint annotations may be added when supported by the plotted parameter and the corresponding latent components are present in the MCMC output.
 }
@@ -119,6 +119,11 @@ plot(mcmc_output, type = "obs_sigma_t2", true_values = noise^2)
 
 }
 \references{
+Crainiceanu, C. M., Ruppert, D., Carroll, R. J., Joshi, A., and Goodner, B. (2007).
+Spatially adaptive Bayesian penalized splines with heteroscedastic errors.
+\emph{Journal of Computational and Graphical Statistics}, \strong{16}(2), 265--288.
+\doi{10.1198/106186007X208768}
+
 Krivobokova, T., Kneib, T., and Claeskens, G. (2010).
 Simultaneous confidence bands for penalized spline estimators.
 \emph{Journal of the American Statistical Association}, \strong{105}(490), 852--863.

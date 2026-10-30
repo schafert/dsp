@@ -37,7 +37,7 @@ NULL
 #' \item "ypred" (posterior predictive distribution)
 #' \item "evol_sigma_t2" (evolution error variance)
 #' \item "gamma": (Threshold parameter in the thresholded DHS log-volatility dynamics).
-#' \item "zeta": (Outlier component)
+#' \item "zeta": (Outlier component, zero for the first D time points)
 #' \item "obs_sigma_t2" (observation error variance)
 #' \item "zeta_sigma_t2" (outlier error variance)
 #' \item "dhs_phi" (DHS AR(1) coefficient)
@@ -129,12 +129,12 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
   if(!is.na(match('mu', mcmc_params))) post_mu = array(NA, c(nsave, nT))
-  if(!is.na(match('zeta', mcmc_params))) post_zeta = array(NA, c(nsave, nT-D))
+  if(!is.na(match('zeta', mcmc_params))) post_zeta = array(NA, c(nsave, nT))
   if(!is.na(match('ypred', mcmc_params))) post_ypred = array(NA, c(nsave, nT))
   if(!is.na(match('log_evol', mcmc_params))) post_log_evol = array(NA, c(nsave, nT-D))
   if(!is.na(match('gamma', mcmc_params)) && evol_error == "DHS") post_r = numeric(nsave)
   if(!is.na(match('omega', mcmc_params))) post_omega = array(NA, c(nsave, nT-D))
-  if(!is.na(match('zeta_sigma_t2', mcmc_params))) post_zeta_sigma_t2 = array(NA, c(nsave, nT-D))
+  if(!is.na(match('zeta_sigma_t2', mcmc_params))) post_zeta_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('obs_sigma_t2', mcmc_params))) post_obs_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = numeric(nsave)
@@ -230,8 +230,11 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
 
         if(!is.na(match('mu', mcmc_params))) post_mu[isave,] = mu
         if (useAnom) {
-          if(!is.na(match('zeta', mcmc_params))) post_zeta[isave,] = zeta
-          if(!is.na(match('zeta_sigma_t2', mcmc_params))) post_zeta_sigma_t2[isave,] = zeta_params$sigma_wt^2
+          # The anomaly is defined for t > D only (Wu et al. 2024). It is stored
+          # with zeros for t <= D, where it is fixed at zero, so that the
+          # columns align with y.
+          if(!is.na(match('zeta', mcmc_params))) post_zeta[isave,] = c(rep(0,D),zeta)
+          if(!is.na(match('zeta_sigma_t2', mcmc_params))) post_zeta_sigma_t2[isave,] = c(rep(0,D),zeta_params$sigma_wt^2)
           if(!is.na(match('ypred', mcmc_params))) post_ypred[isave,] = mu + c(rep(0,D),zeta) + rnorm(nT, 0, sigma_e)
         }else{
           if(!is.na(match('ypred', mcmc_params))) post_ypred[isave,] = mu + rnorm(nT, 0, sigma_e)
@@ -261,7 +264,8 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
   if(!is.na(match('log_evol', mcmc_params))) mcmc_output$log_evol = post_log_evol
   if(!is.na(match('omega', mcmc_params))) mcmc_output$omega = post_omega
   if(!is.na(match('zeta_sigma_t2', mcmc_params))) mcmc_output$zeta_sigma_t2 = post_zeta_sigma_t2
-  if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = post_obs_sigma_t2
+  # A constant variance is one draw per iteration, not one per time point
+  if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = if(obsSV == "const") post_obs_sigma_t2[, 1] else post_obs_sigma_t2
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
@@ -276,7 +280,7 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
     #                                  mu = exp(colMeans(post_mu + offset)),
     #                                  log = TRUE))
     if(useAnom){
-      loglike_hat = sum(stats::dnorm(y, mean = colMeans(post_mu) + c(rep(0,D),colMeans(post_zeta)), sd = colMeans(sqrt(post_obs_sigma_t2)), log = TRUE))
+      loglike_hat = sum(stats::dnorm(y, mean = colMeans(post_mu) + colMeans(post_zeta), sd = colMeans(sqrt(post_obs_sigma_t2)), log = TRUE))
     }else{
       loglike_hat = sum(stats::dnorm(y, mean = colMeans(post_mu) , sd = colMeans(sqrt(post_obs_sigma_t2)), log = TRUE))
     }
@@ -296,12 +300,21 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
 #----------------------------------------------------------------------------
 #' Initialize the anomaly component parameters
 #'
-#' Compute initial values for either a horseshoe prior or horseshoe+ prior
-#' for the anomaly component.
+#' Compute initial values for the horseshoe+ prior (Bhadra et al. 2017) on the
+#' anomaly component, as in Wu et al. (2024).
 #'
-#' @param zeta \code{T} vector of initial estimates.
-#' @return List of relevant components: \code{sigma_wt}, the \code{T} vector of standard deviations,
-#' and additional parameters for inverse gamma priors (shape and scale).
+#' @param zeta \code{T - D} vector of initial estimates.
+#' @return List of relevant components: \code{sigma_wt}, the \code{T - D} vector of standard deviations,
+#' and the auxiliary variables of the inverse-gamma representation of the prior.
+#'
+#' @references
+#' Bhadra, A., Datta, J., Polson, N. G., and Willard, B. (2017).
+#' The horseshoe+ estimator of ultra-sparse signals.
+#' \emph{Bayesian Analysis}, \strong{12}(4), 1105--1131. \doi{10.1214/16-BA1028}
+#'
+#' Wu, H., Schafer, T. L. J., and Matteson, D. S. (2024).
+#' Trend and variance adaptive Bayesian changepoint analysis and local outlier scoring.
+#' \emph{Journal of Business & Economic Statistics}. \doi{10.1080/07350015.2024.2362269}
 #'
 #' @importFrom MCMCpack rinvgamma
 #' @keywords internal
@@ -309,48 +322,48 @@ t_initEvolZeta_ps = function(zeta){
   zeta = as.matrix(zeta)
   n = nrow(zeta)
 
+  # Global scale
   xi = MCMCpack::rinvgamma(1, 1/2, 1)
   tau_t2 = MCMCpack::rinvgamma(1, 1/2, 1/xi)
 
-  #eta_v = MCMCpack::rinvgamma(n, 1/2, 1)
-  #eta_t2 = MCMCpack::rinvgamma(n, 1/2, 1/eta_v)
+  # Horseshoe+ adds a half-Cauchy local scale eta_t to the horseshoe
+  eta_v = MCMCpack::rinvgamma(n, 1/2, 1)
+  eta_t2 = MCMCpack::rinvgamma(n, 1/2, 1/eta_v)
 
-  #v = MCMCpack::rinvgamma(n, 1/2, 1/eta_t2/tau_t2)
-  v = MCMCpack::rinvgamma(n, 1/2, 1/tau_t2)
+  v = MCMCpack::rinvgamma(n, 1/2, 1/eta_t2/tau_t2)
   lambda_t2 = MCMCpack::rinvgamma(n, 1/2, 1/v)
 
-  #list(xi=xi, v=v, eta_v = eta_v, tau_t2 = tau_t2, lambda_t2 = lambda_t2, eta_t2 = eta_t2,
-  #     sigma_wt = sqrt(lambda_t2))
-  list(xi=xi, v=v, tau_t2 = tau_t2, lambda_t2 = lambda_t2, sigma_wt = sqrt(lambda_t2))
+  list(xi=xi, v=v, eta_v = eta_v, tau_t2 = tau_t2, lambda_t2 = lambda_t2, eta_t2 = eta_t2,
+       sigma_wt = sqrt(lambda_t2))
 }
 #----------------------------------------------------------------------------
 #' Sampler for the anomaly component parameters
 #'
-#' Compute one draw of the anomaly component parameters.
+#' Compute one draw of the parameters of the horseshoe+ prior on the anomaly
+#' component, as in Wu et al. (2024). As in the code of that paper, the
+#' additional local scale has a half-Cauchy prior with scale 4, so its
+#' auxiliary variable \code{eta_v} has rate \code{1/16}.
 #'
-#' @param omega \code{T} vector of errors
+#' @param omega \code{T - D} vector of anomalies
 #' @param evolParams list of parameters to be updated
 #' @return List of relevant components in \code{evolParams}:  \code{sigma_wt},
-#' the \code{T} vector of standard deviations, and additional parameters for inverse gamma priors (shape and scale).
+#' the \code{T - D} vector of standard deviations, and the auxiliary variables of the inverse-gamma representation of the prior.
 #'
 #' @importFrom MCMCpack rinvgamma
 #' @keywords internal
 t_sampleEvolZeta_ps = function(omega, evolParams){
-  #omega = as.matrix(omega)
   n = length(omega)
 
   hsInput2 = omega^2
 
   evolParams$lambda_t2 = MCMCpack::rinvgamma(n, 1, 1/evolParams$v + hsInput2/2)
-  #evolParams$v = MCMCpack::rinvgamma(n, 1, 1/evolParams$lambda_t2 + 1/evolParams$tau_t2/evolParams$eta_t2)
-  evolParams$v = MCMCpack::rinvgamma(n, 1, 1/evolParams$lambda_t2 + 1/evolParams$tau_t2)
+  evolParams$v = MCMCpack::rinvgamma(n, 1, 1/evolParams$lambda_t2 + 1/evolParams$tau_t2/evolParams$eta_t2)
 
-  #evolParams$tau_t2 = MCMCpack::rinvgamma(1, (n+1)/2, 1/evolParams$xi + sum(1/evolParams$v/evolParams$eta_t2))
-  evolParams$tau_t2 = MCMCpack::rinvgamma(1, (n+1)/2, 1/evolParams$xi + sum(1/evolParams$v))
+  evolParams$tau_t2 = MCMCpack::rinvgamma(1, (n+1)/2, 1/evolParams$xi + sum(1/evolParams$v/evolParams$eta_t2))
   evolParams$xi = MCMCpack::rinvgamma(1, 1, 1+1/evolParams$tau_t2)
 
-  #evolParams$eta_t2 = MCMCpack::rinvgamma(n, 1, 1/evolParams$eta_v+1/evolParams$v/evolParams$tau_t2)
-  #evolParams$eta_v = MCMCpack::rinvgamma(n, 1, 1/16+1/evolParams$eta_t2)
+  evolParams$eta_t2 = MCMCpack::rinvgamma(n, 1, 1/evolParams$eta_v+1/evolParams$v/evolParams$tau_t2)
+  evolParams$eta_v = MCMCpack::rinvgamma(n, 1, 1/16+1/evolParams$eta_t2)
 
   evolParams$sigma_wt = sqrt(evolParams$lambda_t2)
 

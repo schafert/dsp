@@ -13,6 +13,30 @@
   opt in through `ess = TRUE`. The pointwise posterior summaries that
   `summary()` previously returned as a list are now returned by `fitted()`, with
   quantile columns named as by `quantile()` (`"2.5%"` rather than `"q_2.5"`).
+* Added `credible_bands()`, which returns the simultaneous credible bands of a
+  time-varying parameter and its simultaneous band scores (SimBaS), the
+  multiplicity-adjusted evidence at each time point that the parameter is
+  nonzero. Previously the bands were available only on plots and SimBaS not at
+  all.
+* The simultaneous credible bands drawn by `plot(include_joint_bands = TRUE)`
+  were undefined when any time point had no posterior variation, such as a
+  fixed initial value. Such points are now excluded when the bands are
+  calibrated.
+* A constant observation variance (`obsSV = "const"`, and every B-spline
+  model) is now stored as one draw per iteration rather than copied to every
+  time point. `summary()` reports it with the scalar parameters, and `plot()`
+  still draws it over time for comparison with time-varying variances.
+* `summary()` reports the first `D` entries of `evol_sigma_t2`, the variances
+  of the initial states, on their own line.
+* The anomaly component of the changepoint model (`useAnom = TRUE`) now has
+  the horseshoe+ prior of Wu et al. (2024), as documented. Earlier versions
+  used a horseshoe prior, because the horseshoe+ lines were commented out.
+* The anomaly `zeta` and its variance `zeta_sigma_t2` are now returned with
+  `T` columns aligned with `y`, rather than `T - D`. The anomaly is defined
+  for `t > D` only, as in Wu et al. (2024), so both are zero at the first `D`
+  time points.
+* `plot()` no longer drops the first `D` entries of `zeta_sigma_t2`, which has
+  no initial states, or the first entry of `evol_sigma_t2` when `D = 0`.
 * `as.mcmc()` is re-exported from `coda`, so `as.mcmc(fit)` works after
   `library(dsp)` alone.
 * `predict(cp_prop = TRUE)` now returns the changepoint probabilities aligned

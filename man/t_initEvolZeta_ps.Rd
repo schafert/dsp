@@ -7,14 +7,23 @@
 t_initEvolZeta_ps(zeta)
 }
 \arguments{
-\item{zeta}{\code{T} vector of initial estimates.}
+\item{zeta}{\code{T - D} vector of initial estimates.}
 }
 \value{
-List of relevant components: \code{sigma_wt}, the \code{T} vector of standard deviations,
-and additional parameters for inverse gamma priors (shape and scale).
+List of relevant components: \code{sigma_wt}, the \code{T - D} vector of standard deviations,
+and the auxiliary variables of the inverse-gamma representation of the prior.
 }
 \description{
-Compute initial values for either a horseshoe prior or horseshoe+ prior
-for the anomaly component.
+Compute initial values for the horseshoe+ prior (Bhadra et al. 2017) on the
+anomaly component, as in Wu et al. (2024).
+}
+\references{
+Bhadra, A., Datta, J., Polson, N. G., and Willard, B. (2017).
+The horseshoe+ estimator of ultra-sparse signals.
+\emph{Bayesian Analysis}, \strong{12}(4), 1105--1131. \doi{10.1214/16-BA1028}
+
+Wu, H., Schafer, T. L. J., and Matteson, D. S. (2024).
+Trend and variance adaptive Bayesian changepoint analysis and local outlier scoring.
+\emph{Journal of Business & Economic Statistics}. \doi{10.1080/07350015.2024.2362269}
 }
 \keyword{internal}

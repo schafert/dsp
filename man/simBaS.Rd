@@ -10,10 +10,11 @@ simBaS(sampFuns)
 \item{sampFuns}{\code{Nsims x m} matrix of \code{Nsims} MCMC samples and \code{m} points along the curve}
 }
 \value{
-\code{m x 1} vector of simBaS
+\code{m x 1} vector of simBaS, \code{NA} at points with no posterior variation
 }
 \description{
-Compute simultaneous band scores (SimBaS) from Meyer et al. (2015, Biometrics).
+Compute simultaneous band scores (SimBaS) from Meyer et al. (2015, Biometrics,
+71(3), 563--574, \doi{10.1111/biom.12299}).
 SimBaS uses MC(MC) simulations of a function of interest to compute the minimum
 alpha such that the joint credible bands at the alpha level do not include zero.
 This quantity is computed for each grid point (or observation point) in the domain

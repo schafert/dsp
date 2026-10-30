@@ -52,7 +52,10 @@ deviation, interval and effective sample size. A parameter indexed by time
 length and the range of its pointwise posterior means, and, if
 \code{ess = TRUE}, the minimum and median of its pointwise effective sample
 sizes. A regression coefficient array \code{beta} is reported one line per
-predictor.
+predictor. The first \code{D} entries of \code{evol_sigma_t2}, the
+variances of the initial states, are reported on their own line, labelled
+by their indices, since they have a different prior from the remaining
+evolution variances.
 
 Effective sample sizes are computed by \code{\link[coda:effectiveSize]{coda::effectiveSize()}}. Elements
 with no posterior variation, such as the fixed initial values of the

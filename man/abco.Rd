@@ -50,7 +50,7 @@ must be one or more of:
 \item "ypred" (posterior predictive distribution)
 \item "evol_sigma_t2" (evolution error variance)
 \item "gamma": (Threshold parameter in the thresholded DHS log-volatility dynamics).
-\item "zeta": (Outlier component)
+\item "zeta": (Outlier component, zero for the first D time points)
 \item "obs_sigma_t2" (observation error variance)
 \item "zeta_sigma_t2" (outlier error variance)
 \item "dhs_phi" (DHS AR(1) coefficient)

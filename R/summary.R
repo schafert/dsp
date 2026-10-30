@@ -24,7 +24,10 @@
 #' length and the range of its pointwise posterior means, and, if
 #' \code{ess = TRUE}, the minimum and median of its pointwise effective sample
 #' sizes. A regression coefficient array \code{beta} is reported one line per
-#' predictor.
+#' predictor. The first \code{D} entries of \code{evol_sigma_t2}, the
+#' variances of the initial states, are reported on their own line, labelled
+#' by their indices, since they have a different prior from the remaining
+#' evolution variances.
 #'
 #' Effective sample sizes are computed by [coda::effectiveSize()]. Elements
 #' with no posterior variation, such as the fixed initial values of the
@@ -104,18 +107,32 @@ summary.dsp <- function(object, pars, probs = c(0.025, 0.975), ess = FALSE, ...)
 
   }
 
+  # The first D evolution variances are those of the initial states, which
+  # have their own prior, so they are summarized apart from the rest.
+  D <- object$model_spec$arguments$D
+  if(is.null(D)) D <- 0
+
   # Split each parameter into blocks of draws. Every block becomes one line of
   # the summary: a scalar parameter is one block, a vector parameter is one
   # block, and an nsave x T x J array is J blocks, one per predictor.
   blocks <- list()
+  add_block <- function(nm, b, j = NULL){
+    col <- if(is.null(j)) "" else paste0(", ", j)
+    if(nm == "evol_sigma_t2" && D > 0 && ncol(b) > D){
+      blocks[[paste0(nm, "[", index_range(1, D), col, "]")]] <<- b[, 1:D, drop = FALSE]
+      blocks[[paste0(nm, "[", index_range(D + 1, ncol(b)), col, "]")]] <<- b[, -(1:D), drop = FALSE]
+    }else{
+      blocks[[if(is.null(j)) nm else paste0(nm, "[", col, "]")]] <<- b
+    }
+  }
   for(nm in pars){
     samps <- draws[[nm]]
     d <- dim(samps)
     if(length(d) == 3){
       for(j in seq_len(d[3]))
-        blocks[[paste0(nm, "[, ", j, "]")]] <- matrix(samps[, , j], nrow = d[1])
+        add_block(nm, matrix(samps[, , j], nrow = d[1]), j)
     }else{
-      blocks[[nm]] <- matrix(as.vector(samps), nrow = NROW(samps))
+      add_block(nm, matrix(as.vector(samps), nrow = NROW(samps)))
     }
   }
 
@@ -149,6 +166,17 @@ summary.dsp <- function(object, pars, probs = c(0.025, 0.975), ess = FALSE, ...)
                  vectors = vectors),
             class = "summary.dsp")
 
+}
+
+#----------------------------------------------------------------------------
+#' Index range in R notation
+#'
+#' @param from,to first and last index
+#' @return \code{"from"} if the two are equal, otherwise \code{"from:to"}.
+#' @keywords internal
+
+index_range <- function(from, to){
+  if(from == to) as.character(from) else paste0(from, ":", to)
 }
 
 #----------------------------------------------------------------------------

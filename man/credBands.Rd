@@ -16,10 +16,13 @@ credBands(sampFuns, alpha = 0.05)
 }
 \description{
 Compute (1-alpha)\\% credible BANDS for a function based on MCMC samples using Crainiceanu et al. (2007)
+(Journal of Computational and Graphical Statistics, 16(2), 265--288,
+\doi{10.1198/106186007X208768}).
 }
 \note{
 The input needs not be curves: the simultaneous credible "bands" may be computed
 for vectors. The resulting credible intervals will provide joint coverage at the (1-alpha)\%
-level across all components of the vector.
+level across all components of the vector. At a point with no posterior
+variation, both bands equal the constant value.
 }
 \keyword{internal}
