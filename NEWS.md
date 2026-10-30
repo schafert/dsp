@@ -17,7 +17,9 @@
   time-varying parameter and its simultaneous band scores (SimBaS), the
   multiplicity-adjusted evidence at each time point that the parameter is
   nonzero. Previously the bands were available only on plots and SimBaS not at
-  all.
+  all. The result is a data frame of class `dsp_bands` with one row per time
+  point, labelled by the optional `times`. Its print method reports the global
+  Bayesian p-value and the periods in which the band excludes zero.
 * The simultaneous credible bands drawn by `plot(include_joint_bands = TRUE)`
   were undefined when any time point had no posterior variation, such as a
   fixed initial value. Such points are now excluded when the bands are

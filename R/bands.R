@@ -9,6 +9,8 @@
 #' @param pars character string naming one time-varying parameter; see
 #'   [par_names()]. Defaults to \code{"mu"}.
 #' @param level the credibility level of the bands. Defaults to 0.95.
+#' @param times optional vector of length \code{T} labelling the time points
+#'   of the series, such as dates. Defaults to \code{1:T}.
 #' @param ... currently not used
 #'
 #' @details
@@ -43,11 +45,16 @@
 #' the constant value and the score is \code{NA}.
 #'
 #' @returns
-#' For a time-varying parameter, a numeric matrix with one row per time point
-#' (or index) and columns \code{mean}, \code{lower}, \code{upper} and
-#' \code{simBaS}. A parameter with a further dimension, such as the
-#' regression coefficients \code{beta}, gives an array whose third dimension
-#' holds these columns, with one simultaneous band per predictor.
+#' An object of class \code{dsp_bands}, a data frame with one row per time
+#' point and columns \code{time}, \code{mean}, \code{lower}, \code{upper} and
+#' \code{simBaS}. For a parameter with one band per predictor, such as the
+#' regression coefficients \code{beta}, a column \code{predictor} follows
+#' \code{time}. The \code{time} column is taken from \code{times}. The
+#' increments \code{omega} have \code{T - D} entries, which are labelled with
+#' the last \code{T - D} time points, so that each row refers to the time at
+#' which the increment ends. The print method reports the global Bayesian
+#' p-value and the periods in which the band excludes zero, by predictor.
+#' Subsetting with \code{[} returns a plain data frame.
 #'
 #' @references
 #' Crainiceanu, C. M., Ruppert, D., Carroll, R. J., Joshi, A. and Goodner, B.
@@ -68,17 +75,18 @@
 #' model_spec <- dsp_spec(family = "gaussian", model = "changepoint", D = 1)
 #' fit <- dsp_fit(y, model_spec = model_spec, nsave = 200, nburn = 200)
 #'
+#' # global Bayesian p-value and the periods in which the band excludes zero
 #' bands <- credible_bands(fit, pars = "omega")
-#' head(bands)
+#' bands
 #'
-#' # global Bayesian p-value for no change anywhere
-#' min(bands[, "simBaS"], na.rm = TRUE)
+#' # the pointwise values
+#' head(as.data.frame(bands))
 #'
-#' # increments that are nonzero at the joint 5% level
-#' which(bands[, "simBaS"] < 0.05)
+#' # time points at which the increment is nonzero at the joint 5% level
+#' subset(bands, simBaS < 0.05)$time
 #'
 #' @export
-credible_bands <- function(object, pars = "mu", level = 0.95, ...){
+credible_bands <- function(object, pars = "mu", level = 0.95, times = NULL, ...){
 
   check_dsp(object)
 
@@ -101,24 +109,109 @@ credible_bands <- function(object, pars = "mu", level = 0.95, ...){
   if(is.null(d) || length(d) == 1)
     stop("'", pars, "' is a scalar parameter; credible bands require a ",
          "time-varying parameter.", call. = FALSE)
+  if(length(d) > 3)
+    stop("Unsupported parameter shape: must be 2D or 3D.", call. = FALSE)
+
+  nT <- nobs(object)
+  if(is.null(times)) times <- seq_len(nT)
+  if(length(times) != nT)
+    stop("'times' must have one entry per time point of the series (", nT, ").",
+         call. = FALSE)
+
+  # A parameter with fewer than T entries, such as the increments omega with
+  # T - D, is aligned with the last time points
+  n <- d[2]
+  if(n > nT)
+    stop("'", pars, "' has more entries than the series has time points.",
+         call. = FALSE)
+  time <- times[(nT - n + 1):nT]
 
   bands_one <- function(b){
     cb <- credBands(b, alpha = 1 - level)
-    cbind(mean = colMeans(b), lower = cb[, 1], upper = cb[, 2],
-          simBaS = simBaS(b))
+    data.frame(mean = colMeans(b), lower = cb[, 1], upper = cb[, 2],
+               simBaS = simBaS(b))
   }
 
-  if(length(d) == 2)
-    return(bands_one(samps))
-
-  if(length(d) == 3){
-    out <- array(NA_real_, dim = c(d[2], d[3], 4))
-    for(j in seq_len(d[3]))
-      out[, j, ] <- bands_one(matrix(samps[, , j], nrow = d[1]))
-    dimnames(out) <- list(NULL, NULL, c("mean", "lower", "upper", "simBaS"))
-    return(out)
+  if(length(d) == 2){
+    out <- data.frame(time = time, bands_one(samps))
+  } else {
+    X <- get_spec(object)$arguments$X
+    predictor <- if(!is.null(colnames(X))) colnames(X) else seq_len(d[3])
+    out <- do.call(rbind, lapply(seq_len(d[3]), function(j)
+      data.frame(time = time, predictor = predictor[j],
+                 bands_one(matrix(samps[, , j], nrow = d[1])))))
   }
 
-  stop("Unsupported parameter shape: must be 2D or 3D.", call. = FALSE)
+  rownames(out) <- NULL
+  structure(out, class = c("dsp_bands", "data.frame"),
+            pars = pars, level = level, ndraws = d[1])
 
+}
+
+#' @rdname credible_bands
+#' @param x an object of class \code{dsp_bands}
+#' @param digits number of significant digits for the global Bayesian p-value
+#' @param max_periods the largest number of periods to list per band
+#' @method print dsp_bands
+#' @export
+print.dsp_bands <- function(x, digits = 2, max_periods = 10, ...){
+
+  level <- attr(x, "level")
+  df <- as.data.frame(x)
+  groups <- if(is.null(df$predictor)) list(df) else split(df, factor(df$predictor, levels = unique(df$predictor)))
+
+  cat("Simultaneous ", format(100*level), "% credible bands for ", attr(x, "pars"),
+      " (", nrow(groups[[1]]), " time points)\n", sep = "")
+
+  for(g in seq_along(groups)){
+    b <- groups[[g]]
+    if(!is.null(df$predictor)) cat("\nPredictor ", names(groups)[g], ":\n", sep = "")
+    p <- suppressWarnings(min(b$simBaS, na.rm = TRUE))
+    # The scores are resolved to 1/ndraws, so a zero score is reported as a bound
+    pval <- if(!is.finite(p)) "NA" else if(p == 0)
+      paste("<", format(signif(1/attr(x, "ndraws"), digits))) else format(signif(p, digits))
+    cat("Global Bayesian p-value (minimum SimBaS):", pval, "\n")
+
+    excl <- !is.na(b$simBaS) & (b$lower > 0 | b$upper < 0)
+    if(!any(excl)){
+      cat("The band includes zero at every time point.\n")
+      next
+    }
+    runs <- rle(excl)
+    end <- cumsum(runs$lengths)
+    start <- end - runs$lengths + 1
+    periods <- data.frame(start = b$time[start[runs$values]],
+                          end = b$time[end[runs$values]],
+                          length = runs$lengths[runs$values])
+    cat("The band excludes zero at ", sum(excl), " time point",
+        if(sum(excl) > 1) "s", ", in ", nrow(periods), " period",
+        if(nrow(periods) > 1) "s", ":\n", sep = "")
+    print(utils::head(periods, max_periods), row.names = FALSE)
+    if(nrow(periods) > max_periods)
+      cat("... and", nrow(periods) - max_periods, "more periods\n")
+  }
+
+  cat("\nUse as.data.frame() for the values at each time point.\n")
+  invisible(x)
+}
+
+#' @export
+`[.dsp_bands` <- function(x, ...){
+  out <- NextMethod()
+  if(is.data.frame(out)){
+    class(out) <- "data.frame"
+    attr(out, "pars") <- NULL
+    attr(out, "level") <- NULL
+    attr(out, "ndraws") <- NULL
+  }
+  out
+}
+
+#' @export
+as.data.frame.dsp_bands <- function(x, ...){
+  class(x) <- "data.frame"
+  attr(x, "pars") <- NULL
+  attr(x, "level") <- NULL
+  attr(x, "ndraws") <- NULL
+  x
 }

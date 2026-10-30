@@ -2,9 +2,12 @@
 % Please edit documentation in R/bands.R
 \name{credible_bands}
 \alias{credible_bands}
+\alias{print.dsp_bands}
 \title{Simultaneous credible bands and band scores}
 \usage{
-credible_bands(object, pars = "mu", level = 0.95, ...)
+credible_bands(object, pars = "mu", level = 0.95, times = NULL, ...)
+
+\method{print}{dsp_bands}(x, digits = 2, max_periods = 10, ...)
 }
 \arguments{
 \item{object}{an object of class \code{dsp}; see \linkS4class{dsp}}
@@ -14,14 +17,28 @@ credible_bands(object, pars = "mu", level = 0.95, ...)
 
 \item{level}{the credibility level of the bands. Defaults to 0.95.}
 
+\item{times}{optional vector of length \code{T} labelling the time points
+of the series, such as dates. Defaults to \code{1:T}.}
+
 \item{...}{currently not used}
+
+\item{x}{an object of class \code{dsp_bands}}
+
+\item{digits}{number of significant digits for the global Bayesian p-value}
+
+\item{max_periods}{the largest number of periods to list per band}
 }
 \value{
-For a time-varying parameter, a numeric matrix with one row per time point
-(or index) and columns \code{mean}, \code{lower}, \code{upper} and
-\code{simBaS}. A parameter with a further dimension, such as the
-regression coefficients \code{beta}, gives an array whose third dimension
-holds these columns, with one simultaneous band per predictor.
+An object of class \code{dsp_bands}, a data frame with one row per time
+point and columns \code{time}, \code{mean}, \code{lower}, \code{upper} and
+\code{simBaS}. For a parameter with one band per predictor, such as the
+regression coefficients \code{beta}, a column \code{predictor} follows
+\code{time}. The \code{time} column is taken from \code{times}. The
+increments \code{omega} have \code{T - D} entries, which are labelled with
+the last \code{T - D} time points, so that each row refers to the time at
+which the increment ends. The print method reports the global Bayesian
+p-value and the periods in which the band excludes zero, by predictor.
+Subsetting with \code{[} returns a plain data frame.
 }
 \description{
 Computes simultaneous credible bands for a time-varying parameter, and the
@@ -65,14 +82,15 @@ y <- c(rep(0, 50), rep(10, 50)) + rnorm(100)
 model_spec <- dsp_spec(family = "gaussian", model = "changepoint", D = 1)
 fit <- dsp_fit(y, model_spec = model_spec, nsave = 200, nburn = 200)
 
+# global Bayesian p-value and the periods in which the band excludes zero
 bands <- credible_bands(fit, pars = "omega")
-head(bands)
+bands
 
-# global Bayesian p-value for no change anywhere
-min(bands[, "simBaS"], na.rm = TRUE)
+# the pointwise values
+head(as.data.frame(bands))
 
-# increments that are nonzero at the joint 5\% level
-which(bands[, "simBaS"] < 0.05)
+# time points at which the increment is nonzero at the joint 5\% level
+subset(bands, simBaS < 0.05)$time
 
 }
 \references{

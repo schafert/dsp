@@ -168,15 +168,19 @@ test_that("credible_bands returns joint bands and SimBaS", {
   b <- credible_bands(fit_cp, pars = "omega")
   pw <- fitted(fit_cp, pars = "omega", probs = c(0.025, 0.975))
 
-  expect_equal(colnames(b), c("mean", "lower", "upper", "simBaS"))
+  expect_s3_class(b, "dsp_bands")
+  expect_s3_class(b, "data.frame")
+  expect_equal(names(b), c("time", "mean", "lower", "upper", "simBaS"))
   expect_equal(nrow(b), nrow(pw))
-  expect_equal(unname(b[, "mean"]), unname(pw[, "mean"]))
+  expect_equal(b$mean, unname(pw[, "mean"]))
+  # the T - D increments are labelled with the times at which they end
+  expect_equal(b$time, 2:80)
 
   # joint bands are at least as wide as the pointwise intervals
-  expect_true(all(b[, "lower"] <= pw[, "2.5%"] + 1e-8))
-  expect_true(all(b[, "upper"] >= pw[, "97.5%"] - 1e-8))
+  expect_true(all(b$lower <= pw[, "2.5%"] + 1e-8))
+  expect_true(all(b$upper >= pw[, "97.5%"] - 1e-8))
 
-  expect_true(all(b[, "simBaS"] >= 0 & b[, "simBaS"] <= 1))
+  expect_true(all(b$simBaS >= 0 & b$simBaS <= 1))
 
   # A run of 100 draws can mix poorly between placing the jump at t = 40 or 41,
   # so the evidence for the jump is checked on a longer run
@@ -188,18 +192,35 @@ test_that("credible_bands returns joint bands and SimBaS", {
 
   # the jump at t = 41 is flagged. The model may instead place the jump at
   # t = 40 and explain y[40] as an anomaly, so accept either increment.
-  expect_lt(min(bl[(40:41) - 1, "simBaS"]), 0.05)
+  expect_lt(min(subset(bl, time %in% 40:41)$simBaS), 0.05)
 
   # the score is the smallest alpha at which the joint band excludes zero
-  i <- which.min(bl[, "simBaS"])
-  alpha <- bl[i, "simBaS"]
+  i <- which.min(bl$simBaS)
+  alpha <- bl$simBaS[i]
   excl <- credible_bands(fit_long, pars = "omega", level = 1 - alpha - 0.01)
-  expect_true(excl[i, "lower"] > 0 || excl[i, "upper"] < 0)
+  expect_true(excl$lower[i] > 0 || excl$upper[i] < 0)
 
-  # one band per predictor
+  # the print method reports the global p-value and the periods
+  out <- capture.output(print(bl))
+  expect_true(any(grepl("Global Bayesian p-value", out)))
+  expect_true(any(grepl(format(signif(min(bl$simBaS), 2)), out, fixed = TRUE)))
+  expect_true(any(grepl("excludes zero", out)))
+
+  # times label the rows; subsetting gives a plain data frame
+  dates <- seq(as.Date("2000-01-01"), by = "month", length.out = 80)
+  bd <- credible_bands(fit_long, pars = "omega", times = dates)
+  expect_equal(bd$time, dates[-1])
+  expect_identical(class(bd[bd$simBaS < 0.05, ]), "data.frame")
+  expect_identical(class(as.data.frame(bd)), "data.frame")
+  expect_error(credible_bands(fit_cp, times = 1:3), "one entry per time point")
+
+  # one band per predictor, stacked in long format
   bb <- credible_bands(fit_reg, pars = "beta")
-  expect_equal(dim(bb), c(nobs(fit_reg), ncol(sim_reg$X), 4))
-  expect_equal(dimnames(bb)[[3]], c("mean", "lower", "upper", "simBaS"))
+  expect_equal(names(bb), c("time", "predictor", "mean", "lower", "upper", "simBaS"))
+  expect_equal(nrow(bb), nobs(fit_reg) * ncol(sim_reg$X))
+  expect_equal(length(unique(bb$predictor)), ncol(sim_reg$X))
+  out <- capture.output(print(bb))
+  expect_equal(sum(grepl("Global Bayesian p-value", out)), ncol(sim_reg$X))
 
   expect_error(credible_bands(fit_cp, pars = "gamma"), "scalar")
   expect_error(credible_bands(fit_cp, level = 95), "level")
