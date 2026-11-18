@@ -2,7 +2,7 @@
 % Please edit documentation in R/component_samplers.R
 \name{sampleFastGaussian}
 \alias{sampleFastGaussian}
-\title{Sample a Gaussian vector using the fast sampler of BHATTACHARYA et al.}
+\title{Sample a Gaussian vector using the fast sampler of Bhattacharya et al.}
 \usage{
 sampleFastGaussian(Phi, Ddiag, alpha)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper_functions.R
 \name{uni.slice}
 \alias{uni.slice}
-\title{Univariate Slice Sampler from Neal (2008)}
+\title{Univariate slice sampler from Neal (2008)}
 \usage{
 uni.slice(x0, g, w = 1, m = Inf, lower = -Inf, upper = +Inf, gx0 = NULL)
 }

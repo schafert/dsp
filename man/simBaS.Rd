@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper_functions.R
 \name{simBaS}
 \alias{simBaS}
-\title{Compute Simultaneous Band Scores (SimBaS)}
+\title{Compute simultaneous band scores (SimBaS)}
 \usage{
 simBaS(sampFuns)
 }

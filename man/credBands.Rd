@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper_functions.R
 \name{credBands}
 \alias{credBands}
-\title{Compute Simultaneous Credible Bands}
+\title{Compute simultaneous credible bands}
 \usage{
 credBands(sampFuns, alpha = 0.05)
 }

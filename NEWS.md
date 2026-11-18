@@ -1,5 +1,8 @@
 # dsp 1.8.0
 
+* For numerical stability, a square-root QR sampler has been added as a fallback.
+* Added `coef()`, `residuals()`, `logLik()`, and `confint()` methods for fitted models.
+* Extended `predict()` to return in-sample posterior summaries of the mean for regression, smoothing, and B-spline models, while retaining changepoint detection for changepoint models.
 * Added accessor functions so that a fitted model can be inspected without
   referring to the structure of the object: `par_names()` lists the parameters
   with stored draws, `fitted()` returns pointwise posterior summaries of one
@@ -41,9 +44,10 @@
   no initial states, or the first entry of `evol_sigma_t2` when `D = 0`.
 * `as.mcmc()` is re-exported from `coda`, so `as.mcmc(fit)` works after
   `library(dsp)` alone.
-* `predict(cp_prop = TRUE)` now returns the changepoint probabilities aligned
-  with the observed series, with `NA` for the first `D` time points, so that
-  `cp_prop[cp_t]` gives the probabilities at the detected changepoints.
+* With `cp_prop = TRUE`, `predict()` returns a table of detected changepoint
+  indices and their posterior threshold-exceedance probabilities in `cp_t`.
+  The `cp_prop` component contains these probabilities for all time points,
+  with `NA` for the first `D` time points.
 * `print()` for fitted models reported `nskip` as the thinning interval. It now
   reports `nskip + 1`, the interval `coda::thin()` gives.
 * `plot()` now rejects `type = "DIC"` and `type = "p_d"`, which are not draws.

@@ -1,4 +1,4 @@
-#' MCMC Sampler for Bayesian Trend Filtering
+#' MCMC sampler for Bayesian trend filtering
 #'
 #' Run the MCMC for Bayesian trend filtering with a penalty on zeroth (D = 0),
 #' first (D = 1), or second (D = 2) differences of the conditional expectation.
@@ -274,7 +274,7 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
 
   return (mcmc_output);
 }
-#' MCMC Sampler for Bayesian Trend Filtering: D = 0
+#' MCMC sampler for Bayesian trend filtering: D = 0
 #'
 #' Run the MCMC for Bayesian trend filtering with a penalty on the conditional expectation.
 #' The penalty is determined by the prior on the evolution errors, which include:
@@ -780,7 +780,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
   return (mcmc_output);
 }
 
-#' MCMC Sampler for Bayesian Trend Filtering: Regression
+#' MCMC sampler for Bayesian trend filtering: regression
 #'
 #' Run the MCMC for Bayesian trend filtering regression with a penalty on
 #' first (D=1) or second (D=2) differences of each dynamic regression coefficient.
@@ -1074,7 +1074,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
   return (mcmc_output);
 }
 
-#' MCMC Sampler for B-spline Bayesian Trend Filtering
+#' MCMC sampler for B-spline Bayesian trend filtering
 #'
 #' Run the MCMC for B-spline fitting with a Bayesian trend filtering model on the
 #' coefficients, i.e., a penalty on zeroth (D=0), first (D=1), or second (D=2)
@@ -1325,7 +1325,7 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
 }
 
 #----------------------------------------------------------------------------
-#' MCMC Sampler for B-spline Bayesian Trend Filtering: D = 0
+#' MCMC sampler for B-spline Bayesian trend filtering: D = 0
 #'
 #' Run the MCMC for B-spline fitting with a penalty the B-spline basis coefficients.
 #' The penalty is determined by the prior on the evolution errors, which include:

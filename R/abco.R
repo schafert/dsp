@@ -8,7 +8,7 @@
 ## usethis namespace: end
 NULL
 #----------------------------------------------------------------------------
-#' Adaptive Bayesian Changepoint with Outliers
+#' Adaptive Bayesian changepoint with outliers
 #'
 #' Run the MCMC sampler for ABCO with a penalty on
 #' first (D = 1), or second (D = 2) differences of the conditional expectation.
@@ -412,19 +412,22 @@ t_sampleBTF = function(y, obs_sigma_t2, evol_sigma_t2, D = 1, loc_obs){
     mu = rnorm(n = nT, mean = postMean, sd = postSD)
 
   } else {
-    # Original sampler, based on Matrix package:
-    if (D == 1) {
-      diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(1/evol_sigma_t2[-1], 0)
-      diag2 = -1/evol_sigma_t2[-1]
-      rd = RcppZiggurat::zrnorm(nT)
-      mu = sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2), length(diag1), length(loc_obs$r), c(linht), rd, D)
-    } else {
-      diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(0, 4/evol_sigma_t2[-(1:2)], 0) + c(1/evol_sigma_t2[-(1:2)], 0, 0)
-      diag2 = c(-2/evol_sigma_t2[3], -2*(1/evol_sigma_t2[-(1:2)] + c(1/evol_sigma_t2[-(1:3)],0)))
-      diag3 = 1/evol_sigma_t2[-(1:2)]
-      rd = RcppZiggurat::zrnorm(nT)
-      mu = sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2, diag3, diag3), length(diag1), length(loc_obs$r), c(linht), rd, D)
-    }
+    mu = .btf_try_precision({
+      # Existing Eigen precision sampler:
+      if (D == 1) {
+        diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(1/evol_sigma_t2[-1], 0)
+        diag2 = -1/evol_sigma_t2[-1]
+        rd = RcppZiggurat::zrnorm(nT)
+        mu = sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2), length(diag1), length(loc_obs$r), c(linht), rd, D)
+      } else {
+        diag1 = 1/obs_sigma_t2 + 1/evol_sigma_t2 + c(0, 4/evol_sigma_t2[-(1:2)], 0) + c(1/evol_sigma_t2[-(1:2)], 0, 0)
+        diag2 = c(-2/evol_sigma_t2[3], -2*(1/evol_sigma_t2[-(1:2)] + c(1/evol_sigma_t2[-(1:3)],0)))
+        diag3 = 1/evol_sigma_t2[-(1:2)]
+        rd = RcppZiggurat::zrnorm(nT)
+        mu = sample_mat_c(loc_obs$r, loc_obs$c, c(diag1, diag2, diag2, diag3, diag3), length(diag1), length(loc_obs$r), c(linht), rd, D)
+      }
+      mu
+    }, sampleBTF_sqrt(y, obs_sigma_t2, evol_sigma_t2, D))
   }
 
   # And return the states:

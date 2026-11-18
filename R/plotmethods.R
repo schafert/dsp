@@ -14,7 +14,7 @@
 #' @param y_obs optional vector of observed data point of length T. Only for `2`-dimensional parameters.
 #' @param times optional vector of observation points. If `NULL`, the function assumes `T` equally spaced points on `[0,1]`.
 #' @param include_joint_bands logical; if `TRUE`, include simultaneous credible bands (Crainiceanu et al. 2007; see [credible_bands()]) in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: `zeta`, `omega`, `ypred`, and `mu` for 2D outputs, and `zeta`, `omega`, `ypred`, `mu`, and `beta` for 3D outputs.
-#' @param alpha numeric credibility level used to construct posterior intervals and bands. Defaults to `0.05`, corresponding to 95% intervals/bands.
+#' @param alpha Specifies the posterior interval and band credibility level as $1-\alpha$. Defaults to `0.05`, corresponding to 95% intervals/bands.
 #' @param xlab optional x-axis label. If `NULL`, defaults to `"t"`.
 #' @param ylab optional y-axis label. If `NULL`, defaults to `type`.
 #' @param main optional plot title. For multi-panel plots, this may be either a single title or a vector of titles of length equal to the number of panels.

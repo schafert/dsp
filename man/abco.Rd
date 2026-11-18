@@ -2,7 +2,7 @@
 % Please edit documentation in R/abco.R
 \name{abco}
 \alias{abco}
-\title{Adaptive Bayesian Changepoint with Outliers}
+\title{Adaptive Bayesian changepoint with outliers}
 \usage{
 abco(
   y,

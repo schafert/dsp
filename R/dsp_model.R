@@ -1,4 +1,4 @@
-#' Model Specification
+#' Model specification
 #'
 #' Method for creating dsp specification object prior to fitting.
 #'
@@ -265,7 +265,7 @@ dsp_spec <- function(family,
 
 }
 
-#' MCMC Sampler for Models with Dynamic Shrinkage Processes
+#' MCMC sampler for models with dynamic shrinkage processes
 #'
 #' Wrapper function for fitting models with Dynamic Shrinkage Processes (DSP), including:
 #' \itemize{
@@ -294,6 +294,7 @@ dsp_spec <- function(family,
 #'
 #' An object of class "\code{dsp}" is defined as a list containing at least the following components:
 #'    \item{mcmc_output}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}}
+#'    \item{y}{the original observations, including any missing values, retained for \code{residuals()}}
 #'    \item{DIC}{Deviance Information Criterion}
 #'    \item{mcpar}{named vector of supplied nsave, nburn, and nskip}
 #'    \item{model_spec}{the object supplied for model_spec argument}
@@ -418,20 +419,12 @@ dsp_fit = function(y, model_spec,
                                                verbose = verbose, ...))
   }
 
-  .dsp_state$n_illcond = 0L
+  .dsp_state$n_sqrt = 0L
 
   mcmc_output = do.call(fitter, input_args)
 
-  # Report ill-conditioned state draws once for the whole fit. These draws are
-  # valid, but they came from a precision matrix that could not be factorized
-  # until the evolution variances were floored, so the posterior is not purely
-  # the one specified by the prior.
-  if(.dsp_state$n_illcond > 0)
-    warning(.dsp_state$n_illcond, ' state draw(s) required a conditioning ',
-            'fallback: the precision matrix could not be factorized until the ',
-            'evolution variances were floored.', call. = FALSE)
-
   structure(list(mcmc_output = mcmc_output,
+                 y = y,
                  DIC = mcmc_output[c("DIC", "p_d")],
                  mcpar = c(nsave = nsave, nburn = nburn, nskip = nskip),
                  model_spec = model_spec),

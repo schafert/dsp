@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper_functions.R
 \name{initChol_spam}
 \alias{initChol_spam}
-\title{Compute initial Cholesky decomposition for Bayesian Trend Filtering}
+\title{Compute initial Cholesky decomposition for Bayesian trend filtering}
 \usage{
 initChol_spam(nT, D = 1)
 }

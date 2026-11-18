@@ -175,7 +175,7 @@ build_XtX = function(X){
 }
 
 #----------------------------------------------------------------------------
-#' Compute initial Cholesky decomposition for Bayesian Trend Filtering
+#' Compute initial Cholesky decomposition for Bayesian trend filtering
 #'
 #' Computes the Cholesky decomposition for the quadratic term in the (Gaussian) posterior
 #' of the Bayesian Trend Filtering coefficients. The sparsity pattern will not change during the
@@ -198,7 +198,7 @@ initChol_spam = function(nT, D = 1){
   chQht_Matrix0
 }
 #----------------------------------------------------------------------------
-#' Compute initial Cholesky decomposition for TVP Regression
+#' Compute initial Cholesky decomposition for TVP regression
 #'
 #' Computes the Cholesky decomposition for the quadratic term in the (Gaussian) posterior
 #' of the TVP regression coefficients. The sparsity pattern will not change during the
@@ -326,7 +326,7 @@ build_Q = function(obs_sigma_t2, evol_sigma_t2, D = 1){
   Q
 }
 #----------------------------------------------------------------------------
-#' Compute Non-Zeros (Signals)
+#' Compute non-zeros (signals)
 #'
 #' Estimate the location of non-zeros (signals) implied by
 #' horseshoe-type thresholding.
@@ -427,7 +427,7 @@ band_stats = function(sampFuns){
   list(Efx = Efx, SDfx = SDfx, Maxfx = apply(Standfx, 1, max), varies = varies)
 }
 #####################################################################################################
-#' Compute Simultaneous Credible Bands
+#' Compute simultaneous credible bands
 #'
 #' Compute (1-alpha)\% credible BANDS for a function based on MCMC samples using Crainiceanu et al. (2007)
 #' (Journal of Computational and Graphical Statistics, 16(2), 265--288,
@@ -455,7 +455,7 @@ credBands = function(sampFuns, alpha = .05){
   cbind(bs$Efx - Malpha*bs$SDfx, bs$Efx + Malpha*bs$SDfx)
 }
 #####################################################################################################
-#' Compute Simultaneous Band Scores (SimBaS)
+#' Compute simultaneous band scores (SimBaS)
 #'
 #' Compute simultaneous band scores (SimBaS) from Meyer et al. (2015, Biometrics,
 #' 71(3), 563--574, \doi{10.1111/biom.12299}).
@@ -508,7 +508,7 @@ logit = function(x) {
 invlogit = function(x) exp(x - log(1+exp(x))) # exp(x)/(1+exp(x))
 
 #----------------------------------------------------------------------------
-#' Univariate Slice Sampler from Neal (2008)
+#' Univariate slice sampler from Neal (2008)
 #'
 #' Compute a draw from a univariate distribution using the code provided by
 #' Radford M. Neal. The documentation below is also reproduced from Neal (2008).

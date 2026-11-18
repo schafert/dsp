@@ -2,7 +2,7 @@
 % Please edit documentation in R/component_samplers.R
 \name{sampleBTF_reg_backfit}
 \alias{sampleBTF_reg_backfit}
-\title{(Backfitting) Sampler for first or second order random walk (RW) Gaussian dynamic linear model (DLM)}
+\title{(Backfitting) sampler for first or second order random walk (RW) Gaussian dynamic linear model (DLM)}
 \usage{
 sampleBTF_reg_backfit(y, X, beta, obs_sigma_t2, evol_sigma_t2, D = 1)
 }

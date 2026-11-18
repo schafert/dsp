@@ -3,7 +3,7 @@
 \name{dsp_fit}
 \alias{dsp_fit}
 \alias{print.dsp}
-\title{MCMC Sampler for Models with Dynamic Shrinkage Processes}
+\title{MCMC sampler for models with dynamic shrinkage processes}
 \usage{
 dsp_fit(
   y,
@@ -49,6 +49,7 @@ and applies to every family and model.}
 
 An object of class "\code{dsp}" is defined as a list containing at least the following components:
 \item{mcmc_output}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}}
+\item{y}{the original observations, including any missing values, retained for \code{residuals()}}
 \item{DIC}{Deviance Information Criterion}
 \item{mcpar}{named vector of supplied nsave, nburn, and nskip}
 \item{model_spec}{the object supplied for model_spec argument}

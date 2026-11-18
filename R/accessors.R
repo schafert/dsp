@@ -14,7 +14,7 @@
 #' @details
 #' \code{par_names()} returns the names of the parameters with stored posterior
 #' draws. These are the values accepted by the \code{pars} argument of
-#' \code{fitted()}, [summary.dsp()] and [as.mcmc.dsp()], and by the
+#' \code{fitted()}, [confint.dsp()], [summary.dsp()] and [as.mcmc.dsp()], and by the
 #' \code{type} argument of [plot.dsp()].
 #'
 #' \code{fitted()} returns pointwise posterior summaries of one parameter.

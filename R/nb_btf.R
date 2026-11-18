@@ -1,4 +1,4 @@
-#' MCMC Sampler for Bayesian Trend Filtering with Negative Binomial Observation Model
+#' MCMC sampler for Bayesian trend filtering with negative binomial observation model
 #'
 #' @description
 #' Run the MCMC for Bayesian trend filtering with a penalty on first (D = 1) or
@@ -326,29 +326,33 @@ sampleBTF_nb <- function(y, r, offset, eta_t, obs_sigma_t2, evol_sigma_t2,
     mu = rnorm(n = Nt, mean = postMean, sd = postSD)
 
   } else {
-    # All other cases: positive integer differencing (D = 1 or D = 2)
+    mu = .btf_try_precision({
+      # All other cases: positive integer differencing (D = 1 or D = 2)
 
-    # Quadratic term (D = 1 or D = 2)
-    QHt_Matrix = build_Q(obs_sigma_t2 = obs_sigma_t2, evol_sigma_t2 = evol_sigma_t2, D = D)
+      # Quadratic term (D = 1 or D = 2)
+      QHt_Matrix = build_Q(obs_sigma_t2 = obs_sigma_t2, evol_sigma_t2 = evol_sigma_t2, D = D)
 
-    if(!is.null(chol0)){
-      # New sampler, based on spam package:
+      if(!is.null(chol0)){
+        # New sampler, based on spam package:
 
-      # Sample the states:
-      mu = matrix(spam::rmvnorm.canonical(n = 1,
-                                          b = linht,
-                                          Q = spam::as.spam.dgCMatrix(as(QHt_Matrix, "generalMatrix")),
-                                          Rstruct = chol0))
-    } else {
-      # Original sampler, based on Matrix package:
+        # Sample the states:
+        mu = matrix(spam::rmvnorm.canonical(n = 1,
+                                            b = linht,
+                                            Q = spam::as.spam.dgCMatrix(as(QHt_Matrix, "generalMatrix")),
+                                            Rstruct = chol0))
+      } else {
+        # Original sampler, based on Matrix package:
 
-      # Cholesky of Quadratic term:
-      chQht_Matrix = Matrix::chol(QHt_Matrix) #this is upper triangular
+        # Cholesky of Quadratic term:
+        chQht_Matrix = .btf_chol(QHt_Matrix) #this is upper triangular
 
-      # Sample the states:
-      mu = as.matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(Nt)))
+        # Sample the states:
+        mu = as.matrix(Matrix::solve(chQht_Matrix,Matrix::solve(Matrix::t(chQht_Matrix), linht) + rnorm(Nt)))
 
-    }
+      }
+      mu
+    }, sampleBTF_sqrt(y, obs_sigma_t2, evol_sigma_t2, D,
+                      linear_term = linht))
   }
 
   # And return the states:

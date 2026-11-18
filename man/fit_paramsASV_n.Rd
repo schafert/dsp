@@ -2,7 +2,7 @@
 % Please edit documentation in R/ASV.R
 \name{fit_paramsASV_n}
 \alias{fit_paramsASV_n}
-\title{Helper function for Sampling parameters for ASV model with a nugget Effect}
+\title{Helper function for sampling parameters for ASV model with a nugget effect}
 \usage{
 fit_paramsASV_n(data, sParams, evol_error, D)
 }
