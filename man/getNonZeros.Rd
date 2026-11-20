@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper_functions.R
 \name{getNonZeros}
 \alias{getNonZeros}
-\title{Compute Non-Zeros (Signals)}
+\title{Compute non-zeros (signals)}
 \usage{
 getNonZeros(post_evol_sigma_t2, post_obs_sigma_t2 = NULL)
 }

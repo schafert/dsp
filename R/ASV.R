@@ -1,4 +1,4 @@
-#' MCMC Sampler for Adaptive Stchoastic Volatility (ASV) model
+#' MCMC sampler for adaptive stchoastic volatility (ASV) model
 #'
 #' The penalty is determined by the prior on the evolution errors, which include:
 #' \itemize{
@@ -210,7 +210,7 @@ init_paramsASV <- function(data,evol_error,D){
     loc_error = loc_error
   ))
 }
-#' Helper function for Sampling parameters for ASV model
+#' Helper function for sampling parameters for ASV model
 #'
 #' @param data the \code{T x 1} vector of time series observations.
 #' @param sParams list from the previous run of fit_paramsASV function or init_paramsASV function
@@ -329,7 +329,7 @@ init_paramsASV_n <- function(data,evol_error,D){
     loc_error = loc_error
   ))
 }
-#' Helper function for Sampling parameters for ASV model with a nugget Effect
+#' Helper function for sampling parameters for ASV model with a nugget effect
 #'
 #' @param data the \code{T x 1} vector of time series observations.
 #' @param sParams list from the previous run of fit_paramsASV function or init_paramsASV function

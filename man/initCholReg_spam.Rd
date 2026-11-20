@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper_functions.R
 \name{initCholReg_spam}
 \alias{initCholReg_spam}
-\title{Compute initial Cholesky decomposition for TVP Regression}
+\title{Compute initial Cholesky decomposition for TVP regression}
 \usage{
 initCholReg_spam(obs_sigma_t2, evol_sigma_t2, XtX, D = 1)
 }

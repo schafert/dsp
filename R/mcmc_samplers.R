@@ -1,4 +1,4 @@
-#' MCMC Sampler for Bayesian Trend Filtering
+#' MCMC sampler for Bayesian trend filtering
 #'
 #' Run the MCMC for Bayesian trend filtering with a penalty on zeroth (D = 0),
 #' first (D = 1), or second (D = 2) differences of the conditional expectation.
@@ -243,7 +243,8 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
   if(!is.na(match('ypred', mcmc_params))) mcmc_output$ypred = post_ypred
-  if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = post_obs_sigma_t2
+  # A constant variance is one draw per iteration, not one per time point
+  if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = if(obsSV == "const") post_obs_sigma_t2[, 1] else post_obs_sigma_t2
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
@@ -273,7 +274,7 @@ btf = function(y, evol_error = 'DHS', D = 2, obsSV = "const",
 
   return (mcmc_output);
 }
-#' MCMC Sampler for Bayesian Trend Filtering: D = 0
+#' MCMC sampler for Bayesian trend filtering: D = 0
 #'
 #' Run the MCMC for Bayesian trend filtering with a penalty on the conditional expectation.
 #' The penalty is determined by the prior on the evolution errors, which include:
@@ -475,7 +476,8 @@ btf0 = function(y, evol_error = 'DHS', obsSV = "const",
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
   if(!is.na(match('ypred', mcmc_params))) mcmc_output$ypred = post_ypred
-  if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = post_obs_sigma_t2
+  # A constant variance is one draw per iteration, not one per time point
+  if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = if(obsSV == "const") post_obs_sigma_t2[, 1] else post_obs_sigma_t2
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
@@ -745,7 +747,8 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
   if(!is.na(match('ypred', mcmc_params))) mcmc_output$ypred = post_ypred
-  if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = post_obs_sigma_t2
+  # A constant variance is one draw per iteration, not one per time point
+  if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = if(obsSV == "const") post_obs_sigma_t2[, 1] else post_obs_sigma_t2
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('zero_sigma_t2', mcmc_params))) mcmc_output$zero_sigma_t2 = post_zero_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
@@ -777,7 +780,7 @@ btf_sparse = function(y, evol_error = 'DHS', zero_error = 'DHS', D = 2, obsSV = 
   return (mcmc_output);
 }
 
-#' MCMC Sampler for Bayesian Trend Filtering: Regression
+#' MCMC sampler for Bayesian trend filtering: regression
 #'
 #' Run the MCMC for Bayesian trend filtering regression with a penalty on
 #' first (D=1) or second (D=2) differences of each dynamic regression coefficient.
@@ -1039,7 +1042,8 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
   if(!is.na(match('ypred', mcmc_params))) mcmc_output$ypred = post_ypred
   if(!is.na(match('beta', mcmc_params))) mcmc_output$beta = post_beta
-  if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = post_obs_sigma_t2
+  # A constant variance is one draw per iteration, not one per time point
+  if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = if(obsSV == "const") post_obs_sigma_t2[, 1] else post_obs_sigma_t2
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
@@ -1070,7 +1074,7 @@ btf_reg = function(y, X = NULL, evol_error = 'DHS', D = 1, obsSV = "const",
   return (mcmc_output);
 }
 
-#' MCMC Sampler for B-spline Bayesian Trend Filtering
+#' MCMC sampler for B-spline Bayesian trend filtering
 #'
 #' Run the MCMC for B-spline fitting with a Bayesian trend filtering model on the
 #' coefficients, i.e., a penalty on zeroth (D=0), first (D=1), or second (D=2)
@@ -1290,7 +1294,8 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
   if(!is.na(match('ypred', mcmc_params))) mcmc_output$ypred = post_ypred
   if(!is.na(match('beta', mcmc_params))) mcmc_output$beta = post_beta
-  if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = post_obs_sigma_t2
+  # The variance is constant, so store one draw per iteration
+  if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = post_obs_sigma_t2[, 1]
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
@@ -1320,7 +1325,7 @@ btf_bspline = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS', D 
 }
 
 #----------------------------------------------------------------------------
-#' MCMC Sampler for B-spline Bayesian Trend Filtering: D = 0
+#' MCMC sampler for B-spline Bayesian trend filtering: D = 0
 #'
 #' Run the MCMC for B-spline fitting with a penalty the B-spline basis coefficients.
 #' The penalty is determined by the prior on the evolution errors, which include:
@@ -1509,7 +1514,8 @@ btf_bspline0 = function(y, times = NULL, num_knots = NULL, evol_error = 'DHS',
   if(!is.na(match('mu', mcmc_params))) mcmc_output$mu = post_mu
   if(!is.na(match('ypred', mcmc_params))) mcmc_output$ypred = post_ypred
   if(!is.na(match('beta', mcmc_params))) mcmc_output$beta = post_beta
-  if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = post_obs_sigma_t2
+  # The variance is constant, so store one draw per iteration
+  if(!is.na(match('obs_sigma_t2', mcmc_params))) mcmc_output$obs_sigma_t2 = post_obs_sigma_t2[, 1]
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean

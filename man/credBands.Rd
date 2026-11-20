@@ -2,24 +2,27 @@
 % Please edit documentation in R/helper_functions.R
 \name{credBands}
 \alias{credBands}
-\title{Compute Simultaneous Credible Bands}
+\title{Compute simultaneous credible bands}
 \usage{
 credBands(sampFuns, alpha = 0.05)
 }
 \arguments{
 \item{sampFuns}{\code{Nsims x m} matrix of \code{Nsims} MCMC samples and \code{m} points along the curve}
 
-\item{alpha}{confidence level}
+\item{alpha}{one minus the credibility level of the bands}
 }
 \value{
 \code{m x 2} matrix of credible bands; the first column is the lower band, the second is the upper band
 }
 \description{
 Compute (1-alpha)\\% credible BANDS for a function based on MCMC samples using Crainiceanu et al. (2007)
+(Journal of Computational and Graphical Statistics, 16(2), 265--288,
+\doi{10.1198/106186007X208768}).
 }
 \note{
 The input needs not be curves: the simultaneous credible "bands" may be computed
-for vectors. The resulting credible intervals will provide joint coverage at the (1-alpha)\%
-level across all components of the vector.
+for vectors. The result is a joint credible band at credibility level 1 - alpha
+across all components of the vector. At a point with no posterior
+variation, both bands equal the constant value.
 }
 \keyword{internal}

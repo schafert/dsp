@@ -1,7 +1,8 @@
 ## R CMD check results
 
 0 errors | 0 warnings | 0 notes
-  
-## revdepcheck results
 
-revdepcheck not available for R version 4.4.3
+## Reverse dependencies
+
+There are currently no reverse dependencies on CRAN.
+

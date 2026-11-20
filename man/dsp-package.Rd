@@ -4,7 +4,7 @@
 \name{dsp-package}
 \alias{dsp}
 \alias{dsp-package}
-\title{dsp: Dynamic Shrinkage Process and Change Point Detection}
+\title{dsp: Dynamic shrinkage process and change point detection}
 \description{
 Provides efficient Markov chain Monte Carlo (MCMC) algorithms for dynamic shrinkage processes, which extend global-local shrinkage priors to the time series setting by allowing shrinkage to depend on its own past. These priors yield locally adaptive estimates, useful for time series and regression functions with irregular features. The package includes full MCMC implementations for trend filtering using dynamic shrinkage on signal differences, producing locally constant or linear fits with adaptive credible bands. Also included are models with static shrinkage and normal-inverse-Gamma priors for comparison. Additional tools cover dynamic regression with time-varying coefficients and B-spline models with shrinkage on basis differences, allowing for flexible curve-fitting with unequally spaced data. Some support for heteroscedastic errors, outlier detection, and change point estimation. Methods in this package are described in Kowal et al. (2019) \doi{10.1111/rssb.12325}, Wu et al. (2024) \doi{10.1080/07350015.2024.2362269}, Schafer and Matteson (2024) \doi{10.1080/00401706.2024.2407316}, and Cho and Matteson (2026) \doi{10.1080/07350015.2025.2602846}.
 }

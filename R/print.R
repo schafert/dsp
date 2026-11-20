@@ -23,7 +23,7 @@ print.dsp <- function(x, ...){
 
   print(x$model_spec)
   cat("\nTotal number of MCMC samples burned in:", x$mcpar["nburn"], "\n")
-  cat("Thinning interval used:", x$mcpar["nskip"], "\n")
+  cat("Thinning interval used:", x$mcpar["nskip"] + 1, "\n")
   cat("Total number of MCMC samples saved:", x$mcpar["nsave"],"\n")
 
 
@@ -58,7 +58,7 @@ print.dsp_spec <- function(x, ...){
            changepoint = cat("changepoint and outlier detection, "),
            smoothing = cat("Bayesian trend smoothing, "),
            regression = cat("time-varying regression, "),
-           bspline = cat("B-spline smoothing splines, "))
+           bspline = cat("B-spline smoothing splines, and "))
 
     if (x$model %in% c("changepoint", "smoothing", "regression")) {
       switch(x$arguments$obsSV,

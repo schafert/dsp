@@ -3,7 +3,7 @@
 \name{dsp_spec}
 \alias{dsp_spec}
 \alias{print.dsp_spec}
-\title{Model Specification}
+\title{Model specification}
 \usage{
 dsp_spec(family, model, ...)
 

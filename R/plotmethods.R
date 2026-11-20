@@ -3,18 +3,18 @@
 #'
 #' Visualize posterior samples for a selected parameter from a fitted
 #' `dsp` object. The parameter to plot is chosen with `type`, which must name
-#' one of the entries in `x$mcmc_output` and defaults to `"mu"`.
+#' one of the parameters returned by [par_names()] and defaults to `"mu"`.
 #' Depending on the dimension of the selected posterior samples, the
 #' function produces either a posterior density plot, a time-series plot
 #' with credible intervals, or a multi-panel time-series plot.
 #'
 #' @param x an object of class `dsp` from [dsp_fit()].
-#' @param type character string giving the parameter name to visualize; must be one of the entries in `x$mcmc_output`. Defaults to `"mu"`.
+#' @param type character string giving the parameter name to visualize; must be one of the parameters returned by [par_names()]. Defaults to `"mu"`.
 #' @param true_values optional ground-truth values to overlay on the plot. For scalar parameters, this should be a length-1 numeric value; for time-varying parameters, a `T x 1` vector; and for multi-parameter time-varying quantities, a `T x p` matrix matching the plotted parameter dimensions.
 #' @param y_obs optional vector of observed data point of length T. Only for `2`-dimensional parameters.
 #' @param times optional vector of observation points. If `NULL`, the function assumes `T` equally spaced points on `[0,1]`.
-#' @param include_joint_bands logical; if `TRUE`, include simultaneous credible bands in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: `zeta`, `omega`, `ypred`, and `mu` for 2D outputs, and `zeta`, `omega`, `ypred`, `mu`, and `beta` for 3D outputs.
-#' @param alpha numeric credibility level used to construct posterior intervals and bands. Defaults to `0.05`, corresponding to 95% intervals/bands.
+#' @param include_joint_bands logical; if `TRUE`, include simultaneous credible bands (Crainiceanu et al. 2007; see [credible_bands()]) in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: `zeta`, `omega`, `ypred`, and `mu` for 2D outputs, and `zeta`, `omega`, `ypred`, `mu`, and `beta` for 3D outputs.
+#' @param alpha Specifies the posterior interval and band credibility level as $1-\alpha$. Defaults to `0.05`, corresponding to 95% intervals/bands.
 #' @param xlab optional x-axis label. If `NULL`, defaults to `"t"`.
 #' @param ylab optional y-axis label. If `NULL`, defaults to `type`.
 #' @param main optional plot title. For multi-panel plots, this may be either a single title or a vector of titles of length equal to the number of panels.
@@ -43,7 +43,7 @@
 #'
 #' Axis labels, titles, plotting limits, margins, legend display, and additional graphical settings can be customized through `xlab`, `ylab`, `main`, `xlim`, `ylim`, `mar`, `legend`, `legend_cex`, `legend_pt_cex`, and `par_args`.
 #'
-#' The x-axis values are taken from `times`. If `times` is not supplied, evenly spaced points on \eqn{[0,1]} are used. For differenced variance parameters such as `"evol_sigma_t2"` and `"zeta_sigma_t2"`, the initial time points associated with prior initialization are automatically removed before plotting.
+#' The x-axis values are taken from `times`. If `times` is not supplied, evenly spaced points on \eqn{[0,1]} are used. For `"evol_sigma_t2"`, the first `D` entries, which are the variances of the initial states, are removed before plotting.
 #'
 #' For fitted changepoint models, changepoint annotations may be added when supported by the plotted parameter and the corresponding latent components are present in the MCMC output.
 #'
@@ -61,7 +61,7 @@
 #' y = signal + noise
 #' model_spec = dsp_spec(family = "gaussian", model = "changepoint",
 #'                       D = 1, useAnom = TRUE, obsSV = "SV")
-#' mcmc_output = dsp_fit(y, model_spec = model_spec, nsave = 500, nburn = 500)
+#' mcmc_output = dsp_fit(y, model_spec = model_spec, nsave = 200, nburn = 200)
 #' # Estimated posterior mean vs ground truth
 #' plot(mcmc_output, type = "mu", true_values = signal)
 #' # Estimated innovation variance vs ground truth for illustration only
@@ -73,6 +73,11 @@
 #' @importFrom stats density predict
 #'
 #' @references
+#' Crainiceanu, C. M., Ruppert, D., Carroll, R. J., Joshi, A., and Goodner, B. (2007).
+#' Spatially adaptive Bayesian penalized splines with heteroscedastic errors.
+#' \emph{Journal of Computational and Graphical Statistics}, \strong{16}(2), 265--288.
+#' \doi{10.1198/106186007X208768}
+#'
 #' Krivobokova, T., Kneib, T., and Claeskens, G. (2010).
 #' Simultaneous confidence bands for penalized spline estimators.
 #' \emph{Journal of the American Statistical Association}, \strong{105}(490), 852--863.
@@ -102,13 +107,19 @@ plot.dsp <- function(
   # lets the default work and gives NULL and unrecognised names the same
   # informative message.
   if (is.null(type) || !is.character(type) || length(type) != 1L ||
-      is.null(x$mcmc_output[[type]])) {
+      !type %in% par_names(x)) {
     stop("`type` must name one of: ",
-         paste(names(x$mcmc_output), collapse = ", "))
+         paste(par_names(x), collapse = ", "))
   }
 
   mean_color = "dodgerblue"
   samples = x$mcmc_output[[type]]
+
+  # A constant observation variance is stored as one draw per iteration. Plot
+  # it over time, so that it can be compared with time-varying variances.
+  if(type == "obs_sigma_t2" && is.null(dim(samples)))
+    samples = matrix(samples, nrow = length(samples), ncol = nobs(x))
+
   dimension = dim(samples)
 
   oldpar <- par(no.readonly = TRUE)
@@ -134,11 +145,12 @@ plot.dsp <- function(
     nT = dimension[2]
     if(is.null(times)) times = seq(0, 1, length.out=nT)
 
-    # Preprocessing for evol_sigma_t2 parameters
-    # Dropping first "D" since first D variances are for intializaiton
-    if(type %in% c("evol_sigma_t2","zeta_sigma_t2")){
-      samples = samples[,-c(1:(x$model_spec$arguments$D))]
-      times = times[-c(1:(x$model_spec$arguments$D))]
+    # The first D evolution variances are those of the initial states, so they
+    # are dropped. The anomaly variances have no initial states.
+    D = x$model_spec$arguments$D
+    if(type == "evol_sigma_t2" && !is.null(D) && D > 0){
+      samples = samples[, -(1:D)]
+      times = times[-(1:D)]
     }
 
     posterior_mean <- colMeans(samples)
@@ -309,11 +321,11 @@ plot.dsp <- function(
     nplots = dimension[3]
     nT = dimension[2]
     if(is.null(times)) times = seq(0, 1, length.out=nT)
-    # Preprocessing for evol_sigma_t2 parameters
-    # Dropping first "D" since first D variances are for intializaiton
-    if(type %in% c("evol_sigma_t2", "zeta_sigma_t2")){
-      samples = samples[, -c(1:(x$model_spec$arguments$D)), ]
-      times = times[-c(1:(x$model_spec$arguments$D))]
+    # The first D evolution variances are those of the initial states
+    D = x$model_spec$arguments$D
+    if(type == "evol_sigma_t2" && !is.null(D) && D > 0){
+      samples = samples[, -(1:D), , drop = FALSE]
+      times = times[-(1:D)]
     }
 
     if(!is.null(true_values)){

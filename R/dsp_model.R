@@ -1,4 +1,4 @@
-#' Model Specification
+#' Model specification
 #'
 #' Method for creating dsp specification object prior to fitting.
 #'
@@ -265,7 +265,7 @@ dsp_spec <- function(family,
 
 }
 
-#' MCMC Sampler for Models with Dynamic Shrinkage Processes
+#' MCMC sampler for models with dynamic shrinkage processes
 #'
 #' Wrapper function for fitting models with Dynamic Shrinkage Processes (DSP), including:
 #' \itemize{
@@ -294,6 +294,7 @@ dsp_spec <- function(family,
 #'
 #' An object of class "\code{dsp}" is defined as a list containing at least the following components:
 #'    \item{mcmc_output}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}}
+#'    \item{y}{the original observations, including any missing values, retained for \code{residuals()}}
 #'    \item{DIC}{Deviance Information Criterion}
 #'    \item{mcpar}{named vector of supplied nsave, nburn, and nskip}
 #'    \item{model_spec}{the object supplied for model_spec argument}
@@ -303,8 +304,12 @@ dsp_spec <- function(family,
 #' \itemize{
 #'   \item \code{mu}: Conditional mean.
 #'   \item \code{ypred}: Posterior predictive \eqn{\tilde{y}_t}.
-#'   \item \code{evol_sigma_t2}: Variance of the state variable.
+#'   \item \code{evol_sigma_t2}: Variance of the state variable. For \eqn{D > 0},
+#'     the first \eqn{D} entries are the variances of the initial states.
 #'   \item \code{obs_sigma_t2}: Observation variance \eqn{\sigma^2_{\epsilon}} (\code{family = "gaussian"}).
+#'     One draw per iteration when the variance is constant in time
+#'     (\code{obsSV = "const"}, and always for \code{model = "bspline"}),
+#'     otherwise one per time point.
 #'   \item \code{dhs_phi}, \code{dhs_mean}: DHS hyperparameter draws (\code{evol_error = "DHS"}).
 #' }
 #'
@@ -313,8 +318,11 @@ dsp_spec <- function(family,
 #'   \item \code{changepoint} (Gaussian):
 #'   \itemize{
 #'     \item \code{omega}: \eqn{D}-th differenced posterior mean draws, \eqn{\mu_t}.
-#'     \item \code{zeta}: anomaly component (when \code{useAnom = TRUE}).
-#'     \item \code{zeta_sigma_t2}: anomaly variance (when \code{useAnom = TRUE}).
+#'     \item \code{zeta}: anomaly component (when \code{useAnom = TRUE}),
+#'       with \eqn{T} columns aligned with \code{y}. The anomaly is defined for
+#'       \eqn{t > D} only and is zero at the first \eqn{D} time points.
+#'     \item \code{zeta_sigma_t2}: variance of the horseshoe+ prior on the anomaly
+#'       (when \code{useAnom = TRUE}), zero at the first \eqn{D} time points.
 #'     \item \code{gamma}: threshold parameter in the thresholded DHS log-volatility dynamics.
 #'   }
 #'   \item \code{regression} (Gaussian):
@@ -346,7 +354,7 @@ dsp_spec <- function(family,
 #' y = signal + noise
 #' model_spec = dsp_spec(family = "gaussian", model = "changepoint",
 #'                       D = 1, useAnom = TRUE, obsSV = "SV")
-#' mcmc_output = dsp_fit(y, model_spec = model_spec, nsave = 500, nburn = 500)
+#' mcmc_output = dsp_fit(y, model_spec = model_spec, nsave = 200, nburn = 200)
 #'
 #' @export
 dsp_fit = function(y, model_spec,
@@ -411,20 +419,12 @@ dsp_fit = function(y, model_spec,
                                                verbose = verbose, ...))
   }
 
-  .dsp_state$n_illcond = 0L
+  .dsp_state$n_sqrt = 0L
 
   mcmc_output = do.call(fitter, input_args)
 
-  # Report ill-conditioned state draws once for the whole fit. These draws are
-  # valid, but they came from a precision matrix that could not be factorized
-  # until the evolution variances were floored, so the posterior is not purely
-  # the one specified by the prior.
-  if(.dsp_state$n_illcond > 0)
-    warning(.dsp_state$n_illcond, ' state draw(s) required a conditioning ',
-            'fallback: the precision matrix could not be factorized until the ',
-            'evolution variances were floored.', call. = FALSE)
-
   structure(list(mcmc_output = mcmc_output,
+                 y = y,
                  DIC = mcmc_output[c("DIC", "p_d")],
                  mcpar = c(nsave = nsave, nburn = nburn, nskip = nskip),
                  model_spec = model_spec),

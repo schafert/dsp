@@ -1,7 +1,7 @@
 Type: Package
 Package: dsp
 Title: Dynamic Shrinkage Process and Change Point Detection
-Version: 1.7.0
+Version: 1.8.0
 Authors@R: c(
     person("Daniel R.", "Kowal", , "daniel.kowal@rice.edu", role = c("aut", "cph")),
     person("Haoxuan", "Wu", , "hw399@cornell.edu", role = c("aut")),
@@ -58,7 +58,6 @@ LinkingTo:
     RcppArmadillo,
     RcppEigen
 Encoding: UTF-8
-LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Config/testthat/edition: 3

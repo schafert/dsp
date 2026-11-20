@@ -3,7 +3,7 @@
 \name{is.dsp}
 \alias{is.dsp}
 \alias{dsp-class}
-\title{Dynamic Shrinkage Process (dsp) Object}
+\title{Dynamic shrinkage process (dsp) object}
 \usage{
 is.dsp(object)
 }
@@ -24,7 +24,24 @@ length \code{nsave}; \code{DIC}, the deviance information criterion and
 effective number of parameters; \code{mcpar}, the number of saved draws,
 the burn-in and the thinning interval; and \code{model_spec}, the
 \code{dsp_spec} object describing the fitted model.
+The \code{y} component contains the original observations, including missing values.
+
+The accessor functions \code{\link[=par_names]{par_names()}}, \code{\link[=fitted.dsp]{fitted.dsp()}}, \code{\link[=DIC]{DIC()}},
+\code{\link[=get_spec]{get_spec()}} and \code{\link[=nobs.dsp]{nobs.dsp()}} extract these components without referring
+to the structure of the object.
+
+\code{coef()} returns the posterior means of the regression coefficients for
+\code{model = "regression"} or the basis coefficients for \code{model = "bspline"}.
+\code{residuals()} subtracts the posterior mean of \eqn{\mu_t} from \eqn{y_t}.
+\code{confint(object, pars = "mu", level = 0.95)} returns pointwise credible
+intervals for the specified parameter.
+\code{logLik()} returns the posterior mean log-likelihood. Set
+\code{summary = "draws"} to return the value at each saved iteration.
+\code{predict()} returns the same summaries as \code{fitted(object, pars = "mu")}
+for regression, smoothing, and B-spline models. For changepoint models, it
+returns detected changepoint indices; \code{cp_prop = TRUE} also returns
+their probabilities.
 }
 \seealso{
-\code{\link[=as.mcmc.dsp]{as.mcmc.dsp()}}, \code{\link[=summary.dsp]{summary.dsp()}}
+\link{dsp-accessors}, \code{\link[=as.mcmc.dsp]{as.mcmc.dsp()}}, \code{\link[=summary.dsp]{summary.dsp()}}
 }

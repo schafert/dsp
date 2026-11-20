@@ -2,7 +2,7 @@
 % Please edit documentation in R/nb_btf.R
 \name{btf_nb}
 \alias{btf_nb}
-\title{MCMC Sampler for Bayesian Trend Filtering with Negative Binomial Observation Model}
+\title{MCMC sampler for Bayesian trend filtering with negative binomial observation model}
 \usage{
 btf_nb(
   y,

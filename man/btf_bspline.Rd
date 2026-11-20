@@ -2,7 +2,7 @@
 % Please edit documentation in R/mcmc_samplers.R
 \name{btf_bspline}
 \alias{btf_bspline}
-\title{MCMC Sampler for B-spline Bayesian Trend Filtering}
+\title{MCMC sampler for B-spline Bayesian trend filtering}
 \usage{
 btf_bspline(
   y,

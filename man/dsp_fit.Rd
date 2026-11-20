@@ -3,7 +3,7 @@
 \name{dsp_fit}
 \alias{dsp_fit}
 \alias{print.dsp}
-\title{MCMC Sampler for Models with Dynamic Shrinkage Processes}
+\title{MCMC sampler for models with dynamic shrinkage processes}
 \usage{
 dsp_fit(
   y,
@@ -49,6 +49,7 @@ and applies to every family and model.}
 
 An object of class "\code{dsp}" is defined as a list containing at least the following components:
 \item{mcmc_output}{a list of the \code{nsave} MCMC samples for the parameters named in \code{mcmc_params}}
+\item{y}{the original observations, including any missing values, retained for \code{residuals()}}
 \item{DIC}{Deviance Information Criterion}
 \item{mcpar}{named vector of supplied nsave, nburn, and nskip}
 \item{model_spec}{the object supplied for model_spec argument}
@@ -80,8 +81,12 @@ Shared parameters across wrappers include:
 \itemize{
 \item \code{mu}: Conditional mean.
 \item \code{ypred}: Posterior predictive \eqn{\tilde{y}_t}.
-\item \code{evol_sigma_t2}: Variance of the state variable.
+\item \code{evol_sigma_t2}: Variance of the state variable. For \eqn{D > 0},
+the first \eqn{D} entries are the variances of the initial states.
 \item \code{obs_sigma_t2}: Observation variance \eqn{\sigma^2_{\epsilon}} (\code{family = "gaussian"}).
+One draw per iteration when the variance is constant in time
+(\code{obsSV = "const"}, and always for \code{model = "bspline"}),
+otherwise one per time point.
 \item \code{dhs_phi}, \code{dhs_mean}: DHS hyperparameter draws (\code{evol_error = "DHS"}).
 }
 
@@ -90,8 +95,11 @@ Model-specific parameters include:
 \item \code{changepoint} (Gaussian):
 \itemize{
 \item \code{omega}: \eqn{D}-th differenced posterior mean draws, \eqn{\mu_t}.
-\item \code{zeta}: anomaly component (when \code{useAnom = TRUE}).
-\item \code{zeta_sigma_t2}: anomaly variance (when \code{useAnom = TRUE}).
+\item \code{zeta}: anomaly component (when \code{useAnom = TRUE}),
+with \eqn{T} columns aligned with \code{y}. The anomaly is defined for
+\eqn{t > D} only and is zero at the first \eqn{D} time points.
+\item \code{zeta_sigma_t2}: variance of the horseshoe+ prior on the anomaly
+(when \code{useAnom = TRUE}), zero at the first \eqn{D} time points.
 \item \code{gamma}: threshold parameter in the thresholded DHS log-volatility dynamics.
 }
 \item \code{regression} (Gaussian):
@@ -121,7 +129,7 @@ for (k in 2:100){
 y = signal + noise
 model_spec = dsp_spec(family = "gaussian", model = "changepoint",
                       D = 1, useAnom = TRUE, obsSV = "SV")
-mcmc_output = dsp_fit(y, model_spec = model_spec, nsave = 500, nburn = 500)
+mcmc_output = dsp_fit(y, model_spec = model_spec, nsave = 200, nburn = 200)
 
 print(mcmc_output)
 

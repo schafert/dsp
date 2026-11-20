@@ -2,7 +2,7 @@
 % Please edit documentation in R/mcmc_samplers.R
 \name{btf0}
 \alias{btf0}
-\title{MCMC Sampler for Bayesian Trend Filtering: D = 0}
+\title{MCMC sampler for Bayesian trend filtering: D = 0}
 \usage{
 btf0(
   y,
