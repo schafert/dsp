@@ -4,4 +4,4 @@
   
 ## revdepcheck results
 
-revdepcheck not available for R version 4.5.3
+revdepcheck not available for R version 4.4.3
