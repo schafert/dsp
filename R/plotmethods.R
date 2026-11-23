@@ -143,11 +143,20 @@ plot.dsp <- function(
     # two dimension -> scatter plot
     # initializing Legend items
     nT = dimension[2]
-    if(is.null(times)) times = seq(0, 1, length.out=nT)
+    D = x$model_spec$arguments$D
+
+    # The increments omega = diff(mu, differences = D) have T - D columns:
+    # omega[i] is the increment at time i + D. Build times on the scale of the
+    # series, then drop the first D, so that a full-length times vector is
+    # accepted and changepoints are marked at the times of the series.
+    omega_short = type == "omega" && !is.null(D) && D > 0 &&
+      (is.null(times) || length(times) == nT + D)
+    if(is.null(times)) times = seq(0, 1, length.out = if(omega_short) nT + D else nT)
+    times_series = times
+    if(omega_short) times = times[-(1:D)]
 
     # The first D evolution variances are those of the initial states, so they
     # are dropped. The anomaly variances have no initial states.
-    D = x$model_spec$arguments$D
     if(type == "evol_sigma_t2" && !is.null(D) && D > 0){
       samples = samples[, -(1:D)]
       times = times[-(1:D)]
@@ -182,12 +191,10 @@ plot.dsp <- function(
       legend_lty <- c(legend_lty, 2)
       legend_lwd <- c(legend_lwd, 2)
       legend_col <- c(legend_col, "firebrick")
-      # predict.dsp() already returns indices on the scale of mu and times: it
-      # adds D to the omega index, since omega = diff(mu, differences = D) means
-      # omega[i] is the difference at mu[i + D]. Do not subtract D again here,
-      # which would draw each changepoint D observations early.
-      cp_loc = predict(x,cp_thres = cp_thres)
-      cp_loc = times[cp_loc]
+      # changepoints() returns indices on the scale of the series (it adds D
+      # to the omega index), so they index times_series for every type,
+      # including omega. Do not subtract D again.
+      cp_loc = times_series[changepoints(x, cp_thres = cp_thres)$index]
     }
     # build plot() args cleanly
     base_plot_args <- c(

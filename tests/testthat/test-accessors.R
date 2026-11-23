@@ -95,15 +95,79 @@ test_that("as.mcmc is available without attaching coda", {
 })
 
 
-test_that("predict aligns the changepoint probabilities with the series", {
+test_that("changepoints returns a data frame aligned with the series", {
 
-  cp <- predict(fit_cp, cp_thres = 0.5, cp_prop = TRUE)
   D <- fit_cp$model_spec$arguments$D
+  out <- fit_cp$mcmc_output
+  expected <- c(rep(NA_real_, D),
+                colMeans(sweep(out$omega^2, 1, exp(out$gamma), ">")))
 
-  expect_length(cp$cp_prop, 80L)
-  expect_true(all(is.na(cp$cp_prop[seq_len(D)])))
-  expect_true(all(cp$cp_prop[cp$cp_t] >= 0.5))
-  expect_identical(cp$cp_t, predict(fit_cp, cp_thres = 0.5))
+  cp <- changepoints(fit_cp, cp_thres = 0.5)
+  expect_s3_class(cp, "data.frame")
+  expect_named(cp, c("index", "probability"))
+  expect_type(cp$index, "integer")
+  expect_gt(nrow(cp), 0L)
+  expect_equal(cp$index, which(expected >= 0.5))
+  expect_equal(cp$probability, expected[cp$index])
+
+  # times adds a time column between index and probability
+  dates <- seq(as.Date("2000-01-01"), by = "month", length.out = 80)
+  cp_dates <- changepoints(fit_cp, cp_thres = 0.5, times = dates)
+  expect_named(cp_dates, c("index", "time", "probability"))
+  expect_equal(cp_dates$time, dates[cp$index])
+  expect_error(changepoints(fit_cp, times = dates[-1]), "length 80")
+
+  # all = TRUE gives one row per time point
+  cp_all <- changepoints(fit_cp, cp_thres = 0.5, all = TRUE)
+  expect_equal(nrow(cp_all), 80L)
+  expect_named(cp_all, c("index", "probability", "changepoint"))
+  expect_equal(cp_all$probability, expected)
+  expect_true(all(is.na(cp_all$probability[seq_len(D)])))
+  expect_false(any(cp_all$changepoint[seq_len(D)]))
+  expect_equal(which(cp_all$changepoint), cp$index)
+})
+
+test_that("changepoints returns zero rows, not NULL, when nothing is detected", {
+
+  # a threshold that no increment exceeds
+  fit_none <- fit_cp
+  fit_none$mcmc_output$gamma[] <- 1e3
+  none <- changepoints(fit_none, times = seq_len(80))
+  expect_s3_class(none, "data.frame")
+  expect_equal(nrow(none), 0L)
+  expect_named(none, c("index", "time", "probability"))
+})
+
+test_that("changepoints validates its input", {
+
+  expect_error(changepoints(fit_reg), "model = \"changepoint\"")
+  expect_error(changepoints(fit_cp, cp_thres = 2), "between 0 and 1")
+  expect_error(changepoints(fit_cp, all = NA), "TRUE or FALSE")
+  expect_error(changepoints(list()), "class 'dsp'")
+})
+
+test_that("predict returns summaries of mu for every model", {
+
+  for (fit in list(fit_cp, fit_reg, fit_nb)) {
+    expect_identical(predict(fit), fitted(fit, pars = "mu"))
+  }
+  expect_error(predict(fit_reg, cp_thres = 0.5), "changepoint models")
+})
+
+test_that("the deprecated changepoint arguments of predict still work", {
+
+  D <- fit_cp$model_spec$arguments$D
+  cp <- changepoints(fit_cp, cp_thres = 0.5)
+
+  lifecycle::expect_deprecated(old <- predict(fit_cp, cp_thres = 0.5))
+  expect_type(old, "integer")
+  expect_identical(old, cp$index)
+
+  lifecycle::expect_deprecated(old <- predict(fit_cp, cp_prop = TRUE))
+  expect_named(old, c("cp_t", "cp_prop"))
+  expect_identical(old$cp_t, cp$index)
+  expect_length(old$cp_prop, 80L)
+  expect_true(all(is.na(old$cp_prop[seq_len(D)])))
 })
 
 

@@ -2,73 +2,53 @@
 % Please edit documentation in R/predict.R
 \name{predict.dsp}
 \alias{predict.dsp}
-\title{Extract in-sample predictions or detect changepoints}
+\title{Extract in-sample predictions of the mean}
 \usage{
-\method{predict}{dsp}(object, cp_thres = 0.5, cp_prop = FALSE, ...)
+\method{predict}{dsp}(object, cp_thres = deprecated(), cp_prop = deprecated(), ...)
 }
 \arguments{
 \item{object}{object of class dsp from \code{\link[=dsp_fit]{dsp_fit()}}}
 
-\item{cp_thres}{(default 0.5) cutoff proportion for percentage of posterior
-samples exceeding the threshold needed to label a changepoint.
-Used only for changepoint models.}
+\item{cp_thres, cp_prop}{Deprecated. Changepoint
+detection has moved to \code{\link[=changepoints]{changepoints()}}. If either argument is supplied
+for a changepoint model, \code{predict()} warns and returns the detected
+changepoints as in earlier versions; see Value.}
 
-\item{cp_prop}{(default FALSE) logical flag determining if the posterior proportions of threshold exceedance is to be returned.
-Used only for changepoint models.}
-
-\item{...}{for regression, smoothing, and B-spline models, \code{probs} may be
-supplied to choose the posterior quantiles returned by \code{\link[=fitted.dsp]{fitted.dsp()}}.
-Currently unused for changepoint models.}
+\item{...}{\code{probs} may be supplied to choose the posterior quantiles
+returned by \code{\link[=fitted.dsp]{fitted.dsp()}}.}
 }
 \value{
-For regression, smoothing, and B-spline models, a matrix with one row per
-fitted time point, containing the posterior mean and quantiles of \code{mu}.
-The default quantiles are 2.5\%, 25\%, 50\%, 75\%, and 97.5\%.
+A matrix with one row per fitted time point, containing the posterior mean
+and quantiles of \code{mu}. The default quantiles are 2.5\%, 25\%, 50\%, 75\%, and
+97.5\%.
 
-For changepoint models, if \code{cp_prop = FALSE}, an integer vector containing the indices of detected changepoints in the observed data.
-If no changepoints are detected, an empty integer vector is returned.
-
-If cp_prop = TRUE, a list containing:
-- 'cp_t': a data frame with 'index' and 'probability' columns for detected changepoints.
-- 'cp_prop': a numeric vector of length \code{T} containing the pointwise posterior proportions of threshold exceedance,
-aligned with the observed series.
-The first \code{D} entries are \code{NA}, because no increment is defined there.
+If the deprecated \code{cp_thres} or \code{cp_prop} is supplied for a changepoint
+model, the return value of earlier versions: if \code{cp_prop = FALSE}, an
+integer vector of the indices of detected changepoints; if
+\code{cp_prop = TRUE}, a list with these indices in \code{cp_t} and, in \code{cp_prop},
+the posterior probabilities of threshold exceedance at all \code{T} time
+points, with \code{NA} at the first \code{D}.
 }
 \description{
-Extract in-sample predictions or detect changepoints
+Extract in-sample predictions of the mean
 }
 \details{
-For regression, smoothing (Gaussian or negative binomial), and B-spline
-models, this method returns \code{fitted(object, pars = "mu", ...)}: posterior
-summaries of the conditional mean at the fitted observation times. For
-regression, these use the original covariates and the coefficient draws
-at their corresponding fitted time points. New covariates, new observation
-times, and forecasts beyond the fitted series are not supported.
-These summaries describe the conditional mean, not new observation draws;
-use \code{fitted(object, pars = "ypred")} for posterior predictive summaries.
+For every model, this method returns \code{fitted(object, pars = "mu", ...)}:
+posterior summaries of the conditional mean at the fitted observation
+times. For regression, these use the original covariates and the
+coefficient draws at their corresponding fitted time points. New
+covariates, new observation times, and forecasts beyond the fitted series
+are not supported. These summaries describe the conditional mean, not new
+observation draws; use \code{fitted(object, pars = "ypred")} for posterior
+predictive summaries.
 
-The changepoint model uses a thresholding mechanism with a latent indicator variable.
-For this model, the method instead calculates the proportion of samples
-where the increment exceeds the threshold and returns detected changepoints.
+Changepoints of a changepoint model are returned by \code{\link[=changepoints]{changepoints()}}.
 }
 \examples{
 set.seed(200)
 signal = c(rep(0, 50), rep(10, 50))
-noise = rep(1, 100)
-noise_var = rep(1, 100)
-for (k in 2:100){
-  noise_var[k] = exp(0.9*log(noise_var[k-1]) + rnorm(1, 0, 0.5))
-  noise[k] = rnorm(1, 0, sqrt(noise_var[k])) }
+y = signal + rnorm(100)
 
-y = signal + noise
-model_spec = dsp_spec(family = "gaussian", model = "changepoint",
-                      D = 1, useAnom = TRUE)
-mcmc_output = dsp_fit(y, model_spec = model_spec, nsave = 200, nburn = 200)
-predict(mcmc_output)
-
-predict(mcmc_output, cp_prop = TRUE)
-
-# In-sample conditional-mean summaries for a smoothing model
 spec_smooth <- dsp_spec(family = "gaussian", model = "smoothing", D = 1)
 fit_smooth <- dsp_fit(y, spec_smooth, nsave = 200, nburn = 200)
 head(predict(fit_smooth))
@@ -76,5 +56,5 @@ head(predict(fit_smooth, probs = c(0.025, 0.975)))
 
 }
 \seealso{
-\code{\link[=fitted.dsp]{fitted.dsp()}}
+\code{\link[=fitted.dsp]{fitted.dsp()}}, \code{\link[=changepoints]{changepoints()}}
 }

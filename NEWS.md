@@ -7,7 +7,23 @@
   exceeded. Previously, a degenerate chain could make it loop without end.
   Draws are unchanged whenever the sampler terminates normally.
 * Added `coef()`, `residuals()`, `logLik()`, and `confint()` methods for fitted models.
-* Extended `predict()` to return in-sample posterior summaries of the mean for regression, smoothing, and B-spline models, while retaining changepoint detection for changepoint models.
+* `predict()` now returns in-sample posterior summaries of the conditional
+  mean, the same as `fitted(object, pars = "mu")`, for every model. Previously
+  it worked only for changepoint models, for which it returned the detected
+  changepoints.
+* Added `changepoints()`, which returns the detected changepoints of a
+  changepoint model as a data frame with their index, optionally their time,
+  and their posterior probability of threshold exceedance. With `all = TRUE`
+  it returns these probabilities for every time point.
+* The `cp_thres` and `cp_prop` arguments of `predict()` are deprecated in
+  favour of `changepoints()`. For changepoint models they still return the
+  detected changepoints, with a warning. With `cp_prop = TRUE`, the
+  probabilities in `cp_prop` are now aligned with the series, with `NA` for
+  the first `D` time points; previously they had length `T - D`.
+* `plot(type = "omega")` failed with a `times` vector of the length of the
+  series, because `omega` has `T - D` columns, and without `times` it drew
+  changepoint markers `D` time points off. The first `D` times are now
+  dropped for `omega`, and markers are placed on the times of the series.
 * Added accessor functions so that a fitted model can be inspected without
   referring to the structure of the object: `par_names()` lists the parameters
   with stored draws, `fitted()` returns pointwise posterior summaries of one
@@ -49,10 +65,6 @@
   no initial states, or the first entry of `evol_sigma_t2` when `D = 0`.
 * `as.mcmc()` is re-exported from `coda`, so `as.mcmc(fit)` works after
   `library(dsp)` alone.
-* With `cp_prop = TRUE`, `predict()` returns a table of detected changepoint
-  indices and their posterior threshold-exceedance probabilities in `cp_t`.
-  The `cp_prop` component contains these probabilities for all time points,
-  with `NA` for the first `D` time points.
 * `print()` for fitted models reported `nskip` as the thinning interval. It now
   reports `nskip + 1`, the interval `coda::thin()` gives.
 * `plot()` now rejects `type = "DIC"` and `type = "p_d"`, which are not draws.

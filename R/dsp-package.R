@@ -54,9 +54,8 @@ NULL
 #' \code{logLik()} returns the posterior mean log-likelihood. Set
 #' \code{summary = "draws"} to return the value at each saved iteration.
 #' \code{predict()} returns the same summaries as \code{fitted(object, pars = "mu")}
-#' for regression, smoothing, and B-spline models. For changepoint models, it
-#' returns detected changepoint indices; \code{cp_prop = TRUE} also returns
-#' their probabilities.
+#' for every model. For changepoint models, \code{changepoints()} returns the
+#' detected changepoints and their posterior probabilities as a data frame.
 #'
 #' @seealso [dsp-accessors], [as.mcmc.dsp()], [summary.dsp()]
 #'
