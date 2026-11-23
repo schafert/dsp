@@ -53,8 +53,8 @@ NULL
 #' intervals for the specified parameter.
 #' \code{logLik()} returns the posterior mean log-likelihood. Set
 #' \code{summary = "draws"} to return the value at each saved iteration.
-#' \code{predict()} returns the same summaries as \code{fitted(object, pars = "mu")}
-#' for every model. For changepoint models, \code{changepoints()} returns the
+#' \code{predict()} returns posterior predictive summaries, the same as
+#' \code{fitted(object, pars = "ypred")}, for every model. For changepoint models, \code{changepoints()} returns the
 #' detected changepoints and their posterior probabilities as a data frame.
 #'
 #' @seealso [dsp-accessors], [as.mcmc.dsp()], [summary.dsp()]

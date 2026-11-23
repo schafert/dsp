@@ -7,10 +7,12 @@
   exceeded. Previously, a degenerate chain could make it loop without end.
   Draws are unchanged whenever the sampler terminates normally.
 * Added `coef()`, `residuals()`, `logLik()`, and `confint()` methods for fitted models.
-* `predict()` now returns in-sample posterior summaries of the conditional
-  mean, the same as `fitted(object, pars = "mu")`, for every model. Previously
-  it worked only for changepoint models, for which it returned the detected
-  changepoints.
+* `predict()` now returns pointwise posterior predictive summaries (mean and
+  quantiles of `ypred`) for every model, with prediction intervals that
+  include the observation noise. Fitting with `NA` at the end of `y` gives
+  forecasts. Summaries of the conditional mean are returned by
+  `fitted(object, pars = "mu")`. Previously `predict()` worked only for
+  changepoint models, for which it returned the detected changepoints.
 * Added `changepoints()`, which returns the detected changepoints of a
   changepoint model as a data frame with their index, optionally their time,
   and their posterior probability of threshold exceedance. With `all = TRUE`

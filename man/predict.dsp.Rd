@@ -2,7 +2,7 @@
 % Please edit documentation in R/predict.R
 \name{predict.dsp}
 \alias{predict.dsp}
-\title{Extract in-sample predictions of the mean}
+\title{Posterior predictive summaries}
 \usage{
 \method{predict}{dsp}(object, cp_thres = deprecated(), cp_prop = deprecated(), ...)
 }
@@ -14,13 +14,13 @@ detection has moved to \code{\link[=changepoints]{changepoints()}}. If either ar
 for a changepoint model, \code{predict()} warns and returns the detected
 changepoints as in earlier versions; see Value.}
 
-\item{...}{\code{probs} may be supplied to choose the posterior quantiles
-returned by \code{\link[=fitted.dsp]{fitted.dsp()}}.}
+\item{...}{\code{probs} may be supplied to choose the quantiles returned by
+\code{\link[=fitted.dsp]{fitted.dsp()}}.}
 }
 \value{
-A matrix with one row per fitted time point, containing the posterior mean
-and quantiles of \code{mu}. The default quantiles are 2.5\%, 25\%, 50\%, 75\%, and
-97.5\%.
+A matrix with one row per time point of the fitted series, containing the
+posterior predictive mean and quantiles. The default quantiles are 2.5\%,
+25\%, 50\%, 75\%, and 97.5\%.
 
 If the deprecated \code{cp_thres} or \code{cp_prop} is supplied for a changepoint
 model, the return value of earlier versions: if \code{cp_prop = FALSE}, an
@@ -30,17 +30,21 @@ the posterior probabilities of threshold exceedance at all \code{T} time
 points, with \code{NA} at the first \code{D}.
 }
 \description{
-Extract in-sample predictions of the mean
+Posterior predictive summaries
 }
 \details{
-For every model, this method returns \code{fitted(object, pars = "mu", ...)}:
-posterior summaries of the conditional mean at the fitted observation
-times. For regression, these use the original covariates and the
-coefficient draws at their corresponding fitted time points. New
-covariates, new observation times, and forecasts beyond the fitted series
-are not supported. These summaries describe the conditional mean, not new
-observation draws; use \code{fitted(object, pars = "ypred")} for posterior
-predictive summaries.
+For every model, this method returns \code{fitted(object, pars = "ypred", ...)}:
+pointwise summaries of the posterior predictive distribution of a new
+observation at each fitted time point. Its quantiles give prediction
+intervals, which include the observation noise. For summaries of the
+conditional mean \eqn{\mu_t} instead, use \code{fitted(object, pars = "mu")}.
+
+Missing values in \code{y} are drawn from the posterior predictive distribution
+during fitting, so \code{predict()} imputes them. In particular, padding \code{y}
+with \code{NA} at the end before fitting gives forecasts at those time points.
+For regression, the covariates must be supplied in \code{X} for every time
+point, including those with missing \code{y}; prediction at new covariate
+values without refitting is not supported.
 
 Changepoints of a changepoint model are returned by \code{\link[=changepoints]{changepoints()}}.
 }
@@ -49,10 +53,15 @@ set.seed(200)
 signal = c(rep(0, 50), rep(10, 50))
 y = signal + rnorm(100)
 
+# Withhold the last five observations to forecast them
+y_f <- y
+y_f[96:100] <- NA
 spec_smooth <- dsp_spec(family = "gaussian", model = "smoothing", D = 1)
-fit_smooth <- dsp_fit(y, spec_smooth, nsave = 200, nburn = 200)
-head(predict(fit_smooth))
-head(predict(fit_smooth, probs = c(0.025, 0.975)))
+fit_smooth <- dsp_fit(y_f, spec_smooth, nsave = 200, nburn = 200)
+tail(predict(fit_smooth, probs = c(0.025, 0.975)), 5)
+
+# The conditional mean, without observation noise
+tail(fitted(fit_smooth, pars = "mu", probs = c(0.025, 0.975)), 5)
 
 }
 \seealso{

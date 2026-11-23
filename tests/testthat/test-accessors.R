@@ -146,12 +146,42 @@ test_that("changepoints validates its input", {
   expect_error(changepoints(list()), "class 'dsp'")
 })
 
-test_that("predict returns summaries of mu for every model", {
+test_that("predict returns posterior predictive summaries for every model", {
 
   for (fit in list(fit_cp, fit_reg, fit_nb)) {
-    expect_identical(predict(fit), fitted(fit, pars = "mu"))
+    expect_identical(predict(fit), fitted(fit, pars = "ypred"))
+    expect_equal(nrow(predict(fit)), nobs(fit))
   }
+  expect_identical(predict(fit_reg, probs = c(0.1, 0.9)),
+                   fitted(fit_reg, pars = "ypred", probs = c(0.1, 0.9)))
+  expect_error(predict(fit_reg, newdata = 1), "set the future values of y to NA")
+
+  # prediction intervals are wider than credible intervals for the mean
+  width <- function(m) m[, "97.5%"] - m[, "2.5%"]
+  expect_gt(mean(width(predict(fit_reg))), mean(width(fitted(fit_reg, pars = "mu"))))
+
+  fit_no_ypred <- fit_reg
+  fit_no_ypred$mcmc_output$ypred <- NULL
+  expect_error(predict(fit_no_ypred), "'ypred'")
   expect_error(predict(fit_reg, cp_thres = 0.5), "changepoint models")
+})
+
+test_that("predict forecasts the values of y that are NA", {
+
+  y_f <- {set.seed(4); cumsum(rnorm(60))}
+  y_f[56:60] <- NA
+  fit_f <- suppressMessages(
+    dsp_fit(y = y_f, model_spec = dsp_spec(family = "gaussian",
+                                           model = "smoothing", D = 1),
+            nsave = 100, nburn = 100, verbose = FALSE, seed = 1)
+  )
+  pred <- predict(fit_f)
+  expect_equal(nrow(pred), 60L)
+  expect_true(all(is.finite(pred[56:60, ])))
+
+  # forecast intervals are wider than those over the observed series
+  width <- pred[, "97.5%"] - pred[, "2.5%"]
+  expect_gt(mean(width[56:60]), mean(width[1:55]))
 })
 
 test_that("the deprecated changepoint arguments of predict still work", {
