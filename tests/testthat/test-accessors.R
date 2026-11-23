@@ -276,17 +276,19 @@ test_that("credible_bands returns joint bands and SimBaS", {
 
   expect_true(all(b$simBaS >= 0 & b$simBaS <= 1))
 
-  # A run of 100 draws can mix poorly between placing the jump at t = 40 or 41,
-  # so the evidence for the jump is checked on a longer run
-  fit_long <- suppressWarnings(suppressMessages(
-    dsp_fit(y = y_cp, model_spec = spec_cp,
-            nsave = 1000, nburn = 1000, verbose = FALSE, seed = 1)
-  ))
+  # Whether an MCMC run places the jump of y_cp at t = 40 or 41, or splits it
+  # between them, depends on mixing and differs across platforms, so the
+  # band calculations are checked on synthetic draws with a known jump:
+  # increments near zero except a jump of 8 at t = 41.
+  fit_long <- fit_cp
+  draws <- {set.seed(5); matrix(rnorm(100 * 79, sd = 0.1), 100, 79)}
+  draws[, 40] <- draws[, 40] + 8
+  fit_long$mcmc_output$omega <- draws
   bl <- credible_bands(fit_long, pars = "omega")
 
-  # the jump at t = 41 is flagged. The model may instead place the jump at
-  # t = 40 and explain y[40] as an anomaly, so accept either increment.
-  expect_lt(min(subset(bl, time %in% 40:41)$simBaS), 0.05)
+  # the jump at t = 41 is flagged, and only there
+  expect_lt(bl$simBaS[bl$time == 41], 0.05)
+  expect_true(all(bl$simBaS[bl$time != 41] > 0.05))
 
   # the score is the smallest alpha at which the joint band excludes zero
   i <- which.min(bl$simBaS)
