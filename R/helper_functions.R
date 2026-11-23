@@ -520,6 +520,8 @@ invlogit = function(x) exp(x - log(1+exp(x))) # exp(x)/(1+exp(x))
 #' @param lower Lower bound on support of the distribution (default -Inf)
 #' @param upper Upper bound on support of the distribution (default +Inf)
 #' @param gx0   Value of g(x0), if known (default is not known)
+#' @param max_iter Maximum number of log-density evaluations allowed in each of
+#' the stepping-out and shrinkage phases (default 1e5). Exceeding it is an error.
 #'
 #' @return  The point sampled, with its log density attached as an attribute.
 #'
@@ -527,8 +529,14 @@ invlogit = function(x) exp(x - log(1+exp(x))) # exp(x)/(1+exp(x))
 #' of the distribution.  If a lower and/or upper bound is specified for the
 #' support, the log density function will not be called outside such limits.
 #'
+#' The log density at the initial point must be finite. If it is not, or if
+#' \code{max_iter} is exceeded, the function stops with an error instead of
+#' looping without end. These checks do not change the draws whenever the
+#' sampler terminates normally.
+#'
 #' @keywords internal
-uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL)
+uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL,
+                       max_iter=1e5)
 {
   # Check the validity of the arguments.
 
@@ -554,6 +562,15 @@ uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL)
   gx0 <- g(x0)
   }
 
+  # A non-finite log density at x0 (for example, a scale parameter that has
+  # collapsed so that the log density underflows to -Inf) makes the slice
+  # level non-finite, and the stepping-out loops below would never end.
+  if (!is.finite(gx0))
+  { stop(sprintf(paste0("Slice sampler: the log density at the current value ",
+                        "(%g) is not finite (%s); the chain has degenerated."),
+                 x0, format(gx0)), call. = FALSE)
+  }
+
   # Determine the slice level, in log terms.
 
   logy <- gx0 - rexp(1)
@@ -569,18 +586,24 @@ uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL)
 
   if (is.infinite(m))  # no limit on number of steps
   {
+    steps <- 0
     repeat
     { if (L<=lower) break
       #uni.slice.evals <<- uni.slice.evals + 1
       if (g(L)<=logy) break
       L <- L - w
+      steps <- steps + 1
+      if (steps>max_iter) .slice_limit("stepping out", x0, max_iter)
     }
 
+    steps <- 0
     repeat
     { if (R>=upper) break
       #uni.slice.evals <<- uni.slice.evals + 1
       if (g(R)<=logy) break
       R <- R + w
+      steps <- steps + 1
+      if (steps>max_iter) .slice_limit("stepping out", x0, max_iter)
     }
   }
 
@@ -617,8 +640,11 @@ uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL)
 
   # Sample from the interval, shrinking it on each rejection.
 
+  steps <- 0
   repeat
   {
+    steps <- steps + 1
+    if (steps>max_iter) .slice_limit("shrinkage", x0, max_iter)
     x1 <- runif(1,L,R)
 
     #uni.slice.evals <<- uni.slice.evals + 1
@@ -639,6 +665,12 @@ uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL)
   attr(x1,"log.density") <- gx1
   return (x1)
 
+}
+
+.slice_limit <- function(phase, x0, max_iter) {
+  stop(sprintf(paste0("Slice sampler: %s exceeded %g iterations from the ",
+                      "current value %g; the chain has degenerated."),
+               phase, max_iter, x0), call. = FALSE)
 }
 
 #----------------------------------------------------------------------------

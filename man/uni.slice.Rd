@@ -4,7 +4,16 @@
 \alias{uni.slice}
 \title{Univariate slice sampler from Neal (2008)}
 \usage{
-uni.slice(x0, g, w = 1, m = Inf, lower = -Inf, upper = +Inf, gx0 = NULL)
+uni.slice(
+  x0,
+  g,
+  w = 1,
+  m = Inf,
+  lower = -Inf,
+  upper = +Inf,
+  gx0 = NULL,
+  max_iter = 1e+05
+)
 }
 \arguments{
 \item{x0}{Initial point}
@@ -20,6 +29,9 @@ uni.slice(x0, g, w = 1, m = Inf, lower = -Inf, upper = +Inf, gx0 = NULL)
 \item{upper}{Upper bound on support of the distribution (default +Inf)}
 
 \item{gx0}{Value of g(x0), if known (default is not known)}
+
+\item{max_iter}{Maximum number of log-density evaluations allowed in each of
+the stepping-out and shrinkage phases (default 1e5). Exceeding it is an error.}
 }
 \value{
 The point sampled, with its log density attached as an attribute.
@@ -32,5 +44,10 @@ Radford M. Neal. The documentation below is also reproduced from Neal (2008).
 The log density function may return -Inf for points outside the support
 of the distribution.  If a lower and/or upper bound is specified for the
 support, the log density function will not be called outside such limits.
+
+The log density at the initial point must be finite. If it is not, or if
+\code{max_iter} is exceeded, the function stops with an error instead of
+looping without end. These checks do not change the draws whenever the
+sampler terminates normally.
 }
 \keyword{internal}

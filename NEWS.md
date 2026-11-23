@@ -1,6 +1,11 @@
 # dsp 1.8.0
 
 * For numerical stability, a square-root QR sampler has been added as a fallback.
+* The univariate slice sampler, used for the observation standard deviation and
+  several other scalar parameters, now stops with an informative error if the
+  log density at the current value is not finite or an iteration limit is
+  exceeded. Previously, a degenerate chain could make it loop without end.
+  Draws are unchanged whenever the sampler terminates normally.
 * Added `coef()`, `residuals()`, `logLik()`, and `confint()` methods for fitted models.
 * Extended `predict()` to return in-sample posterior summaries of the mean for regression, smoothing, and B-spline models, while retaining changepoint detection for changepoint models.
 * Added accessor functions so that a fitted model can be inspected without
