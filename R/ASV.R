@@ -1,4 +1,4 @@
-#' MCMC sampler for adaptive stchoastic volatility (ASV) model
+#' MCMC sampler for adaptive stochastic volatility (ASV) model
 #'
 #' The penalty is determined by the prior on the evolution errors, which include:
 #' \itemize{
@@ -385,7 +385,10 @@ fit_paramsASV_n <- function(data,sParams,evol_error,D){
   sParams$s_upevolParams = s_upevolParams
   return(sParams)
 }
-#' Function for calculating DIC and Pb (Bayesian measures of model complexity and fit by Spiegelhalter et al. 2002)
+#' Compute the DIC of the ASV model
+#'
+#' Computes the deviance information criterion and the effective number of
+#' parameters (Spiegelhalter et al. 2002).
 #'
 #' @param y the \code{T x 1} vector of time series observations.
 #' @param beta the known mean of the process. 0 by default.

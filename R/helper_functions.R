@@ -702,7 +702,7 @@ getARpXmat = function(y, p = 1, include_intercept = FALSE){
 }
 
 #----------------------------------------------------------------------------
-#' Wrapper function for C++ call for sample mat, check pre-conditions to prevent crash
+#' Check inputs and call the C++ band-sparse Gaussian sampler
 #'
 #' @param row_ind list of the row indices to fill in the bandsparse matrix
 #' @param col_ind list of the columns indices to fill in the bandsparse matrix

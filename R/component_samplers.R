@@ -518,7 +518,7 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0,
   hsamp
 }
 #----------------------------------------------------------------------------
-#' Sampler evolution error variance parameters
+#' Sample the evolution error variance parameters
 #'
 #' Compute one draw of evolution error variance parameters under the various options:
 #' \itemize{
@@ -987,7 +987,7 @@ sampleFastGaussian = function(Phi, Ddiag, alpha){
   # Return theta:
   theta
 }
-#' Sampling from 10-component Gaussian mixture component described in Omori et al. 2007
+#' Sample components of the 10-component Gaussian mixture of Omori et al. (2007)
 #'
 #' Samples from the conditional posterior distribution of the \eqn{log(\chi^2)} distribution
 #' by approximating it with the mixture Gaussian distribution described in Omori et al. 2007.
