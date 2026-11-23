@@ -51,7 +51,6 @@ fit_ASV = function(y,beta = 0,evol_error = "DHS",D = 1,
                    verbose = TRUE){
   nT = length(y)
   y = y - beta
-  #sample_sd = sd(y)
   sample_sd = 1
   # initializing parameters
   if(nugget){
@@ -229,10 +228,7 @@ init_paramsASV <- function(data,evol_error,D){
 fit_paramsASV <- function(data,sParams,evol_error,D){
   yoffset = any(data^2 < 10^-16)*mad(data)/10^10
   data = log(data^2 + yoffset)
-  #sigma_e = pi/sqrt(2)
-  #sigma_e = sd(diff(data,differences = D))
   sigma_e = 1
-  #sigma_e = max(1,sqrt(var(diff(data,differences = D)) - pi^2))
   nT = length(data);
   t01 = seq(0, 1, length.out=nT);
 
@@ -241,7 +237,6 @@ fit_paramsASV <- function(data,sParams,evol_error,D){
 
   # Impute the active "data"
   data = approxfun(t01, data, rule = 2)(t01)
-  #s_p_error_term = sample_jfast(nT,data-sParams$s_mu)
   s_p_error_term = sample_j_wrap(nT,data-sParams$s_mu)
   s_mu = sampleBTF(
     data - s_p_error_term$mean,
@@ -263,11 +258,6 @@ fit_paramsASV <- function(data,sParams,evol_error,D){
   sParams$s_evolParams0 = s_evolParams0
   sParams$s_evolParams = s_evolParams
   return(sParams)
-  #
-  # list(s_p_error_term = s_p_error_term,
-  #      s_mu = s_mu,
-  #      s_evolParams0 = s_evolParams0,
-  #      s_evolParams = s_evolParams)
 }
 #' Helper function for initializing parameters for ASV model with a nugget effect
 #'
@@ -348,10 +338,7 @@ init_paramsASV_n <- function(data,evol_error,D){
 fit_paramsASV_n <- function(data,sParams,evol_error,D){
   yoffset = any(data^2 < 10^-16)*mad(data)/10^10
   data = log(data^2 + yoffset)
-  #sigma_e = pi/sqrt(2)
-  #sigma_e = sd(diff(data,differences = D))
   sigma_e = 1
-  #sigma_e = max(1,sqrt(var(diff(data,differences = D)) - pi^2))
   nT = length(data);
   t01 = seq(0, 1, length.out=nT);
 
@@ -360,7 +347,6 @@ fit_paramsASV_n <- function(data,sParams,evol_error,D){
 
   # Impute the active "data"
   data = approxfun(t01, data, rule = 2)(t01)
-  #s_p_error_term = sample_jfast(nT,data-sParams$s_mu)
 
   ####################################
   s_p_error_term = sample_j_wrap(nT,data - sParams$s_mu )

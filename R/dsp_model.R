@@ -389,9 +389,6 @@ dsp_fit = function(y, model_spec,
 
   family = model_spec$family
   model = model_spec$model
-  # if(!is.null(model_spec$arguments$zero_error)){
-  #   model = "smoothing_sparse"
-  # }
   fitter_list <- list(
     gaussian = list(
       changepoint = abco, #changepoint model,

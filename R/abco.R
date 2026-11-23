@@ -139,7 +139,6 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2 = array(NA, c(nsave, nT))
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi = numeric(nsave)
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean = numeric(nsave)
-  # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") post_h = array(NA,c(nsave,nT))
   if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth = array(NA,c(nsave,nT))
   post_loglike = numeric(nsave)
 
@@ -246,7 +245,6 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
         if(!is.na(match('evol_sigma_t2', mcmc_params))) post_evol_sigma_t2[isave,] = c(evolParams0$sigma_w0^2, evolParams$sigma_wt^2)
         if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") post_dhs_phi[isave] = evolParams$dhs_phi
         if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") post_dhs_mean[isave] = evolParams$dhs_mean
-        # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV")  post_h[isave,] = sParams$s_mu
         if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) post_h_smooth[isave,] = sParams$s_mu_sm
         if(useAnom){
           post_loglike[isave] = sum(stats::dnorm(y, mean = mu + c(rep(0,D),zeta), sd = sigma_e, log = TRUE))
@@ -269,7 +267,6 @@ abco = function(y, D = 1, useAnom=TRUE, obsSV = "const",
   if(!is.na(match('evol_sigma_t2', mcmc_params))) mcmc_output$evol_sigma_t2 = post_evol_sigma_t2
   if(!is.na(match('dhs_phi', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_phi = post_dhs_phi
   if(!is.na(match('dhs_mean', mcmc_params)) && evol_error == "DHS") mcmc_output$dhs_mean = post_dhs_mean
-  # if(!is.na(match('h', mcmc_params)) && obsSV == "ASV") mcmc_output$h = post_h
   if(!is.na(match('h_smooth', mcmc_params)) && obsSV == "ASV" && nugget_asv) mcmc_output$h_smooth = post_h_smooth
   mcmc_output$loglike = post_loglike
 
@@ -494,8 +491,6 @@ t_sampleEvolParams = function(omega, evolParams, D = 1, sigma_e = 1, lower_b, up
 
   # Sample the evolution error SD of log-vol (i.e., Polya-Gamma mixing weights)
   eta_t = ht_tilde[-1] - (dhs_phi+ dhs_phi2*st[-n])*ht_tilde[-n]       # Residuals
-  #sigma_eta_t = matrix(1/sqrt(rpg(num = (n-1), h = alphaPlusBeta, z = eta_t)), nc = 1) # Sample
-  #sigma_eta_0 = 1/sqrt(rpg(num = 1, h = 1, z = ht_tilde[1]))                # Sample the inital
   sigma_eta_t = 1/sqrt(pgdraw::pgdraw(alphaPlusBeta, eta_t))
   sigma_eta_0 = 1/sqrt(pgdraw::pgdraw(1, ht_tilde[1]))
 
@@ -544,14 +539,6 @@ t_sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_si
   ystar = log(h_y^2 + yoffset)
 
   # Sample the mixture components
-  #z = sapply(ystar-h_prev, ncind, m_st, sqrt(v_st2), q)
-  #z = sapply(ystar-h_prev, ncind, m_st, sqrt(v_st2), q)
-  # z = c(draw_indicators_generic(ystar-h_prev, rep(0, length(ystar)), length(ystar),
-  #                             q, m_st, sqrt(v_st2), length(q)))
-
-  # Subset mean and variances to the sampled mixture components; (n x p) matrices
-  # m_st_all = m_st[z]
-  # v_st2_all = v_st2[z]
   mixture_component = sample_j_wrap(n,ystar-h_prev)
 
   # Subset mean and variances to the sampled mixture components; (n x p) matrices
@@ -664,14 +651,12 @@ t_sampleLogVolMu = function(h, h_mu, h_phi, h_phi2, h_sigma_eta_t, h_sigma_eta_0
 
   # Sample the precision term(s)
   dhs_mean_prec_j = pgdraw::pgdraw(1, h_mu - h_log_scale)
-  #dhs_mean_prec_j = pgdraw::pgdraw(1, h_mu - h_log_scale)
 
   # Now, form the "y" and "x" terms in the (auto)regression
   y_mu = (h[-1] - (h_phi+h_phi2*h_st[-n])*h[-n])/h_sigma_eta_t;
   x_mu = (1 - h_phi-h_phi2*h_st[-n])/h_sigma_eta_t
 
   # Include the initial sd?
-  #if(!is.null(h_sigma_eta_0)){y_mu = rbind(h[1,]/h_sigma_eta_0, y_mu); x_mu = rbind(1/h_sigma_eta_0, x_mu)}
   y_mu = c(h[1]/h_sigma_eta_0, y_mu);
   x_mu = c(1/h_sigma_eta_0, x_mu)
 
@@ -819,7 +804,6 @@ t_sampleSVparams = function(omega, svParams){
 
   # First, check for numerical issues:
   svInput = omega; #if(all(svInput==0)) {svInput = 10^-8} else svInput = svInput + sd(svInput)/10^8
-  #hsOffset = tcrossprod(rep(1,n), apply(omega, 2, function(x) any(x^2 < 10^-16)*max(10^-8, mad(x)/10^6)))
 
   # Sample the SV parameters:
   svsamp = stochvol::svsample_fast_cpp(svInput,

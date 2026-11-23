@@ -231,11 +231,8 @@ initCholReg_spam = function(obs_sigma_t2, evol_sigma_t2, XtX, D = 1){
     # Quadratic term:
     Qevol = Matrix::bandSparse(nT*p, k = c(0,p), diagonals= list(Q_diag, Q_off), symmetric = TRUE)
 
-    # For checking via direct computation:
-    # H1 = bandSparse(nT, k = c(0,-1), diag = list(rep(1, nT), rep(-1, nT)), symmetric = FALSE)
-    # IH = kronecker(as.matrix(H1), diag(p));
-    # Q0 = t(IH)%*%diag(as.numeric(1/matrix(t(evol_sigma_t2))))%*%(IH)
-    # print(sum((Qevol - Q0)^2))
+    # Equals t(IH) %*% diag(1/c(t(evol_sigma_t2))) %*% IH, where
+    # IH = kronecker(H1, diag(p)) and H1 is the order-1 difference matrix.
 
   } else {
     if(D == 2){
@@ -263,11 +260,8 @@ initCholReg_spam = function(obs_sigma_t2, evol_sigma_t2, XtX, D = 1){
       # Quadratic term:
       Qevol = Matrix::bandSparse(nT*p, k = c(0, p, 2*p), diagonals= list(Q_diag, Q_off_1, Q_off_2), symmetric = TRUE)
 
-      # For checking via direct computation:
-      # H2 = bandSparse(nT, k = c(0,-1, -2), diag = list(rep(1, nT), c(0, rep(-2, nT-1)), rep(1, nT)), symmetric = FALSE)
-      # IH = kronecker(as.matrix(H2), diag(p));
-      # Q0 = t(IH)%*%diag(as.numeric(1/matrix(t(evol_sigma_t2))))%*%(IH)
-      # print(sum((Qevol - Q0)^2))
+      # Equals t(IH) %*% diag(1/c(t(evol_sigma_t2))) %*% IH, where
+      # IH = kronecker(H2, diag(p)) and H2 is the order-2 difference matrix.
 
     } else stop('Requires D=1 or D=2')
   }
@@ -303,10 +297,6 @@ build_Q = function(obs_sigma_t2, evol_sigma_t2, D = 1){
   if(!(D == 1 || D == 2)) stop('build_Q requires D = 1 or D = 2')
 
   nT = length(evol_sigma_t2)
-
-  # For reference: first and second order difference matrices (not needed below)
-  #H1 = bandSparse(nT, k = c(0,-1), diag = list(rep(1, nT), rep(-1, nT)), symmetric = FALSE)
-  #H2 = bandSparse(nT, k = c(0,-1, -2), diag = list(rep(1, nT), c(0, rep(-2, nT-1)), rep(1, nT)), symmetric = FALSE)
 
   # Quadratic term: can construct directly for D = 1 or D = 2 using [diag(1/obs_sigma_t2, nT) + (t(HD)%*%diag(1/evol_sigma_t2, nT))%*%HD]
   if(D == 1){
@@ -552,9 +542,6 @@ uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL,
     stop ("Invalid slice sampling argument")
   }
 
-  # Keep track of the number of calls made to this function.
-  #uni.slice.calls <<- uni.slice.calls + 1
-
   # Find the log density at the initial point, if not already known.
 
   if (is.null(gx0))
@@ -589,7 +576,6 @@ uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL,
     steps <- 0
     repeat
     { if (L<=lower) break
-      #uni.slice.evals <<- uni.slice.evals + 1
       if (g(L)<=logy) break
       L <- L - w
       steps <- steps + 1
@@ -599,7 +585,6 @@ uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL,
     steps <- 0
     repeat
     { if (R>=upper) break
-      #uni.slice.evals <<- uni.slice.evals + 1
       if (g(R)<=logy) break
       R <- R + w
       steps <- steps + 1
@@ -614,7 +599,6 @@ uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL,
 
     while (J>0)
     { if (L<=lower) break
-      #uni.slice.evals <<- uni.slice.evals + 1
       if (g(L)<=logy) break
       L <- L - w
       J <- J - 1
@@ -622,7 +606,6 @@ uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL,
 
     while (K>0)
     { if (R>=upper) break
-      #uni.slice.evals <<- uni.slice.evals + 1
       if (g(R)<=logy) break
       R <- R + w
       K <- K - 1
@@ -647,7 +630,6 @@ uni.slice <- function (x0, g, w=1, m=Inf, lower=-Inf, upper=+Inf, gx0=NULL,
     if (steps>max_iter) .slice_limit("shrinkage", x0, max_iter)
     x1 <- runif(1,L,R)
 
-    #uni.slice.evals <<- uni.slice.evals + 1
     gx1 <- g(x1)
 
     if (gx1>=logy) break
