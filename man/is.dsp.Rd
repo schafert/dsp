@@ -33,10 +33,12 @@ to the structure of the object.
 \code{coef()} returns the posterior means of the regression coefficients for
 \code{model = "regression"} or the basis coefficients for \code{model = "bspline"}.
 \code{residuals()} subtracts the posterior mean of \eqn{\mu_t} from \eqn{y_t}.
-\code{confint(object, pars = "mu", level = 0.95)} returns pointwise credible
+\code{confint(object, parm = "mu", level = 0.95)} returns pointwise credible
 intervals for the specified parameter.
 \code{logLik()} returns the posterior mean log-likelihood. Set
 \code{summary = "draws"} to return the value at each saved iteration.
+\code{deviance()} returns the posterior mean deviance, the goodness-of-fit
+term of \code{DIC()}.
 \code{predict()} returns posterior predictive summaries, the same as
 \code{fitted(object, pars = "ypred")}, for every model. For changepoint models, \code{changepoints()} returns the
 detected changepoints and their posterior probabilities as a data frame.

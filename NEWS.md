@@ -6,7 +6,12 @@
   log density at the current value is not finite or an iteration limit is
   exceeded. Previously, a degenerate chain could make it loop without end.
   Draws are unchanged whenever the sampler terminates normally.
-* Added `coef()`, `residuals()`, `logLik()`, and `confint()` methods for fitted models.
+* Added `coef()`, `residuals()`, `logLik()`, `confint()`, and `deviance()`
+  methods for fitted models. `logLik()` returns a `logLik` object with
+  `df = NA`, because a shrinkage model has no fixed parameter count, so
+  `AIC()` and `BIC()` return `NA`; use `DIC()` instead. `confint()` takes the
+  parameter name through `parm`, as the generic does, or through `pars`, as
+  `fitted()` does.
 * `predict()` now returns pointwise posterior predictive summaries (mean and
   quantiles of `ypred`) for every model, with prediction intervals that
   include the observation noise. Fitting with `NA` at the end of `y` gives

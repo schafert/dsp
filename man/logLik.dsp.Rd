@@ -14,8 +14,9 @@
 \item{...}{currently unused.}
 }
 \value{
-A numeric scalar for \code{summary = "mean"}, or a numeric vector
-with one value per saved iteration for \code{summary = "draws"}.
+For \code{summary = "mean"}, an object of class \code{logLik} with
+attributes \code{nobs} and \code{df = NA}. For \code{summary = "draws"}, a numeric
+vector with one value per saved iteration.
 }
 \description{
 Return the posterior mean log-likelihood or the stored log-likelihood
@@ -25,10 +26,10 @@ value at each saved MCMC iteration.
 The mean is the average of the stored log-likelihood values,
 not the log-likelihood evaluated at posterior mean parameters or the
 logarithm of the average likelihood. It is not a maximized
-log-likelihood. The result is therefore a numeric value rather than a
-\code{logLik} object with a parameter count for use by \code{AIC()} or \code{BIC()}.
+log-likelihood, and a shrinkage model has no fixed parameter count, so
+the degrees of freedom are \code{NA} and \code{AIC()} and \code{BIC()} return \code{NA}.
 Use \code{\link[=DIC]{DIC()}} for the model-comparison summaries provided by the package.
 }
 \seealso{
-\code{\link[=as.mcmc.dsp]{as.mcmc.dsp()}}, \code{\link[=DIC]{DIC()}}
+\code{\link[=as.mcmc.dsp]{as.mcmc.dsp()}}, \code{\link[=DIC]{DIC()}}, \code{\link[=deviance.dsp]{deviance.dsp()}}
 }
