@@ -9,7 +9,7 @@
 #'   `x2`, ... if `X` has none. For B-splines, a named vector of basis
 #'   coefficient estimates. Other model types do not have a separate
 #'   coefficient parameter; use [fitted.dsp()] for their mean process.
-#' @seealso [fitted.dsp()], [confint.dsp()]
+#' @seealso [fitted.dsp()], [credible_intervals()]
 #' @importFrom stats coef
 #' @method coef dsp
 #' @export
@@ -128,52 +128,4 @@ logLik.dsp <- function(object, summary = c("mean", "draws"), ...) {
 deviance.dsp <- function(object, ...) {
   check_dsp(object)
   -2 * as.numeric(logLik(object))
-}
-
-#' Extract pointwise posterior credible intervals
-#'
-#' The `confint()` method for `dsp` returns equal-tailed Bayesian credible
-#' intervals, not frequentist confidence intervals or simultaneous bands.
-#'
-#' @param object a fitted `dsp` object.
-#' @param parm one stored parameter name from [par_names()]. Defaults to
-#'   `"mu"`, as in [fitted.dsp()].
-#' @param level posterior probability covered by each interval. Defaults to
-#'   `0.95`.
-#' @param ... `pars` may be used in place of `parm`, for consistency with
-#'   [fitted.dsp()] and [as.mcmc.dsp()]. Other arguments are not accepted.
-#' @returns A matrix with one row per selected parameter element and two
-#'   columns for the lower and upper posterior quantiles.
-#' @seealso [fitted.dsp()], [credible_bands()], [coef.dsp()]
-#' @importFrom stats confint
-#' @method confint dsp
-#' @export
-confint.dsp <- function(object, parm = "mu", level = 0.95, ...) {
-  check_dsp(object)
-  dots <- list(...)
-  if ("pars" %in% names(dots)) {
-    if (!missing(parm))
-      stop("Supply the parameter through 'parm' or 'pars', not both.", call. = FALSE)
-    parm <- dots$pars
-    dots$pars <- NULL
-  }
-  if (length(dots))
-    stop("Unused argument(s) to confint(): ",
-         paste(if (is.null(names(dots))) "unnamed" else names(dots), collapse = ", "),
-         call. = FALSE)
-  pars <- parm
-  if (!is.numeric(level) || length(level) != 1L ||
-      !is.finite(level) || level <= 0 || level >= 1)
-    stop("'level' must be a number strictly between zero and one.",
-         call. = FALSE)
-  if (!is.character(pars) || length(pars) != 1L || is.na(pars))
-    stop("'parm' must be a single stored parameter name.", call. = FALSE)
-  draws <- as.matrix(as.mcmc(object, pars = pars))
-
-  probs <- c((1 - level) / 2, (1 + level) / 2)
-  out <- t(vapply(seq_len(ncol(draws)), function(j) {
-    stats::quantile(draws[, j], probs = probs, names = FALSE)
-  }, numeric(2L)))
-  dimnames(out) <- list(colnames(draws), names(stats::quantile(0, probs)))
-  out
 }

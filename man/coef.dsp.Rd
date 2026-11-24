@@ -22,5 +22,5 @@ coefficient parameter; use \code{\link[=fitted.dsp]{fitted.dsp()}} for their mea
 Return posterior means of the regression or B-spline coefficients.
 }
 \seealso{
-\code{\link[=fitted.dsp]{fitted.dsp()}}, \code{\link[=confint.dsp]{confint.dsp()}}
+\code{\link[=fitted.dsp]{fitted.dsp()}}, \code{\link[=credible_intervals]{credible_intervals()}}
 }

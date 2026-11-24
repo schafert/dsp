@@ -20,7 +20,7 @@
 #' largest standardized absolute deviation from the posterior mean across all
 #' time points. The bands therefore contain the whole trajectory in a
 #' proportion \code{level} of the posterior draws, whereas the pointwise
-#' intervals from [fitted.dsp()] are computed at each time point separately.
+#' intervals from [credible_intervals()] are computed at each time point separately.
 #'
 #' The SimBaS of Meyer et al. (2015) at time \eqn{t} is the smallest
 #' \eqn{\alpha} for which the \eqn{1 - \alpha} simultaneous band excludes zero
@@ -52,7 +52,9 @@
 #' \code{time}. The \code{time} column is taken from \code{times}. The
 #' increments \code{omega} have \code{T - D} entries, which are labelled with
 #' the last \code{T - D} time points, so that each row refers to the time at
-#' which the increment ends. The print method reports the global Bayesian
+#' which the increment ends. The basis coefficients of a B-spline model,
+#' \code{beta} and \code{evol_sigma_t2}, are labelled by a column
+#' \code{coefficient} in place of \code{time}. The print method reports the global Bayesian
 #' p-value and the periods in which the band excludes zero, by predictor.
 #' Subsetting with \code{[} returns a plain data frame.
 #'
@@ -66,7 +68,7 @@
 #' (2015). Bayesian function-on-function regression for multilevel functional
 #' data. \emph{Biometrics}, 71(3), 563--574. \doi{10.1111/biom.12299}
 #'
-#' @seealso [fitted.dsp()] for pointwise intervals, [plot.dsp()] with
+#' @seealso [credible_intervals()] for pointwise intervals, [plot.dsp()] with
 #'   \code{include_joint_bands = TRUE} to display the bands
 #'
 #' @examples
@@ -112,19 +114,7 @@ credible_bands <- function(object, pars = "mu", level = 0.95, times = NULL, ...)
   if(length(d) > 3)
     stop("Unsupported parameter shape: must be 2D or 3D.", call. = FALSE)
 
-  nT <- nobs(object)
-  if(is.null(times)) times <- seq_len(nT)
-  if(length(times) != nT)
-    stop("'times' must have one entry per time point of the series (", nT, ").",
-         call. = FALSE)
-
-  # A parameter with fewer than T entries, such as the increments omega with
-  # T - D, is aligned with the last time points
-  n <- d[2]
-  if(n > nT)
-    stop("'", pars, "' has more entries than the series has time points.",
-         call. = FALSE)
-  time <- times[(nT - n + 1):nT]
+  index <- param_index(object, pars, d[2], times)
 
   bands_one <- function(b){
     cb <- credBands(b, alpha = 1 - level)
@@ -133,14 +123,15 @@ credible_bands <- function(object, pars = "mu", level = 0.95, times = NULL, ...)
   }
 
   if(length(d) == 2){
-    out <- data.frame(time = time, bands_one(samps))
+    out <- data.frame(index$value, bands_one(samps))
   } else {
     X <- get_spec(object)$arguments$X
     predictor <- if(!is.null(colnames(X))) colnames(X) else seq_len(d[3])
     out <- do.call(rbind, lapply(seq_len(d[3]), function(j)
-      data.frame(time = time, predictor = predictor[j],
+      data.frame(index$value, predictor = predictor[j],
                  bands_one(matrix(samps[, , j], nrow = d[1])))))
   }
+  names(out)[1] <- index$name
 
   rownames(out) <- NULL
   structure(out, class = c("dsp_bands", "data.frame"),
@@ -160,8 +151,11 @@ print.dsp_bands <- function(x, digits = 2, max_periods = 10, ...){
   df <- as.data.frame(x)
   groups <- if(is.null(df$predictor)) list(df) else split(df, factor(df$predictor, levels = unique(df$predictor)))
 
+  # B-spline basis coefficients are labelled by coefficient, not by time
+  unit <- if(names(df)[1] == "coefficient") "coefficient" else "time point"
+
   cat("Simultaneous ", format(100*level), "% credible bands for ", attr(x, "pars"),
-      " (", nrow(groups[[1]]), " time points)\n", sep = "")
+      " (", nrow(groups[[1]]), " ", unit, "s)\n", sep = "")
 
   for(g in seq_along(groups)){
     b <- groups[[g]]
@@ -174,16 +168,16 @@ print.dsp_bands <- function(x, digits = 2, max_periods = 10, ...){
 
     excl <- !is.na(b$simBaS) & (b$lower > 0 | b$upper < 0)
     if(!any(excl)){
-      cat("The band includes zero at every time point.\n")
+      cat("The band includes zero at every ", unit, ".\n", sep = "")
       next
     }
     runs <- rle(excl)
     end <- cumsum(runs$lengths)
     start <- end - runs$lengths + 1
-    periods <- data.frame(start = b$time[start[runs$values]],
-                          end = b$time[end[runs$values]],
+    periods <- data.frame(start = b[[1]][start[runs$values]],
+                          end = b[[1]][end[runs$values]],
                           length = runs$lengths[runs$values])
-    cat("The band excludes zero at ", sum(excl), " time point",
+    cat("The band excludes zero at ", sum(excl), " ", unit,
         if(sum(excl) > 1) "s", ", in ", nrow(periods), " period",
         if(nrow(periods) > 1) "s", ":\n", sep = "")
     print(utils::head(periods, max_periods), row.names = FALSE)
@@ -214,4 +208,26 @@ as.data.frame.dsp_bands <- function(x, ...){
   attr(x, "level") <- NULL
   attr(x, "ndraws") <- NULL
   x
+}
+
+# Labels for the entries of a parameter whose draws form the d2 columns of a
+# draw matrix: the time points of the series or, for the basis coefficients of
+# a B-spline model, their index. A parameter with fewer than T entries, such
+# as the increments omega with T - D, is aligned with the last time points.
+param_index <- function(object, pars, d2, times){
+
+  nT <- nobs(object)
+  if(is.null(times)) times <- seq_len(nT)
+  if(length(times) != nT)
+    stop("'times' must have one entry per time point of the series (", nT, ").",
+         call. = FALSE)
+
+  if(get_spec(object)$model == "bspline" && pars %in% c("beta", "evol_sigma_t2"))
+    return(list(name = "coefficient", value = seq_len(d2)))
+
+  if(d2 > nT)
+    stop("'", pars, "' has more entries than the series has time points.",
+         call. = FALSE)
+  list(name = "time", value = times[(nT - d2 + 1):nT])
+
 }
