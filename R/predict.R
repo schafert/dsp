@@ -1,114 +1,87 @@
 #----------------------------------------------------------------------------
-#' Extract in-sample predictions or detect changepoints
+#' Posterior predictive summaries
 #'
 #' @param object object of class dsp from [dsp_fit()]
-#' @param cp_thres (default 0.5) cutoff proportion for percentage of posterior
-#'                  samples exceeding the threshold needed to label a changepoint.
-#'                  Used only for changepoint models.
-#' @param cp_prop (default FALSE) logical flag determining if the posterior proportions of threshold exceedance is to be returned.
-#'   Used only for changepoint models.
-#' @param ... for regression, smoothing, and B-spline models, `probs` may be
-#'   supplied to choose the posterior quantiles returned by [fitted.dsp()].
-#'   Currently unused for changepoint models.
+#' @param cp_thres,cp_prop Deprecated. Changepoint
+#'   detection has moved to [changepoints()]. If either argument is supplied
+#'   for a changepoint model, `predict()` warns and returns the detected
+#'   changepoints as in earlier versions; see Value.
+#' @param ... `probs` may be supplied to choose the quantiles returned by
+#'   [fitted.dsp()].
 #' @details
-#' For regression, smoothing (Gaussian or negative binomial), and B-spline
-#' models, this method returns `fitted(object, pars = "mu", ...)`: posterior
-#' summaries of the conditional mean at the fitted observation times. For
-#' regression, these use the original covariates and the coefficient draws
-#' at their corresponding fitted time points. New covariates, new observation
-#' times, and forecasts beyond the fitted series are not supported.
-#' These summaries describe the conditional mean, not new observation draws;
-#' use `fitted(object, pars = "ypred")` for posterior predictive summaries.
+#' For every model, this method returns `fitted(object, pars = "ypred", ...)`:
+#' pointwise summaries of the posterior predictive distribution of a new
+#' observation at each fitted time point. Its quantiles give prediction
+#' intervals, which include the observation noise. For summaries of the
+#' conditional mean \eqn{\mu_t} instead, use `fitted(object, pars = "mu")`.
 #'
-#' The changepoint model uses a thresholding mechanism with a latent indicator variable.
-#' For this model, the method instead calculates the proportion of samples
-#' where the increment exceeds the threshold and returns detected changepoints.
+#' Missing values in `y` are drawn from the posterior predictive distribution
+#' during fitting, so `predict()` imputes them. In particular, padding `y`
+#' with `NA` at the end before fitting gives forecasts at those time points.
+#' For regression, the covariates must be supplied in `X` for every time
+#' point, including those with missing `y`; prediction at new covariate
+#' values without refitting is not supported.
 #'
+#' Changepoints of a changepoint model are returned by [changepoints()].
 #'
 #' @returns
-#' For regression, smoothing, and B-spline models, a matrix with one row per
-#' fitted time point, containing the posterior mean and quantiles of `mu`.
-#' The default quantiles are 2.5%, 25%, 50%, 75%, and 97.5%.
+#' A matrix with one row per time point of the fitted series, containing the
+#' posterior predictive mean and quantiles. The default quantiles are 2.5%,
+#' 25%, 50%, 75%, and 97.5%.
 #'
-#' For changepoint models, if `cp_prop = FALSE`, an integer vector containing the indices of detected changepoints in the observed data.
-#' If no changepoints are detected, an empty integer vector is returned.
-#'
-#' If cp_prop = TRUE, a list containing:
-#'     - 'cp_t': a data frame with 'index' and 'probability' columns for detected changepoints.
-#'     - 'cp_prop': a numeric vector of length `T` containing the pointwise posterior proportions of threshold exceedance,
-#'       aligned with the observed series.
-#'       The first `D` entries are `NA`, because no increment is defined there.
+#' If the deprecated `cp_thres` or `cp_prop` is supplied for a changepoint
+#' model, the return value of earlier versions: if `cp_prop = FALSE`, an
+#' integer vector of the indices of detected changepoints; if
+#' `cp_prop = TRUE`, a list with these indices in `cp_t` and, in `cp_prop`,
+#' the posterior probabilities of threshold exceedance at all `T` time
+#' points, with `NA` at the first `D`.
 #'
 #' @examples
 #' set.seed(200)
 #' signal = c(rep(0, 50), rep(10, 50))
-#' noise = rep(1, 100)
-#' noise_var = rep(1, 100)
-#' for (k in 2:100){
-#'   noise_var[k] = exp(0.9*log(noise_var[k-1]) + rnorm(1, 0, 0.5))
-#'   noise[k] = rnorm(1, 0, sqrt(noise_var[k])) }
+#' y = signal + rnorm(100)
 #'
-#' y = signal + noise
-#' model_spec = dsp_spec(family = "gaussian", model = "changepoint",
-#'                       D = 1, useAnom = TRUE)
-#' mcmc_output = dsp_fit(y, model_spec = model_spec, nsave = 200, nburn = 200)
-#' predict(mcmc_output)
-#'
-#' predict(mcmc_output, cp_prop = TRUE)
-#'
-#' # In-sample conditional-mean summaries for a smoothing model
+#' # Withhold the last five observations to forecast them
+#' y_f <- y
+#' y_f[96:100] <- NA
 #' spec_smooth <- dsp_spec(family = "gaussian", model = "smoothing", D = 1)
-#' fit_smooth <- dsp_fit(y, spec_smooth, nsave = 200, nburn = 200)
-#' head(predict(fit_smooth))
-#' head(predict(fit_smooth, probs = c(0.025, 0.975)))
+#' fit_smooth <- dsp_fit(y_f, spec_smooth, nsave = 200, nburn = 200)
+#' tail(predict(fit_smooth, probs = c(0.025, 0.975)), 5)
 #'
-#' @seealso [fitted.dsp()]
+#' # The conditional mean, without observation noise
+#' tail(fitted(fit_smooth, pars = "mu", probs = c(0.025, 0.975)), 5)
+#'
+#' @seealso [fitted.dsp()], [changepoints()]
 #' @method predict dsp
 #' @export
-
-predict.dsp <- function(object, cp_thres = 0.5, cp_prop = FALSE, ...){
+predict.dsp <- function(object, cp_thres = deprecated(), cp_prop = deprecated(), ...){
 
   check_dsp(object)
 
-  if(object$model_spec$model != 'changepoint'){
-    dots <- list(...)
-    if (length(dots) &&
-        (is.null(names(dots)) || any(!names(dots) %in% "probs")))
-      stop("Only 'probs' is supported through ... for in-sample predictions; new data and forecasting are not supported.",
-           call. = FALSE)
-    return(fitted(object, pars = "mu", ...))
+  old_args <- lifecycle::is_present(cp_thres) || lifecycle::is_present(cp_prop)
+  if(old_args && object$model_spec$model == "changepoint"){
+    arg <- if(lifecycle::is_present(cp_thres)) "cp_thres" else "cp_prop"
+    lifecycle::deprecate_warn(
+      "1.8.0", sprintf("predict.dsp(%s)", arg), "changepoints()",
+      details = "`predict()` now returns posterior summaries of the mean for every model.")
+    if(!lifecycle::is_present(cp_thres)) cp_thres <- 0.5
+    if(!lifecycle::is_present(cp_prop)) cp_prop <- FALSE
+    probability <- cp_probability(object, cp_thres)
+    cp_t <- which(!is.na(probability) & probability >= cp_thres)
+    if(isTRUE(cp_prop)) return(list(cp_t = cp_t, cp_prop = probability))
+    return(cp_t)
   }
+  if(old_args)
+    stop("cp_thres and cp_prop apply only to changepoint models; see changepoints().",
+         call. = FALSE)
 
-  if(!all(c("omega", "gamma") %in% names(object$mcmc_output))){
-    stop("Can't calculate changepoint evidence without samples of omega and gamma.")
-  }
-
-  if (is.na(cp_thres) || !is.numeric(cp_thres) || cp_thres < 0 || cp_thres > 1) stop("cp_thres must be a numeric value between 0 and 1.")
-
-  D = object$model_spec$arguments$D
-
-  cp_mat <- apply(object$mcmc_output$omega^2, MARGIN = 2, \(samp){samp > exp(object$mcmc_output$gamma)})
-
-  cp_list <- colMeans(cp_mat)
-
-  cp_t <- as.integer(which(cp_list >= cp_thres) + D)
-
-  # if(cp_prop){
-  #   # omega holds the T - D increments, so pad the front to index by time
-  #   return(list(cp_t = cp_t, cp_prop = c(rep(NA_real_, D), cp_list)))
-  # }
-  if (cp_prop) {
-  probability <- c(rep(NA_real_, D), cp_list)
-
-  return(list(
-    cp_t = data.frame(
-      index = cp_t,
-      probability = probability[cp_t]
-    ),
-    cp_prop = probability
-  ))
-}
-
-  return(cp_t)
-
+  dots <- list(...)
+  if (length(dots) &&
+      (is.null(names(dots)) || any(!names(dots) %in% "probs")))
+    stop("Only 'probs' is supported through ...; to forecast, set the future values of y to NA before fitting.",
+         call. = FALSE)
+  if (!"ypred" %in% par_names(object))
+    stop("predict() requires the posterior predictive draws 'ypred', which were not saved for this fit.",
+         call. = FALSE)
+  fitted(object, pars = "ypred", ...)
 }

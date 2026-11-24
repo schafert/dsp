@@ -209,11 +209,8 @@ sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = 
       # Quadratic term:
       Qevol = Matrix::bandSparse(nT*p, k = c(0,p), diagonals = list(Q_diag, Q_off), symmetric = TRUE)
 
-      # For checking via direct computation:
-      # H1 = bandSparse(nT, k = c(0,-1), diag = list(rep(1, nT), rep(-1, nT)), symmetric = FALSE)
-      # IH = kronecker(as.matrix(H1), diag(p));
-      # Q0 = t(IH)%*%diag(as.numeric(1/matrix(t(evol_sigma_t2))))%*%(IH)
-      # print(sum((Qevol - Q0)^2))
+      # Equals t(IH) %*% diag(1/c(t(evol_sigma_t2))) %*% IH, where
+      # IH = kronecker(H1, diag(p)) and H1 is the order-1 difference matrix.
 
     } else {
       if(D == 2){
@@ -241,11 +238,8 @@ sampleBTF_reg = function(y, X, obs_sigma_t2, evol_sigma_t2, XtX, D = 1, chol0 = 
         # Quadratic term:
         Qevol = Matrix::bandSparse(nT*p, k = c(0, p, 2*p), diagonals= list(Q_diag, Q_off_1, Q_off_2), symmetric = TRUE)
 
-        # For checking via direct computation:
-        # H2 = bandSparse(nT, k = c(0,-1, -2), diag = list(rep(1, nT), c(0, rep(-2, nT-1)), rep(1, nT)), symmetric = FALSE)
-        # IH = kronecker(as.matrix(H2), diag(p));
-        # Q0 = t(IH)%*%diag(as.numeric(1/matrix(t(evol_sigma_t2))))%*%(IH)
-        # print(sum((Qevol - Q0)^2))
+        # Equals t(IH) %*% diag(1/c(t(evol_sigma_t2))) %*% IH, where
+        # IH = kronecker(H2, diag(p)) and H2 is the order-2 difference matrix.
 
       } else stop('sampleBTF_reg() requires D=1 or D=2')
     }
@@ -457,16 +451,8 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0,
   h_prev = as.matrix(h_prev) # Just to be sure (T x p)
   n = nrow(h_prev); p = ncol(h_prev)
 
-  # Mixture params: mean, variance, and weights
-  # Kim, Shephard, Chib (1998) 7-component mixture:
-  #m_st  = c(-11.40039, -5.24321, -9.83726, 1.50746,  -0.65098, 0.52478,  -2.35859)
-  #v_st2 = c(5.795960,  2.613690, 5.179500, 0.167350, 0.640090, 0.340230, 1.262610)
-  #q     = c(0.007300,  0.105560, 0.000020, 0.043950, 0.340010, 0.245660, 0.257500)
-
-  # Omori, Chib, Shephard, Nakajima (2007) 10-component mixture:
-  # m_st  = c(1.92677, 1.34744, 0.73504, 0.02266, -0.85173, -1.97278, -3.46788, -5.55246, -8.68384, -14.65000)
-  # v_st2 = c(0.11265, 0.17788, 0.26768, 0.40611,  0.62699,  0.98583,  1.57469,  2.54498,  4.16591,   7.33342)
-  # q     = c(0.00609, 0.04775, 0.13057, 0.20674,  0.22715,  0.18842,  0.12047,  0.05591,  0.01575,   0.00115)
+  # The log(y^2) errors use the 10-component mixture of Omori, Chib, Shephard,
+  # and Nakajima (2007); its parameters are set in sample_j_wrap().
 
   # Add an offset: common for all times, but distict for each j=1,...,p
   yoffset = tcrossprod(rep(1,n),
@@ -532,7 +518,7 @@ sampleLogVols = function(h_y, h_prev, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0,
   hsamp
 }
 #----------------------------------------------------------------------------
-#' Sampler evolution error variance parameters
+#' Sample the evolution error variance parameters
 #'
 #' Compute one draw of evolution error variance parameters under the various options:
 #' \itemize{
@@ -581,7 +567,6 @@ sampleEvolParams = function(omega, evolParams,  sigma_e = 1, evol_error = "DHS",
     # Global scale params:
     evolParams$tauLambda = rgamma(n = p, shape = 0.5 + n/2, colSums(evolParams$xiLambdaj) + evolParams$xiLambda)
     evolParams$xiLambda = rgamma(n = p, shape = 1, rate = evolParams$tauLambda + 1/sigma_e^2)
-    #evolParams$xiLambda = rgamma(n = p, shape = 1, rate = evolParams$tauLambda + 1)
 
     evolParams$sigma_wt = 1/sqrt(evolParams$tauLambdaj)
 
@@ -608,7 +593,6 @@ sampleEvolParams = function(omega, evolParams,  sigma_e = 1, evol_error = "DHS",
     return(evolParams)
   }
   if(evol_error == "SV") return(sampleSVparams(omega = omega, svParams = evolParams))
-  #if(evol_error == "SV") return(sampleSVparams0(omega = omega, svParams = evolParams))
   if(evol_error == "NIG") {
     evolParams = list(sigma_wt = tcrossprod(rep(1,n),
                                             apply(omega, 2,
@@ -713,7 +697,6 @@ sampleSVparams = function(omega, svParams){
   for(j in 1:p){
     # First, check for numerical issues:
     svInput = omega[,j]; #if(all(svInput==0)) {svInput = 10^-8} else svInput = svInput + sd(svInput)/10^8
-    #hsOffset = tcrossprod(rep(1,n), apply(omega, 2, function(x) any(x^2 < 10^-16)*max(10^-8, mad(x)/10^6)))
 
     # Sample the SV parameters:
     svsamp = stochvol::svsample_fast_cpp(svInput,
@@ -883,7 +866,6 @@ sampleLogVolMu = function(h, h_mu, h_phi, h_sigma_eta_t, h_sigma_eta_0, h_log_sc
   x_mu = tcrossprod(rep(1,n-1), 1 - h_phi)/h_sigma_eta_t
 
   # Include the initial sd?
-  #if(!is.null(h_sigma_eta_0)){y_mu = rbind(h[1,]/h_sigma_eta_0, y_mu); x_mu = rbind(1/h_sigma_eta_0, x_mu)}
   y_mu = rbind(h[1,]/h_sigma_eta_0, y_mu);
   x_mu = rbind(1/h_sigma_eta_0, x_mu)
 
@@ -959,7 +941,6 @@ sampleEvol0 = function(mu0, evolParams0, commonSD = FALSE, A = 1){
     evolParams0$sigma_w0 = 1/sqrt(rgamma(n = p, shape = 1/2 + 1/2, rate = mu02/2 + evolParams0$px_sigma_w0))
 
     # (Distinct) paramater expansion:
-    #evolParams0$px_sigma_w0 = rgamma(n = p, shape = 1/2 + 1/2, rate = 1/evolParams0$sigma_w0^2 + 1/A^2)
     evolParams0$px_sigma_w0 = rgamma(n = p, shape = 1/2 + 1/2, rate = 1/evolParams0$sigma_w0^2 + 1/evolParams0$sigma_00^2)
 
     # Global standard deviations:
@@ -1006,7 +987,7 @@ sampleFastGaussian = function(Phi, Ddiag, alpha){
   # Return theta:
   theta
 }
-#' Sampling from 10-component Gaussian mixture component described in Omori et al. 2007
+#' Sample components of the 10-component Gaussian mixture of Omori et al. (2007)
 #'
 #' Samples from the conditional posterior distribution of the \eqn{log(\chi^2)} distribution
 #' by approximating it with the mixture Gaussian distribution described in Omori et al. 2007.

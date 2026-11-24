@@ -13,7 +13,8 @@
 }
 \value{
 For regression, a matrix with one row per fitted time point and
-one column per predictor. For B-splines, a named vector of basis
+one column per predictor, named by the column names of \code{X}, or \code{x1},
+\code{x2}, ... if \code{X} has none. For B-splines, a named vector of basis
 coefficient estimates. Other model types do not have a separate
 coefficient parameter; use \code{\link[=fitted.dsp]{fitted.dsp()}} for their mean process.
 }

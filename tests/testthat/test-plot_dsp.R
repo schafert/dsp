@@ -36,3 +36,36 @@ test_that("plot.dsp accepts a supplied type, named or positional", {
   expect_silent(plot(fit_plot, type = "mu"))
   expect_silent(plot(fit_plot, "ypred"))
 })
+
+test_that("plot.dsp aligns omega and the changepoint markers with the series", {
+  y <- {set.seed(200); c(rep(0, 40), rep(8, 40)) + rnorm(80)}
+  fit <- suppressWarnings(suppressMessages(
+    dsp_fit(y = y, model_spec = dsp_spec(family = "gaussian",
+                                         model = "changepoint", D = 2),
+            nsave = 100, nburn = 100, verbose = FALSE, seed = 1)
+  ))
+  dates <- seq(as.Date("2000-01-01"), by = "month", length.out = 80)
+  cp <- changepoints(fit, times = dates)
+  expect_gt(nrow(cp), 0L)
+
+  # record where the changepoint lines are drawn
+  drawn <- list()
+  local_mocked_bindings(abline = function(..., v = NULL) {
+    if (!is.null(v)) drawn[[length(drawn) + 1L]] <<- v
+    invisible(NULL)
+  }, .package = "dsp")
+  pdf(NULL)
+  on.exit(dev.off(), add = TRUE)
+
+  # omega has T - D columns, but full-length times are accepted
+  expect_no_error(plot(fit, "omega", times = dates))
+  expect_no_error(plot(fit, "mu", times = dates))
+  expect_equal(drawn[[1]], cp$time)
+  expect_equal(drawn[[2]], cp$time)
+
+  # without times, both types mark the same positions on [0, 1]
+  drawn <- list()
+  plot(fit, "omega")
+  plot(fit, "mu")
+  expect_equal(drawn[[1]], drawn[[2]])
+})

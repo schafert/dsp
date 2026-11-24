@@ -41,7 +41,7 @@
 
 \item{include_joint_bands}{logical; if \code{TRUE}, include simultaneous credible bands (Crainiceanu et al. 2007; see \code{\link[=credible_bands]{credible_bands()}}) in addition to pointwise credible intervals when available. Joint bands are currently supported only for time-varying parameters: \code{zeta}, \code{omega}, \code{ypred}, and \code{mu} for 2D outputs, and \code{zeta}, \code{omega}, \code{ypred}, \code{mu}, and \code{beta} for 3D outputs.}
 
-\item{alpha}{numeric credibility level used to construct posterior intervals and bands. Defaults to \code{0.05}, corresponding to 95\% intervals/bands.}
+\item{alpha}{Specifies the posterior interval and band credibility level as \eqn{1-\alpha}. Defaults to \code{0.05}, corresponding to 95\% intervals/bands.}
 
 \item{xlab}{optional x-axis label. If \code{NULL}, defaults to \code{"t"}.}
 

@@ -138,7 +138,6 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
   if(!is.null(chol0)) chol0 = initChol_spam(nT = Nt, D = D)
 
   # Initialize the conditional mean, mu:
-  # mu <- matrix(log(y + 1), ncol = 1) #this initialization breaks things when omega is 0...
   mu <-  matrix(log(y + 1) + 0.1*rnorm(Nt), ncol = 1)
 
   # Initial SD (implicitly assumes a constant mean)
@@ -162,9 +161,6 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
   if(!evol0_sample){
     evolParams0$sigma_w0 <- rep(evol0_sd, D)
   }
-
-  # For HS MCMC comparisons:
-  # evolParams$dhs_phi = 0
 
   # Store the MCMC output in separate arrays (better computation times)
   mcmc_output = vector('list', length(mcmc_params)); names(mcmc_output) = mcmc_params
@@ -250,7 +246,6 @@ btf_nb = function(y, evol_error = 'DHS', D = 2,
         isave = isave + 1
 
         # Save the MCMC samples:
-        # if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu[isave,] = mu
         if(!is.na(match('mu', mcmc_params)) || computeDIC) post_mu[isave,] = exp(mu + offset)
         if(!is.na(match('ypred', mcmc_params))) post_ypred[isave,] = stats::rnbinom(Nt, size = r, mu = exp(mu + offset))
         if(!is.na(match('r', mcmc_params)) || computeDIC) post_r[isave] = r
@@ -365,10 +360,7 @@ sample_r <- function(y, d.prev, mu, r_sample = "int_mh",
                      prior_r = expression(log(1 + x^2/100)))
 {
 
-  # browser()
-
   if(r_sample == "int_mh"){
-    # browser()
 
     d.new = d.prev
 
@@ -402,8 +394,6 @@ sample_r <- function(y, d.prev, mu, r_sample = "int_mh",
   ## Kowal Slice sampler
   if(r_sample == "slice"){
 
-    # e0 <- 1/sigma_c^2 # variance of the half cauchy (10^2)
-
     r = uni.slice(d.prev, g = function(x){
       sum(stats::dnbinom(y, size = x, mu = mu, log = TRUE)) + eval(prior_r)
     }, lower = 0, upper = 1000)
@@ -426,8 +416,6 @@ sample_r <- function(y, d.prev, mu, r_sample = "int_mh",
     ## TODO: add prior for this sampler
 
     lu = log(runif(1))
-
-    # if(is.na(lalpha)){browser()}
 
     if(lu < lalpha) r = rstar
 

@@ -26,6 +26,6 @@ a list containing 4 sets of parameters
 }
 }
 \description{
-Helper function for Sampling parameters for ASV model
+Helper function for sampling parameters for ASV model
 }
 \keyword{internal}

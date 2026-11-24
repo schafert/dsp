@@ -2,7 +2,7 @@
 % Please edit documentation in R/other_functions.R
 \name{simUnivariate}
 \alias{simUnivariate}
-\title{Generate univariate signals of different type}
+\title{Generate univariate signals of different types}
 \usage{
 simUnivariate(name, n = 1024, snr = Inf)
 }

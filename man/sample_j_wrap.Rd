@@ -2,7 +2,7 @@
 % Please edit documentation in R/component_samplers.R
 \name{sample_j_wrap}
 \alias{sample_j_wrap}
-\title{Sampling from 10-component Gaussian mixture component described in Omori et al. 2007}
+\title{Sample components of the 10-component Gaussian mixture of Omori et al. (2007)}
 \usage{
 sample_j_wrap(Td, obs = NULL)
 }

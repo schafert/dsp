@@ -69,7 +69,7 @@ slope changes (for \code{D = 2}), and the regression coefficients
 effect. For the mean function \code{mu} of a series far from zero, every
 score is close to zero and carries no information. The changepoint model
 stores \code{omega} by default. For \code{omega}, the test is distinct
-from the changepoint rule of \code{\link[=predict.dsp]{predict.dsp()}}, which compares the
+from the changepoint rule of \code{\link[=changepoints]{changepoints()}}, which compares the
 increments with the threshold of the changepoint model.
 
 Time points with no posterior variation, such as fixed initial values, are

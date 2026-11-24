@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper_functions.R
 \name{sample_mat_c}
 \alias{sample_mat_c}
-\title{Wrapper function for C++ call for sample mat, check pre-conditions to prevent crash}
+\title{Check inputs and call the C++ band-sparse Gaussian sampler}
 \usage{
 sample_mat_c(row_ind, col_ind, mat_val, mat_l, num_inp, linht, rd, D)
 }
@@ -24,6 +24,6 @@ sample_mat_c(row_ind, col_ind, mat_val, mat_l, num_inp, linht, rd, D)
 \item{D}{the degree of differencing for changepoint}
 }
 \description{
-Wrapper function for C++ call for sample mat, check pre-conditions to prevent crash
+Check inputs and call the C++ band-sparse Gaussian sampler
 }
 \keyword{internal}

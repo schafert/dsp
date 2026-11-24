@@ -2,7 +2,7 @@
 % Please edit documentation in R/ASV.R
 \name{fit_ASV}
 \alias{fit_ASV}
-\title{MCMC sampler for adaptive stchoastic volatility (ASV) model}
+\title{MCMC sampler for adaptive stochastic volatility (ASV) model}
 \usage{
 fit_ASV(
   y,

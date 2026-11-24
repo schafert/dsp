@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------------
-#' Generate univariate signals of different type
+#' Generate univariate signals of different types
 #'
 #' Using code from the archived \code{wmtsa} package
 #'

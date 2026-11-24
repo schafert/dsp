@@ -2,7 +2,7 @@
 % Please edit documentation in R/component_samplers.R
 \name{sampleEvolParams}
 \alias{sampleEvolParams}
-\title{Sampler evolution error variance parameters}
+\title{Sample the evolution error variance parameters}
 \usage{
 sampleEvolParams(
   omega,

@@ -57,7 +57,8 @@
 #' Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A. and
 #' Rubin, D. B. (2014). \emph{Bayesian Data Analysis}, 3rd edition. CRC Press.
 #'
-#' @seealso [summary.dsp()], [as.mcmc.dsp()], [plot.dsp()], [predict.dsp()]
+#' @seealso [summary.dsp()], [as.mcmc.dsp()], [plot.dsp()], [predict.dsp()],
+#'   [changepoints()]
 #'
 #' @examples
 #' set.seed(200)

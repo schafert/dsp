@@ -97,5 +97,6 @@ Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A. and
 Rubin, D. B. (2014). \emph{Bayesian Data Analysis}, 3rd edition. CRC Press.
 }
 \seealso{
-\code{\link[=summary.dsp]{summary.dsp()}}, \code{\link[=as.mcmc.dsp]{as.mcmc.dsp()}}, \code{\link[=plot.dsp]{plot.dsp()}}, \code{\link[=predict.dsp]{predict.dsp()}}
+\code{\link[=summary.dsp]{summary.dsp()}}, \code{\link[=as.mcmc.dsp]{as.mcmc.dsp()}}, \code{\link[=plot.dsp]{plot.dsp()}}, \code{\link[=predict.dsp]{predict.dsp()}},
+\code{\link[=changepoints]{changepoints()}}
 }

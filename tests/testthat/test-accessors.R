@@ -95,15 +95,109 @@ test_that("as.mcmc is available without attaching coda", {
 })
 
 
-test_that("predict aligns the changepoint probabilities with the series", {
+test_that("changepoints returns a data frame aligned with the series", {
 
-  cp <- predict(fit_cp, cp_thres = 0.5, cp_prop = TRUE)
   D <- fit_cp$model_spec$arguments$D
+  out <- fit_cp$mcmc_output
+  expected <- c(rep(NA_real_, D),
+                colMeans(sweep(out$omega^2, 1, exp(out$gamma), ">")))
 
-  expect_length(cp$cp_prop, 80L)
-  expect_true(all(is.na(cp$cp_prop[seq_len(D)])))
-  expect_true(all(cp$cp_prop[cp$cp_t] >= 0.5))
-  expect_identical(cp$cp_t, predict(fit_cp, cp_thres = 0.5))
+  cp <- changepoints(fit_cp, cp_thres = 0.5)
+  expect_s3_class(cp, "data.frame")
+  expect_named(cp, c("index", "probability"))
+  expect_type(cp$index, "integer")
+  expect_gt(nrow(cp), 0L)
+  expect_equal(cp$index, which(expected >= 0.5))
+  expect_equal(cp$probability, expected[cp$index])
+
+  # times adds a time column between index and probability
+  dates <- seq(as.Date("2000-01-01"), by = "month", length.out = 80)
+  cp_dates <- changepoints(fit_cp, cp_thres = 0.5, times = dates)
+  expect_named(cp_dates, c("index", "time", "probability"))
+  expect_equal(cp_dates$time, dates[cp$index])
+  expect_error(changepoints(fit_cp, times = dates[-1]), "length 80")
+
+  # all = TRUE gives one row per time point
+  cp_all <- changepoints(fit_cp, cp_thres = 0.5, all = TRUE)
+  expect_equal(nrow(cp_all), 80L)
+  expect_named(cp_all, c("index", "probability", "changepoint"))
+  expect_equal(cp_all$probability, expected)
+  expect_true(all(is.na(cp_all$probability[seq_len(D)])))
+  expect_false(any(cp_all$changepoint[seq_len(D)]))
+  expect_equal(which(cp_all$changepoint), cp$index)
+})
+
+test_that("changepoints returns zero rows, not NULL, when nothing is detected", {
+
+  # a threshold that no increment exceeds
+  fit_none <- fit_cp
+  fit_none$mcmc_output$gamma[] <- 1e3
+  none <- changepoints(fit_none, times = seq_len(80))
+  expect_s3_class(none, "data.frame")
+  expect_equal(nrow(none), 0L)
+  expect_named(none, c("index", "time", "probability"))
+})
+
+test_that("changepoints validates its input", {
+
+  expect_error(changepoints(fit_reg), "model = \"changepoint\"")
+  expect_error(changepoints(fit_cp, cp_thres = 2), "between 0 and 1")
+  expect_error(changepoints(fit_cp, all = NA), "TRUE or FALSE")
+  expect_error(changepoints(list()), "class 'dsp'")
+})
+
+test_that("predict returns posterior predictive summaries for every model", {
+
+  for (fit in list(fit_cp, fit_reg, fit_nb)) {
+    expect_identical(predict(fit), fitted(fit, pars = "ypred"))
+    expect_equal(nrow(predict(fit)), nobs(fit))
+  }
+  expect_identical(predict(fit_reg, probs = c(0.1, 0.9)),
+                   fitted(fit_reg, pars = "ypred", probs = c(0.1, 0.9)))
+  expect_error(predict(fit_reg, newdata = 1), "set the future values of y to NA")
+
+  # prediction intervals are wider than credible intervals for the mean
+  width <- function(m) m[, "97.5%"] - m[, "2.5%"]
+  expect_gt(mean(width(predict(fit_reg))), mean(width(fitted(fit_reg, pars = "mu"))))
+
+  fit_no_ypred <- fit_reg
+  fit_no_ypred$mcmc_output$ypred <- NULL
+  expect_error(predict(fit_no_ypred), "'ypred'")
+  expect_error(predict(fit_reg, cp_thres = 0.5), "changepoint models")
+})
+
+test_that("predict forecasts the values of y that are NA", {
+
+  y_f <- {set.seed(4); cumsum(rnorm(60))}
+  y_f[56:60] <- NA
+  fit_f <- suppressMessages(
+    dsp_fit(y = y_f, model_spec = dsp_spec(family = "gaussian",
+                                           model = "smoothing", D = 1),
+            nsave = 100, nburn = 100, verbose = FALSE, seed = 1)
+  )
+  pred <- predict(fit_f)
+  expect_equal(nrow(pred), 60L)
+  expect_true(all(is.finite(pred[56:60, ])))
+
+  # forecast intervals are wider than those over the observed series
+  width <- pred[, "97.5%"] - pred[, "2.5%"]
+  expect_gt(mean(width[56:60]), mean(width[1:55]))
+})
+
+test_that("the deprecated changepoint arguments of predict still work", {
+
+  D <- fit_cp$model_spec$arguments$D
+  cp <- changepoints(fit_cp, cp_thres = 0.5)
+
+  lifecycle::expect_deprecated(old <- predict(fit_cp, cp_thres = 0.5))
+  expect_type(old, "integer")
+  expect_identical(old, cp$index)
+
+  lifecycle::expect_deprecated(old <- predict(fit_cp, cp_prop = TRUE))
+  expect_named(old, c("cp_t", "cp_prop"))
+  expect_identical(old$cp_t, cp$index)
+  expect_length(old$cp_prop, 80L)
+  expect_true(all(is.na(old$cp_prop[seq_len(D)])))
 })
 
 
@@ -182,17 +276,19 @@ test_that("credible_bands returns joint bands and SimBaS", {
 
   expect_true(all(b$simBaS >= 0 & b$simBaS <= 1))
 
-  # A run of 100 draws can mix poorly between placing the jump at t = 40 or 41,
-  # so the evidence for the jump is checked on a longer run
-  fit_long <- suppressWarnings(suppressMessages(
-    dsp_fit(y = y_cp, model_spec = spec_cp,
-            nsave = 1000, nburn = 1000, verbose = FALSE, seed = 1)
-  ))
+  # Whether an MCMC run places the jump of y_cp at t = 40 or 41, or splits it
+  # between them, depends on mixing and differs across platforms, so the
+  # band calculations are checked on synthetic draws with a known jump:
+  # increments near zero except a jump of 8 at t = 41.
+  fit_long <- fit_cp
+  draws <- {set.seed(5); matrix(rnorm(100 * 79, sd = 0.1), 100, 79)}
+  draws[, 40] <- draws[, 40] + 8
+  fit_long$mcmc_output$omega <- draws
   bl <- credible_bands(fit_long, pars = "omega")
 
-  # the jump at t = 41 is flagged. The model may instead place the jump at
-  # t = 40 and explain y[40] as an anomaly, so accept either increment.
-  expect_lt(min(subset(bl, time %in% 40:41)$simBaS), 0.05)
+  # the jump at t = 41 is flagged, and only there
+  expect_lt(bl$simBaS[bl$time == 41], 0.05)
+  expect_true(all(bl$simBaS[bl$time != 41] > 0.05))
 
   # the score is the smallest alpha at which the joint band excludes zero
   i <- which.min(bl$simBaS)

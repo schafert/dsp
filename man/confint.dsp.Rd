@@ -4,18 +4,19 @@
 \alias{confint.dsp}
 \title{Extract pointwise posterior credible intervals}
 \usage{
-\method{confint}{dsp}(object, pars = "mu", level = 0.95, ...)
+\method{confint}{dsp}(object, parm = "mu", level = 0.95, ...)
 }
 \arguments{
 \item{object}{a fitted \code{dsp} object.}
 
-\item{pars}{one stored parameter name from \code{\link[=par_names]{par_names()}}. Defaults to
+\item{parm}{one stored parameter name from \code{\link[=par_names]{par_names()}}. Defaults to
 \code{"mu"}, as in \code{\link[=fitted.dsp]{fitted.dsp()}}.}
 
 \item{level}{posterior probability covered by each interval. Defaults to
 \code{0.95}.}
 
-\item{...}{currently unused.}
+\item{...}{\code{pars} may be used in place of \code{parm}, for consistency with
+\code{\link[=fitted.dsp]{fitted.dsp()}} and \code{\link[=as.mcmc.dsp]{as.mcmc.dsp()}}. Other arguments are not accepted.}
 }
 \value{
 A matrix with one row per selected parameter element and two

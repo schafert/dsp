@@ -2,7 +2,7 @@
 % Please edit documentation in R/ASV.R
 \name{computeDIC_ASV}
 \alias{computeDIC_ASV}
-\title{Function for calculating DIC and Pb (Bayesian measures of model complexity and fit by Spiegelhalter et al. 2002)}
+\title{Compute the DIC of the ASV model}
 \usage{
 computeDIC_ASV(y, beta, post_sigma2, post_loglike)
 }
@@ -19,6 +19,7 @@ computeDIC_ASV(y, beta, post_sigma2, post_loglike)
 a list containing DIC and p_d. Two options for estimating both DIC and p_d, which are both included.
 }
 \description{
-Function for calculating DIC and Pb (Bayesian measures of model complexity and fit by Spiegelhalter et al. 2002)
+Computes the deviance information criterion and the effective number of
+parameters (Spiegelhalter et al. 2002).
 }
 \keyword{internal}
