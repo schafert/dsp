@@ -49,7 +49,8 @@
 #' point and columns \code{time}, \code{mean}, \code{lower}, \code{upper} and
 #' \code{simBaS}. For a parameter with one band per predictor, such as the
 #' regression coefficients \code{beta}, a column \code{predictor} follows
-#' \code{time}. The \code{time} column is taken from \code{times}. The
+#' \code{time}, naming the predictor as in [coef.dsp()]: by the column names
+#' of \code{X}, or \code{x1}, \code{x2}, ... if \code{X} has none. The \code{time} column is taken from \code{times}. The
 #' increments \code{omega} have \code{T - D} entries, which are labelled with
 #' the last \code{T - D} time points, so that each row refers to the time at
 #' which the increment ends. The basis coefficients of a B-spline model,
@@ -125,8 +126,7 @@ credible_bands <- function(object, pars = "mu", level = 0.95, times = NULL, ...)
   if(length(d) == 2){
     out <- data.frame(index$value, bands_one(samps))
   } else {
-    X <- get_spec(object)$arguments$X
-    predictor <- if(!is.null(colnames(X))) colnames(X) else seq_len(d[3])
+    predictor <- predictor_names(object, d[3])
     out <- do.call(rbind, lapply(seq_len(d[3]), function(j)
       data.frame(index$value, predictor = predictor[j],
                  bands_one(matrix(samps[, , j], nrow = d[1])))))
@@ -230,4 +230,12 @@ param_index <- function(object, pars, d2, times){
          call. = FALSE)
   list(name = "time", value = times[(nT - d2 + 1):nT])
 
+}
+
+# Names of the predictors of a regression model, as in coef(): the column
+# names of X, or x1, x2, ... if X has none. Draw-level outputs (as.mcmc(),
+# summary()) instead use the positional names beta[t, j].
+predictor_names <- function(object, J){
+  nm <- colnames(get_spec(object)$arguments$X)
+  if(is.null(nm)) paste0("x", seq_len(J)) else nm
 }

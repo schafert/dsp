@@ -26,7 +26,8 @@
 #' is one row per time point, and a column \code{time}, taken from
 #' \code{times}, comes first. For a parameter with one value per predictor and
 #' time point, such as the regression coefficients \code{beta}, a column
-#' \code{predictor} follows \code{time}. The increments \code{omega} have
+#' \code{predictor} follows \code{time}, naming the predictor as in
+#' [coef.dsp()]. The increments \code{omega} have
 #' \code{T - D} entries, which are labelled with the last \code{T - D} time
 #' points. The basis coefficients of a B-spline model, \code{beta} and
 #' \code{evol_sigma_t2}, are labelled by a column \code{coefficient}, and a
@@ -85,8 +86,7 @@ credible_intervals <- function(object, pars = "mu", level = 0.95, times = NULL, 
   if(length(d) == 2){
     out <- data.frame(index$value, intervals_one(samps))
   } else {
-    X <- get_spec(object)$arguments$X
-    predictor <- if(!is.null(colnames(X))) colnames(X) else seq_len(d[3])
+    predictor <- predictor_names(object, d[3])
     out <- do.call(rbind, lapply(seq_len(d[3]), function(j)
       data.frame(index$value, predictor = predictor[j],
                  intervals_one(matrix(samps[, , j], nrow = d[1])))))

@@ -26,7 +26,8 @@ posterior mean and the interval limits. For a time-varying parameter there
 is one row per time point, and a column \code{time}, taken from
 \code{times}, comes first. For a parameter with one value per predictor and
 time point, such as the regression coefficients \code{beta}, a column
-\code{predictor} follows \code{time}. The increments \code{omega} have
+\code{predictor} follows \code{time}, naming the predictor as in
+\code{\link[=coef.dsp]{coef.dsp()}}. The increments \code{omega} have
 \code{T - D} entries, which are labelled with the last \code{T - D} time
 points. The basis coefficients of a B-spline model, \code{beta} and
 \code{evol_sigma_t2}, are labelled by a column \code{coefficient}, and a

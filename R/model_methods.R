@@ -31,10 +31,7 @@ coef.dsp <- function(object, ...) {
     out <- matrix(colMeans(matrix(beta, nrow = d[1L])),
                   nrow = d[2L], ncol = d[3L])
     X <- object$model_spec$arguments$X
-    predictor_names <- colnames(X)
-    if (is.null(predictor_names))
-      predictor_names <- paste0("x", seq_len(d[3L]))
-    dimnames(out) <- list(rownames(X), predictor_names)
+    dimnames(out) <- list(rownames(X), predictor_names(object, d[3L]))
     return(out)
   }
 

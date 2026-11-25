@@ -63,7 +63,7 @@ test_that("credible_intervals returns pointwise intervals labelled by time", {
   expect_equal(names(ci), c("time", "predictor", "mean", "lower", "upper"))
   expect_equal(nrow(ci), 80L)
   expect_equal(ci$time, rep(1:40, 2))
-  expect_equal(ci$predictor, rep(1:2, each = 40))
+  expect_equal(ci$predictor, rep(c("x1", "x2"), each = 40))
 
   draws <- as.matrix(as.mcmc(fit_reg, pars = "beta"))
   expect_equal(c(ci$lower[1], ci$upper[1]),
@@ -112,4 +112,25 @@ test_that("B-spline coefficients are labelled by coefficient, not time", {
   expect_equal(names(cb)[1], "coefficient")
   expect_output(print(cb), paste0("\\(", K, " coefficients\\)"))
   expect_equal(names(credible_intervals(fit_bs))[1], "time")
+})
+
+test_that("summaries name predictors as coef() does; draws keep positions", {
+  ci <- credible_intervals(fit_reg, pars = "beta")
+  cb <- credible_bands(fit_reg, pars = "beta")
+  expect_equal(unique(ci$predictor), colnames(coef(fit_reg)))
+  expect_equal(unique(cb$predictor), colnames(coef(fit_reg)))
+  expect_output(print(cb), "Predictor x1:")
+  expect_true("beta[1, 1]" %in% colnames(as.matrix(as.mcmc(fit_reg, pars = "beta"))))
+
+  X_named <- sim$X
+  colnames(X_named) <- c("market", "size")
+  fit_named <- suppressMessages(
+    dsp_fit(sim$y, dsp_spec(family = "gaussian", model = "regression", D = 1,
+                            X = X_named),
+            nsave = 50, nburn = 50, verbose = FALSE, seed = 1)
+  )
+  expect_equal(unique(credible_intervals(fit_named, pars = "beta")$predictor),
+               c("market", "size"))
+  expect_equal(unique(credible_bands(fit_named, pars = "beta")$predictor),
+               c("market", "size"))
 })

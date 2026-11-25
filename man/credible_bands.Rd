@@ -33,7 +33,8 @@ An object of class \code{dsp_bands}, a data frame with one row per time
 point and columns \code{time}, \code{mean}, \code{lower}, \code{upper} and
 \code{simBaS}. For a parameter with one band per predictor, such as the
 regression coefficients \code{beta}, a column \code{predictor} follows
-\code{time}. The \code{time} column is taken from \code{times}. The
+\code{time}, naming the predictor as in \code{\link[=coef.dsp]{coef.dsp()}}: by the column names
+of \code{X}, or \code{x1}, \code{x2}, ... if \code{X} has none. The \code{time} column is taken from \code{times}. The
 increments \code{omega} have \code{T - D} entries, which are labelled with
 the last \code{T - D} time points, so that each row refers to the time at
 which the increment ends. The basis coefficients of a B-spline model,
