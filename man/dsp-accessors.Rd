@@ -58,7 +58,8 @@ its internal structure.
 \details{
 \code{par_names()} returns the names of the parameters with stored posterior
 draws. These are the values accepted by the \code{pars} argument of
-\code{fitted()}, \code{\link[=confint.dsp]{confint.dsp()}}, \code{\link[=summary.dsp]{summary.dsp()}} and \code{\link[=as.mcmc.dsp]{as.mcmc.dsp()}}, and by the
+\code{fitted()}, \code{\link[=credible_intervals]{credible_intervals()}}, \code{\link[=credible_bands]{credible_bands()}}, \code{\link[=summary.dsp]{summary.dsp()}} and
+\code{\link[=as.mcmc.dsp]{as.mcmc.dsp()}}, and by the
 \code{type} argument of \code{\link[=plot.dsp]{plot.dsp()}}.
 
 \code{fitted()} returns pointwise posterior summaries of one parameter.

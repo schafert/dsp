@@ -33,8 +33,8 @@ to the structure of the object.
 \code{coef()} returns the posterior means of the regression coefficients for
 \code{model = "regression"} or the basis coefficients for \code{model = "bspline"}.
 \code{residuals()} subtracts the posterior mean of \eqn{\mu_t} from \eqn{y_t}.
-\code{confint(object, parm = "mu", level = 0.95)} returns pointwise credible
-intervals for the specified parameter.
+\code{\link[=credible_intervals]{credible_intervals()}} returns pointwise credible intervals for a stored
+parameter, and \code{\link[=credible_bands]{credible_bands()}} simultaneous credible bands.
 \code{logLik()} returns the posterior mean log-likelihood. Set
 \code{summary = "draws"} to return the value at each saved iteration.
 \code{deviance()} returns the posterior mean deviance, the goodness-of-fit

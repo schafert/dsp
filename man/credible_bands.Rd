@@ -33,10 +33,13 @@ An object of class \code{dsp_bands}, a data frame with one row per time
 point and columns \code{time}, \code{mean}, \code{lower}, \code{upper} and
 \code{simBaS}. For a parameter with one band per predictor, such as the
 regression coefficients \code{beta}, a column \code{predictor} follows
-\code{time}. The \code{time} column is taken from \code{times}. The
+\code{time}, naming the predictor as in \code{\link[=coef.dsp]{coef.dsp()}}: by the column names
+of \code{X}, or \code{x1}, \code{x2}, ... if \code{X} has none. The \code{time} column is taken from \code{times}. The
 increments \code{omega} have \code{T - D} entries, which are labelled with
 the last \code{T - D} time points, so that each row refers to the time at
-which the increment ends. The print method reports the global Bayesian
+which the increment ends. The basis coefficients of a B-spline model,
+\code{beta} and \code{evol_sigma_t2}, are labelled by a column
+\code{coefficient} in place of \code{time}. The print method reports the global Bayesian
 p-value and the periods in which the band excludes zero, by predictor.
 Subsetting with \code{[} returns a plain data frame.
 }
@@ -52,7 +55,7 @@ multiple is the \code{level} quantile, over the posterior draws, of the
 largest standardized absolute deviation from the posterior mean across all
 time points. The bands therefore contain the whole trajectory in a
 proportion \code{level} of the posterior draws, whereas the pointwise
-intervals from \code{\link[=fitted.dsp]{fitted.dsp()}} are computed at each time point separately.
+intervals from \code{\link[=credible_intervals]{credible_intervals()}} are computed at each time point separately.
 
 The SimBaS of Meyer et al. (2015) at time \eqn{t} is the smallest
 \eqn{\alpha} for which the \eqn{1 - \alpha} simultaneous band excludes zero
@@ -104,6 +107,6 @@ Meyer, M. J., Coull, B. A., Versace, F., Cinciripini, P. and Morris, J. S.
 data. \emph{Biometrics}, 71(3), 563--574. \doi{10.1111/biom.12299}
 }
 \seealso{
-\code{\link[=fitted.dsp]{fitted.dsp()}} for pointwise intervals, \code{\link[=plot.dsp]{plot.dsp()}} with
+\code{\link[=credible_intervals]{credible_intervals()}} for pointwise intervals, \code{\link[=plot.dsp]{plot.dsp()}} with
 \code{include_joint_bands = TRUE} to display the bands
 }
