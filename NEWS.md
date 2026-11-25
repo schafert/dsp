@@ -12,7 +12,9 @@
   return `NA`; use `DIC()` instead.
 * Added `credible_intervals()`, which returns pointwise equal-tailed credible
   intervals for a stored parameter as a data frame, labelled by `times` like
-  the simultaneous bands of `credible_bands()`.
+  the simultaneous bands of `credible_bands()`. Both name the predictors of a
+  regression model as `coef()` does: by the column names of `X`, or `x1`,
+  `x2`, ... if it has none.
 * `credible_bands()` now labels the basis coefficients of a B-spline model by
   a `coefficient` column instead of by time points.
 * `predict()` now returns pointwise posterior predictive summaries (mean and
